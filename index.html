@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0506" />
+  <title>镜魇 · 字卡传讯</title>
+  <meta name="description" content="对着镜子说话，让字卡替你回信。字卡库可自由编辑与导入，所有数据保存在本机。" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="application-name" content="镜魇" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="镜魇" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="stylesheet" href="styles.css?v=5" />
+</head>
+<body>
+
+  <div class="backdrop" aria-hidden="true">
+    <span class="veil veil-a"></span>
+    <span class="veil veil-b"></span>
+    <span class="veil veil-c"></span>
+    <div class="sky" id="sky"></div>
+    <div class="glow glow-a"></div>
+    <div class="glow glow-b"></div>
+    <svg class="bat bat-a" viewBox="0 0 120 50" aria-hidden="true">
+      <path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/>
+    </svg>
+    <svg class="bat bat-b" viewBox="0 0 120 50" aria-hidden="true">
+      <path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/>
+    </svg>
+    <div class="vignette"></div>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <ellipse cx="16" cy="14.5" rx="7.6" ry="10.2" stroke="currentColor" stroke-width="1.3"/>
+            <ellipse cx="16" cy="14.5" rx="5.4" ry="7.8" stroke="currentColor" stroke-width=".7" opacity=".5"/>
+            <path d="M16 24.7v3.4M11.6 29.2h8.8M16 4.3V2.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="16" cy="2.2" r="1.1" fill="currentColor"/>
+            <circle cx="16" cy="28.1" r="1" fill="currentColor" opacity=".7"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>镜魇</h1>
+          <p>MIRROR&nbsp;WHISPER</p>
+        </div>
+      </div>
+
+      <section class="profile" aria-label="梦角资料">
+        <div class="mirror-wrap">
+          <span class="mirror-finial" aria-hidden="true"></span>
+          <div class="mirror-frame">
+            <div class="mirror-glass">
+              <span class="mirror-glow"></span>
+              <svg class="mirror-shadow" viewBox="0 0 140 210" aria-hidden="true">
+                <defs>
+                  <linearGradient id="figureGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1b0b0d"/>
+                    <stop offset="55%" stop-color="#100607"/>
+                    <stop offset="100%" stop-color="#050203"/>
+                  </linearGradient>
+                  <radialGradient id="auraGrad" cx="50%" cy="42%" r="52%">
+                    <stop offset="0%" stop-color="rgba(146, 62, 62, .38)"/>
+                    <stop offset="60%" stop-color="rgba(96, 32, 36, .14)"/>
+                    <stop offset="100%" stop-color="rgba(96, 32, 36, 0)"/>
+                  </radialGradient>
+                </defs>
+                <ellipse cx="70" cy="88" rx="64" ry="82" fill="url(#auraGrad)"/>
+                <path d="M70 34c-16 0-26 14-26 31 0 13 7 21 11 28 3 4 1 8-4 11-18 8-31 24-34 46-2 18 4 30 14 32h78c10-2 16-14 14-32-3-22-16-38-34-46-5-3-7-7-4-11 4-7 11-15 11-28 0-17-10-31-26-31Z" fill="url(#figureGrad)"/>
+                <ellipse cx="70" cy="64" rx="16" ry="19" fill="#090304"/>
+                <path d="M70 34c-9 0-16 6-20 15 6-6 12-8 20-8s14 2 20 8c-4-9-11-15-20-15Z" fill="#2c1113" opacity=".6"/>
+                <path d="M50 53c2-13 10-21 20-21s18 8 20 21" fill="none" stroke="#6b2c2f" stroke-width="1.2" opacity=".42"/>
+                <path d="M45 139c5-19 15-31 24-36" fill="none" stroke="#7a3438" stroke-width="1.4" opacity=".22"/>
+              </svg>
+              <span class="mirror-mist"></span>
+              <span class="mirror-shine"></span>
+            </div>
+            <span class="mirror-rim" aria-hidden="true"></span>
+          </div>
+          <span class="mirror-base" aria-hidden="true"></span>
+        </div>
+
+        <h2 id="charNameLabel">沈砚</h2>
+        <p class="profile-title" id="charTitleLabel">住在镜子背面的人</p>
+        <div class="profile-status"><span class="pulse"></span><span id="charStatus">在等你的消息</span></div>
+        <button type="button" class="ghost-btn" id="openSettingsBtn">✎&nbsp; 编辑梦角</button>
+      </section>
+
+      <nav class="nav" aria-label="主导航">
+        <button type="button" class="nav-btn active" data-view="chat">
+          <span class="nav-icon" aria-hidden="true">✦</span>
+          <span>传讯</span>
+        </button>
+        <button type="button" class="nav-btn" data-view="library">
+          <span class="nav-icon" aria-hidden="true">❖</span>
+          <span>字卡库</span>
+          <span class="nav-count" id="navCardCount">0</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <p>镜面会记住你说过的每一句话，<br />也会替你把回信送到。</p>
+        <div class="sep"></div>
+        <p class="tiny">数据仅保存在本机浏览器</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- 传讯 -->
+      <section class="view view-chat active" id="viewChat" aria-label="传讯">
+        <div class="chat-shell">
+          <header class="chat-head">
+            <div class="chat-who">
+              <span class="chat-mirror" aria-hidden="true"><i></i></span>
+              <div class="chat-who-text">
+                <strong id="chatName">沈砚</strong>
+                <span id="chatSub">镜中有人在等你</span>
+              </div>
+            </div>
+            <div class="chat-actions">
+              <button type="button" class="icon-btn install-btn" id="installBtn" title="安装到桌面" aria-label="安装到桌面" hidden>⤓</button>
+            <button type="button" class="icon-btn" id="chatLibraryBtn" title="打开字卡库" aria-label="打开字卡库">❖</button>
+              <button type="button" class="icon-btn" id="chatSettingsBtn" title="梦角设定" aria-label="梦角设定">⚙</button>
+            </div>
+          </header>
+
+          <div class="chat-scroll" id="chatScroll">
+            <div class="chat-list" id="chatList"></div>
+          </div>
+
+          <div class="composer-wrap">
+            <form class="composer" id="composer" autocomplete="off">
+              <textarea id="messageInput" rows="1" maxlength="1000" placeholder="对着镜子说点什么…" aria-label="输入消息"></textarea>
+              <div class="composer-side">
+                <button type="submit" class="send-btn" id="sendBtn" aria-label="发送消息">
+                  <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
+                    <path d="M3.4 20.6 21.4 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/>
+                  </svg>
+                </button>
+              </div>
+            </form>
+            <p class="composer-hint">
+              <span class="kbd">Enter</span> 发送 · <span class="kbd">Shift</span>+<span class="kbd">Enter</span> 换行
+              · 回信从 <span id="poolHint">0</span> 张字卡中抽取
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 字卡库 -->
+      <section class="view view-library" id="viewLibrary" aria-label="字卡库">
+        <header class="page-head">
+          <div class="page-head-text">
+            <p class="eyebrow">CARD ARCHIVE</p>
+            <h2>字卡库</h2>
+            <p class="page-sub" id="librarySummary">共 0 张字卡</p>
+          </div>
+          <div class="page-actions">
+            <button type="button" class="btn primary" id="newCardBtn">＋ 新建字卡</button>
+            <button type="button" class="btn" id="importBtn">导入</button>
+            <button type="button" class="btn" id="exportBtn">导出</button>
+          </div>
+        </header>
+
+        <div class="lib-toolbar">
+          <div class="tag-filter" id="tagFilter" aria-label="按标签筛选"></div>
+          <div class="search-box">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input type="search" id="cardSearch" placeholder="搜索字卡内容或标签" aria-label="搜索字卡" />
+          </div>
+        </div>
+        <p class="lib-note">每行一句心意。支持占位符 <code>{我}</code>（你的昵称）与 <code>{名字}</code>（梦角名字）。</p>
+
+        <div class="lib-scroll" id="libScroll">
+          <div class="card-grid" id="cardGrid"></div>
+          <div class="empty-state" id="libEmpty" hidden>
+            <div class="empty-mark">❖</div>
+            <h3>镜中还没有回声</h3>
+            <p id="libEmptyText">写下第一张字卡，或从文本 / JSON 批量导入。</p>
+            <button type="button" class="btn primary" id="emptyAddBtn">＋ 新建字卡</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 梦角设定 -->
+  <dialog class="modal" id="settingsDialog">
+    <form class="modal-card" id="settingsForm" novalidate>
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow">PROFILE</p>
+          <h3>梦角设定</h3>
+        </div>
+        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="field">
+            <label for="setCharName">梦角名字</label>
+            <input class="input" id="setCharName" maxlength="16" placeholder="例如：沈砚" />
+          </div>
+          <div class="field">
+            <label for="setMyName">你的昵称 <span class="label-hint">{我} 会替换成它</span></label>
+            <input class="input" id="setMyName" maxlength="16" placeholder="你" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="setCharTitle">身份或签名</label>
+          <input class="input" id="setCharTitle" maxlength="30" placeholder="住在镜子背面的人" />
+        </div>
+
+        <div class="field">
+          <label>回复速度</label>
+          <div class="segmented" id="speedGroup">
+            <label><input type="radio" name="speed" value="slow" /><span>慢 · 有 suspense</span></label>
+            <label><input type="radio" name="speed" value="normal" /><span>正常</span></label>
+            <label><input type="radio" name="speed" value="fast" /><span>快</span></label>
+          </div>
+        </div>
+
+        <div class="field switch-field">
+          <div>
+            <label for="setAvoidRepeat">避免连续重复</label>
+            <p class="field-help">抽完一轮之前，同一张字卡不会再次出现。</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="setAvoidRepeat" />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="field">
+          <label>抽卡池 <span class="label-hint" id="drawPoolHint">不选 = 全部字卡</span></label>
+          <div class="tag-checks" id="drawTags"></div>
+        </div>
+
+        <div class="field data-zone">
+          <label>数据</label>
+          <div class="data-actions">
+            <button type="button" class="btn small" id="clearChatBtn">清空聊天记录</button>
+            <button type="button" class="btn small danger" id="resetCardsBtn">清空字卡库</button>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn" data-close>取消</button>
+        <button type="submit" class="btn primary">保存设定</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- 新建 / 编辑字卡 -->
+  <dialog class="modal" id="cardDialog">
+    <form class="modal-card" id="cardForm" novalidate>
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow">CARD</p>
+          <h3 id="cardDialogTitle">新建字卡</h3>
+        </div>
+        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="field">
+          <label for="cardText">字卡内容</label>
+          <textarea class="input textarea" id="cardText" maxlength="200" rows="5" placeholder="写下梦角会对你说的那句话…"></textarea>
+          <div class="field-foot"><span class="field-error" id="cardTextError"></span><span class="counter" id="cardTextCount">0 / 200</span></div>
+        </div>
+        <div class="field">
+          <label for="cardTag">标签</label>
+          <input class="input" id="cardTag" maxlength="12" list="tagSuggestions" placeholder="例如：低语、渴念、深夜" />
+          <datalist id="tagSuggestions"></datalist>
+          <p class="field-help">标签用于分类筛选，也可以限定抽卡池。留空则归入「日常」。</p>
+        </div>
+        <div class="field">
+          <label>效果预览</label>
+          <div class="preview-card" id="cardPreview">
+            <div class="preview-card-head"><span>镜魇 · 字卡</span><span class="card-tag" id="previewTag">日常</span></div>
+            <p class="preview-card-text" id="previewText">你的字卡会出现在这里。</p>
+            <div class="preview-card-foot"><span>No. ???</span><span class="seal">魇</span></div>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn" data-close>取消</button>
+        <button type="submit" class="btn primary">保存字卡</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- 导入 -->
+  <dialog class="modal" id="importDialog">
+    <form class="modal-card" id="importForm" novalidate>
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow">IMPORT</p>
+          <h3>导入字卡</h3>
+        </div>
+        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="field">
+          <label for="importText">粘贴文本</label>
+          <textarea class="input textarea" id="importText" rows="9" placeholder="每行一张字卡：&#10;低语 | 过来。别怕，我不会让你疼。&#10;渴念 | 镜子里没有你的时候，我数着时间。&#10;&#10;#深夜&#10;睡不着就叫我。今晚我不睡。"></textarea>
+          <p class="field-help">支持「标签 | 内容」或纯文本；以 <code>#标签</code> 开头的行可切换后续字卡的标签。也可以直接粘贴 JSON。</p>
+        </div>
+        <div class="field">
+          <label for="importFile">或选择文件</label>
+          <input class="input file-input" type="file" id="importFile" accept=".txt,.json,application/json,text/plain" />
+          <p class="field-help" id="importHint">支持 .txt 与 .json（导出文件可直接再导入）。</p>
+        </div>
+        <div class="field">
+          <label>导入方式</label>
+          <div class="segmented">
+            <label><input type="radio" name="importMode" value="append" checked /><span>追加到现有字卡</span></label>
+            <label><input type="radio" name="importMode" value="replace" /><span>替换全部字卡</span></label>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn" data-close>取消</button>
+        <button type="submit" class="btn primary">开始导入</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- 导出 -->
+  <dialog class="modal" id="exportDialog">
+    <form class="modal-card" id="exportForm">
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow">EXPORT</p>
+          <h3>导出字卡</h3>
+        </div>
+        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
+      </header>
+      <div class="modal-body">
+        <p class="export-note" id="exportSummary">共 0 张字卡。</p>
+        <div class="export-actions">
+          <button type="button" class="btn primary" id="exportJsonBtn">下载 JSON</button>
+          <button type="button" class="btn" id="exportTxtBtn">下载 TXT</button>
+          <button type="button" class="btn" id="copyJsonBtn">复制 JSON</button>
+        </div>
+        <p class="field-help" id="exportHint">导出的 JSON 可以再次导入，也可以分享给同好。</p>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn" data-close>关闭</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- 确认 -->
+  <dialog class="modal modal-sm" id="confirmDialog">
+    <div class="modal-card">
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow">ARE YOU SURE</p>
+          <h3 id="confirmTitle">确认操作</h3>
+        </div>
+      </header>
+      <div class="modal-body">
+        <p class="confirm-text" id="confirmText"></p>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn" id="confirmCancel">取消</button>
+        <button type="button" class="btn danger" id="confirmOk">确认</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- 安装到桌面 -->
+  <dialog class="modal" id="installDialog">
+    <form class="modal-card" method="dialog" novalidate>
+      <header class="modal-head">
+        <div>
+          <p class="eyebrow">INSTALL</p>
+          <h3>装到桌面</h3>
+        </div>
+        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
+      </header>
+      <div class="modal-body">
+        <p class="install-lead">装好之后，桌面会多一个「镜魇」的图标，点开就是全屏，和 App 一样；字卡依旧只存在这台设备里。</p>
+        <div class="install-steps">
+          <div class="install-step">
+            <b>安卓 · Chrome</b>
+            <span>点右上角 ⋮，选「安装应用」或「添加到主屏幕」。</span>
+          </div>
+          <div class="install-step">
+            <b>iPhone · Safari</b>
+            <span>点底部的分享按钮，往下找「添加到主屏幕」。</span>
+          </div>
+          <div class="install-step">
+            <b>电脑 · Chrome / Edge</b>
+            <span>点地址栏右侧的安装图标，或在菜单里选「安装镜魇」。</span>
+          </div>
+        </div>
+        <p class="field-help">没看到安装入口时，先确认是用 Chrome 打开的，并且地址以 https:// 开头。</p>
+      </div>
+      <footer class="modal-foot">
+        <button type="button" class="btn primary" data-close>知道了</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div class="toast-root" id="toastRoot" role="status" aria-live="polite"></div>
+
+  <script src="app.js?v=5"></script>
+</body>
+</html>
