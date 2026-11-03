@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="镜魇" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
 
@@ -79,10 +79,12 @@
                 <path d="M50 53c2-13 10-21 20-21s18 8 20 21" fill="none" stroke="#6b2c2f" stroke-width="1.2" opacity=".42"/>
                 <path d="M45 139c5-19 15-31 24-36" fill="none" stroke="#7a3438" stroke-width="1.4" opacity=".22"/>
               </svg>
+              <img class="mirror-avatar" id="avatarImg" alt="" hidden />
               <span class="mirror-mist"></span>
               <span class="mirror-shine"></span>
             </div>
             <span class="mirror-rim" aria-hidden="true"></span>
+            <button type="button" class="avatar-btn" id="avatarBtn" title="从相册换头像" aria-label="从相册换头像">📷</button>
           </div>
           <span class="mirror-base" aria-hidden="true"></span>
         </div>
@@ -118,7 +120,7 @@
         <div class="chat-shell">
           <header class="chat-head">
             <div class="chat-who">
-              <span class="chat-mirror" aria-hidden="true"><i></i></span>
+              <span class="chat-mirror" aria-hidden="true"><i></i><img class="chat-avatar" id="chatAvatar" alt="" hidden /></span>
               <div class="chat-who-text">
                 <strong id="chatName">沈砚</strong>
                 <span id="chatSub">镜中有人在等你</span>
@@ -216,6 +218,18 @@
         <div class="field">
           <label for="setCharTitle">身份或签名</label>
           <input class="input" id="setCharTitle" maxlength="30" placeholder="住在镜子背面的人" />
+        </div>
+
+        <div class="field">
+          <label>梦角头像 <span class="label-hint">从相册选一张照片</span></label>
+          <div class="avatar-edit">
+            <div class="avatar-preview" id="avatarPreview"></div>
+            <div class="avatar-actions">
+              <button type="button" class="btn small" id="pickAvatarBtn">📷 从相册选择</button>
+              <button type="button" class="btn small" id="clearAvatarBtn">恢复默认</button>
+            </div>
+          </div>
+          <p class="field-help">照片会自动压缩后保存在本机浏览器，不会上传到任何服务器。</p>
         </div>
 
         <div class="field">
@@ -412,6 +426,8 @@
 
   <div class="toast-root" id="toastRoot" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=6"></script>
+  <input type="file" id="avatarFile" accept="image/*" hidden />
+
+  <script src="app.js?v=7"></script>
 </body>
 </html>

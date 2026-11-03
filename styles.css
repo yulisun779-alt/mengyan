@@ -295,6 +295,17 @@ button { cursor: pointer; }
   50% { transform: translateX(-50%) scale(1.025); opacity: 1; }
 }
 
+/* 头像照片：覆盖镜面 */
+.mirror-avatar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  z-index: 2;
+}
+
 .mirror-mist {
   position: absolute;
   inset: 0;
@@ -343,6 +354,36 @@ button { cursor: pointer; }
   background: radial-gradient(ellipse at 50% 30%, #4c2c25, #0d0506 72%);
   box-shadow: 0 0 0 1px rgba(var(--gold-rgb), 0.16), 0 8px 14px -6px #000;
 }
+
+/* 镜框上的相机按钮 */
+.avatar-btn {
+  position: absolute;
+  right: -6px;
+  bottom: 8px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(var(--gold-rgb), 0.5);
+  border-radius: 50%;
+  background: rgba(18, 7, 9, 0.92);
+  color: var(--gold);
+  font-size: 13px;
+  line-height: 1;
+  box-shadow:
+    0 0 0 3px rgba(8, 3, 4, 0.55),
+    0 8px 18px -8px #000;
+  transition: transform 0.18s, background 0.2s, color 0.2s, border-color 0.2s;
+}
+.avatar-btn:hover {
+  transform: scale(1.08);
+  border-color: rgba(var(--accent-rgb), 0.7);
+  background: rgba(var(--accent-rgb), 0.28);
+  color: #fff;
+}
+.avatar-btn:active { transform: scale(0.96); }
 
 .profile h2 {
   margin: 20px 0 2px;
@@ -564,6 +605,16 @@ button { cursor: pointer; }
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 50% 30%, rgba(160, 62, 62, 0.34), transparent 66%);
+}
+
+/* 聊天头部的小头像 */
+.chat-avatar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 3;
 }
 
 .chat-who-text { display: flex; flex-direction: column; min-width: 0; }
@@ -1535,6 +1586,26 @@ button { cursor: pointer; }
 .tag-check span:hover { border-color: var(--line-strong); }
 .tag-checks .none-hint { color: var(--muted-2); font-size: 10px; }
 
+/* 头像编辑区 */
+.avatar-edit { display: flex; align-items: center; gap: 14px; }
+.avatar-preview {
+  display: grid;
+  flex: none;
+  width: 68px;
+  height: 68px;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 36%, #2c1114, #060203 72%);
+  color: var(--muted-2);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.05), inset 0 0 18px rgba(0, 0, 0, 0.8);
+}
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
 .data-zone { padding-top: 13px; border-top: 1px dashed var(--line); }
 .data-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
@@ -1738,6 +1809,7 @@ button { cursor: pointer; }
   .segmented label { min-width: 100%; }
   .welcome h2 { font-size: 19px; }
   .suggestions { max-width: 300px; }
+  .avatar-edit { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
 
 @media (min-width: 761px) and (max-height: 820px) {
@@ -1746,6 +1818,7 @@ button { cursor: pointer; }
   .mirror-wrap { width: 126px; padding-top: 11px; }
   .mirror-frame { width: 126px; height: 166px; }
   .mirror-base { width: 62px; height: 10px; }
+  .avatar-btn { width: 26px; height: 26px; font-size: 11px; }
   .profile h2 { margin-top: 12px; font-size: 19px; }
   .profile-title { font-size: 10.5px; }
   .profile-status { margin-top: 8px; }
@@ -1762,6 +1835,7 @@ button { cursor: pointer; }
   .mirror-frame { width: 108px; height: 142px; }
   .mirror-base { width: 54px; height: 9px; }
   .mirror-finial { width: 7px; height: 7px; }
+  .avatar-btn { width: 24px; height: 24px; font-size: 10px; right: -4px; bottom: 4px; }
   .profile h2 { margin-top: 10px; font-size: 17px; }
   .profile-status { margin-top: 6px; padding: 3px 9px; font-size: 9.5px; }
   .ghost-btn { margin-top: 8px; font-size: 10px; }
@@ -1776,4 +1850,3 @@ button { cursor: pointer; }
     transition-duration: 0.001ms !important;
   }
 }
-

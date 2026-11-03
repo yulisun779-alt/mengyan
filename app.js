@@ -17,7 +17,8 @@
     myName: '你',
     speed: 'normal',
     avoidRepeat: true,
-    drawTags: []
+    drawTags: [],
+    avatar: ''
   };
 
   const SUGGESTIONS = ['你在镜子里吗？', '今晚别走', '我想听你的声音', '再说一句'];
@@ -98,6 +99,10 @@
     if (!Array.isArray(settings.drawTags)) settings.drawTags = [];
     settings.drawTags = settings.drawTags.map((tag) => clampText(tag, 12)).filter(Boolean);
 
+    if (typeof settings.avatar !== 'string' || !/^data:image\//.test(settings.avatar) || settings.avatar.length > 2000000) {
+      settings.avatar = '';
+    }
+
     return settings;
   }
 
@@ -155,6 +160,137 @@
   let libFilter = { tag: 'all', query: '' };
 
   /* =========================================================
+     头像：从相册选图 → 压缩 → 保存到本机
+     ========================================================= */
+
+  function compressImageFile(file, maxSize, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener('error', () => reject(new Error('读取图片失败')));
+      reader.addEventListener('load', () => {
+        const img = new Image();
+        img.addEventListener('error', () => reject(new Error('图片无法解析')));
+        img.addEventListener('load', () => {
+          try {
+            const srcW = img.naturalWidth || img.width || 1;
+            const srcH = img.naturalHeight || img.height || 1;
+            const ratio = Math.min(1, maxSize / Math.max(srcW, srcH));
+            const w = Math.max(1, Math.round(srcW * ratio));
+            const h = Math.max(1, Math.round(srcH * ratio));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { reject(new Error('画布初始化失败')); return; }
+
+            ctx.fillStyle = '#120709';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } catch (error) {
+            reject(new Error('处理图片失败'));
+          }
+        });
+        img.src = String(reader.result || '');
+      });
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function applyAvatar() {
+    const src = settings.avatar || '';
+    const big = $('#avatarImg');
+    const mini = $('#chatAvatar');
+
+    if (big) {
+      if (src) {
+        big.src = src;
+        big.hidden = false;
+      } else {
+        big.removeAttribute('src');
+        big.hidden = true;
+      }
+    }
+
+    if (mini) {
+      if (src) {
+        mini.src = src;
+        mini.hidden = false;
+      } else {
+        mini.removeAttribute('src');
+        mini.hidden = true;
+      }
+    }
+
+    const preview = $('#avatarPreview');
+    if (preview) {
+      preview.innerHTML = '';
+      if (src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '头像预览';
+        preview.appendChild(img);
+      } else {
+        const span = document.createElement('span');
+        span.textContent = '默认';
+        preview.appendChild(span);
+      }
+    }
+  }
+
+  async function handleAvatarPick(file) {
+    if (!file) return;
+
+    if (!file.type || !/^image\//.test(file.type)) {
+      toast('请选择一张图片');
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      toast('图片太大了，请选小于 15MB 的照片');
+      return;
+    }
+
+    try {
+      let data = await compressImageFile(file, 480, 0.85);
+
+      if (data.length > 900 * 1024) {
+        data = await compressImageFile(file, 320, 0.75);
+      }
+
+      if (data.length > 1600 * 1024) {
+        toast('图片压缩后仍然太大，换一张试试');
+        return;
+      }
+
+      settings.avatar = data;
+      writeJSON(KEYS.settings, settings);
+      applyAvatar();
+      toast('头像已更新');
+    } catch (error) {
+      toast(error && error.message ? error.message : '头像更新失败');
+    }
+  }
+
+  function clearAvatar() {
+    if (!settings.avatar) {
+      toast('当前是默认头像');
+      return;
+    }
+    settings.avatar = '';
+    writeJSON(KEYS.settings, settings);
+    applyAvatar();
+    toast('已恢复默认头像');
+  }
+
+  function pickAvatar() {
+    const input = $('#avatarFile');
+    if (input) input.click();
+  }
+
+  /* =========================================================
      UI 基础
      ========================================================= */
 
@@ -166,6 +302,7 @@
     $('#charStatus').textContent = '在等你的消息';
     $('#messageInput').placeholder = '想对' + settings.charName + '说点什么…';
 
+    applyAvatar();
     updatePoolHint();
   }
 
@@ -872,6 +1009,7 @@
     $('#setAvoidRepeat').checked = settings.avoidRepeat;
 
     renderDrawTags();
+    applyAvatar();
     openDialog($('#settingsDialog'));
   }
 
@@ -934,7 +1072,8 @@
       myName: clampText($('#setMyName').value, 16) || DEFAULT_SETTINGS.myName,
       speed: speedInput ? speedInput.value : 'normal',
       avoidRepeat: $('#setAvoidRepeat').checked,
-      drawTags: selectedTags
+      drawTags: selectedTags,
+      avatar: settings.avatar || ''
     };
 
     writeJSON(KEYS.settings, settings);
@@ -1276,6 +1415,25 @@
     $('#chatSettingsBtn').addEventListener('click', openSettings);
     $('#chatLibraryBtn').addEventListener('click', () => switchView('library'));
     $('#continueBtn').addEventListener('click', continueReply);
+
+    /* 头像：镜框相机按钮 / 设定弹窗按钮 / 隐藏文件框 */
+    const avatarBtn = $('#avatarBtn');
+    if (avatarBtn) avatarBtn.addEventListener('click', pickAvatar);
+
+    const pickBtn = $('#pickAvatarBtn');
+    if (pickBtn) pickBtn.addEventListener('click', pickAvatar);
+
+    const clearBtn = $('#clearAvatarBtn');
+    if (clearBtn) clearBtn.addEventListener('click', clearAvatar);
+
+    const avatarFile = $('#avatarFile');
+    if (avatarFile) {
+      avatarFile.addEventListener('change', async (event) => {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = '';
+        await handleAvatarPick(file);
+      });
+    }
 
     $('#composer').addEventListener('submit', (event) => {
       event.preventDefault();
