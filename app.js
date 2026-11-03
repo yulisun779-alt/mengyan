@@ -197,6 +197,10 @@
       $('#charStatus').textContent = '在等你的消息';
       $('#chatSub').textContent = settings.charTitle;
     }
+
+    const headBtn = $('#continueBtn');
+    if (headBtn) headBtn.disabled = isBusy;
+    $$('.continue-btn').forEach((btn) => { btn.disabled = isBusy; });
   }
 
   function scrollToBottom() {
@@ -323,12 +327,21 @@
 
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
+
     const redraw = document.createElement('button');
     redraw.type = 'button';
     redraw.className = 'text-btn';
     redraw.textContent = '↻ 换一张';
     redraw.addEventListener('click', () => redrawMessage(message, wrap, redraw));
     actions.appendChild(redraw);
+
+    const cont = document.createElement('button');
+    cont.type = 'button';
+    cont.className = 'text-btn continue-btn';
+    cont.textContent = '✧ 让它继续说';
+    cont.addEventListener('click', () => continueReply());
+    actions.appendChild(cont);
+
     wrap.appendChild(actions);
 
     return wrap;
@@ -417,7 +430,7 @@
     if (welcome) welcome.remove();
 
     list.appendChild(renderMessage(message));
-    scrollToBottom(true);
+    scrollToBottom();
   }
 
   function showTyping() {
@@ -440,7 +453,7 @@
     card.append(label, dots);
     wrap.appendChild(card);
     $('#chatList').appendChild(wrap);
-    scrollToBottom(true);
+    scrollToBottom();
   }
 
   function removeTyping() {
@@ -551,6 +564,68 @@
     setBusyUI(false);
     updatePoolHint();
     input.focus({ preventScroll: true });
+  }
+
+  /* =========================================================
+     让梦角继续说
+     ========================================================= */
+
+  async function continueReply() {
+    if (busy) return;
+
+    const pool = eligibleCards();
+    if (!pool.length) {
+      const hasCards = cards.length > 0;
+      appendMessage({
+        id: uid(),
+        role: 'system',
+        text: hasCards
+          ? '当前抽卡池里没有可用的字卡。去字卡库添加对应标签的字卡，或在设定里放宽抽卡池吧。'
+          : '抽卡池里还没有字卡。去字卡库写下几句想听的话，再回来找' + settings.charName + '吧。',
+        action: 'library',
+        ts: Date.now()
+      });
+      toast(hasCards ? '当前抽卡池是空的，检查一下标签筛选' : '字卡库是空的，先添加几张字卡吧');
+      return;
+    }
+
+    busy = true;
+    setBusyUI(true);
+
+    const totalDelay = getDelay(20);
+    showTyping();
+    await sleep(totalDelay);
+    removeTyping();
+
+    const card = drawCard();
+
+    if (card) {
+      appendMessage({
+        id: uid(),
+        role: 'card',
+        text: card.text,
+        tag: card.tag,
+        cardId: card.id,
+        no: cards.findIndex((item) => item.id === card.id) + 1,
+        ts: Date.now()
+      });
+    } else {
+      const hasCards = cards.length > 0;
+      appendMessage({
+        id: uid(),
+        role: 'system',
+        text: hasCards
+          ? '当前抽卡池里没有可用的字卡。去字卡库添加对应标签的字卡，或在设定里放宽抽卡池吧。'
+          : '抽卡池里还没有字卡。去字卡库写下几句想听的话，再回来找' + settings.charName + '吧。',
+        action: 'library',
+        ts: Date.now()
+      });
+      toast(hasCards ? '当前抽卡池是空的，检查一下标签筛选' : '字卡库是空的，先添加几张字卡吧');
+    }
+
+    busy = false;
+    setBusyUI(false);
+    updatePoolHint();
   }
 
   /* =========================================================
@@ -1200,6 +1275,7 @@
     $('#openSettingsBtn').addEventListener('click', openSettings);
     $('#chatSettingsBtn').addEventListener('click', openSettings);
     $('#chatLibraryBtn').addEventListener('click', () => switchView('library'));
+    $('#continueBtn').addEventListener('click', continueReply);
 
     $('#composer').addEventListener('submit', (event) => {
       event.preventDefault();
@@ -1345,7 +1421,6 @@
       return;
     }
 
-    // iPhone 不会触发 beforeinstallprompt；安卓也常有提示延迟，手机上直接给出入口
     if (isIos() || isMobile()) setInstallVisible(true);
 
     window.addEventListener('beforeinstallprompt', (event) => {
