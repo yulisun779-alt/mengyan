@@ -106,6 +106,17 @@
     return settings;
   }
 
+  function normalizeReplyTo(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    if (typeof raw.text !== 'string' || !raw.text.trim()) return null;
+    return {
+      id: typeof raw.id === 'string' ? raw.id : null,
+      role: raw.role === 'card' ? 'card' : 'user',
+      text: raw.text.slice(0, 500),
+      tag: clampText(raw.tag, 12) || '日常'
+    };
+  }
+
   function loadMessages() {
     const raw = readJSON(KEYS.chat, []);
     if (!Array.isArray(raw)) return [];
@@ -122,6 +133,7 @@
         cardId: typeof message.cardId === 'string' ? message.cardId : null,
         no: Number.isFinite(Number(message.no)) && Number(message.no) > 0 ? Number(message.no) : null,
         action: message.action === 'library' ? 'library' : null,
+        replyTo: normalizeReplyTo(message.replyTo),
         ts: Number(message.ts) || Date.now()
       }))
       .slice(-400);
@@ -158,9 +170,10 @@
   let editingId = null;
   let confirmCallback = null;
   let libFilter = { tag: 'all', query: '' };
+  let pendingReply = null;
 
   /* =========================================================
-     头像：从相册选图 → 压缩 → 保存到本机
+     头像
      ========================================================= */
 
   function compressImageFile(file, maxSize, quality) {
@@ -205,23 +218,13 @@
     const mini = $('#chatAvatar');
 
     if (big) {
-      if (src) {
-        big.src = src;
-        big.hidden = false;
-      } else {
-        big.removeAttribute('src');
-        big.hidden = true;
-      }
+      if (src) { big.src = src; big.hidden = false; }
+      else { big.removeAttribute('src'); big.hidden = true; }
     }
 
     if (mini) {
-      if (src) {
-        mini.src = src;
-        mini.hidden = false;
-      } else {
-        mini.removeAttribute('src');
-        mini.hidden = true;
-      }
+      if (src) { mini.src = src; mini.hidden = false; }
+      else { mini.removeAttribute('src'); mini.hidden = true; }
     }
 
     const preview = $('#avatarPreview');
@@ -242,28 +245,13 @@
 
   async function handleAvatarPick(file) {
     if (!file) return;
-
-    if (!file.type || !/^image\//.test(file.type)) {
-      toast('请选择一张图片');
-      return;
-    }
-
-    if (file.size > 15 * 1024 * 1024) {
-      toast('图片太大了，请选小于 15MB 的照片');
-      return;
-    }
+    if (!file.type || !/^image\//.test(file.type)) { toast('请选择一张图片'); return; }
+    if (file.size > 15 * 1024 * 1024) { toast('图片太大了，请选小于 15MB 的照片'); return; }
 
     try {
       let data = await compressImageFile(file, 480, 0.85);
-
-      if (data.length > 900 * 1024) {
-        data = await compressImageFile(file, 320, 0.75);
-      }
-
-      if (data.length > 1600 * 1024) {
-        toast('图片压缩后仍然太大，换一张试试');
-        return;
-      }
+      if (data.length > 900 * 1024) data = await compressImageFile(file, 320, 0.75);
+      if (data.length > 1600 * 1024) { toast('图片压缩后仍然太大，换一张试试'); return; }
 
       settings.avatar = data;
       writeJSON(KEYS.settings, settings);
@@ -275,10 +263,7 @@
   }
 
   function clearAvatar() {
-    if (!settings.avatar) {
-      toast('当前是默认头像');
-      return;
-    }
+    if (!settings.avatar) { toast('当前是默认头像'); return; }
     settings.avatar = '';
     writeJSON(KEYS.settings, settings);
     applyAvatar();
@@ -288,6 +273,75 @@
   function pickAvatar() {
     const input = $('#avatarFile');
     if (input) input.click();
+  }
+
+  /* =========================================================
+     回复栏（pendingReply）
+     ========================================================= */
+
+  function makeReplyQuote(msg) {
+    if (!msg || !msg.text) return null;
+    return {
+      id: msg.id || null,
+      role: msg.role === 'card' ? 'card' : 'user',
+      text: String(msg.text).slice(0, 500),
+      tag: clampText(msg.tag, 12) || '日常'
+    };
+  }
+
+  function setPendingReply(message) {
+    pendingReply = makeReplyQuote(message);
+    updateReplyBar();
+    const input = $('#messageInput');
+    if (input) input.focus();
+  }
+
+  function clearPendingReply() {
+    pendingReply = null;
+    updateReplyBar();
+  }
+
+  function updateReplyBar() {
+    const bar = $('#replyBar');
+    if (!bar) return;
+    if (!pendingReply) { bar.hidden = true; return; }
+
+    bar.hidden = false;
+    const nameEl = $('#replyBarName');
+    const textEl = $('#replyBarText');
+
+    if (pendingReply.role === 'user') {
+      nameEl.textContent = settings.myName || '你';
+      textEl.textContent = truncate(pendingReply.text, 60);
+    } else {
+      nameEl.textContent = settings.charName;
+      textEl.textContent = truncate(personalize(pendingReply.text), 60);
+    }
+  }
+
+  function truncate(text, max) {
+    const str = String(text || '').replace(/\s+/g, ' ').trim();
+    return str.length > max ? str.slice(0, max) + '…' : str;
+  }
+
+  function buildReplyQuote(replyTo) {
+    if (!replyTo) return null;
+    const quote = document.createElement('div');
+    quote.className = 'reply-quote reply-quote-' + replyTo.role;
+
+    const name = document.createElement('span');
+    name.className = 'reply-quote-name';
+    name.textContent = replyTo.role === 'user'
+      ? (settings.myName || '你')
+      : settings.charName;
+
+    const text = document.createElement('span');
+    text.className = 'reply-quote-text';
+    const raw = replyTo.role === 'card' ? personalize(replyTo.text) : replyTo.text;
+    text.textContent = truncate(raw, 40);
+
+    quote.append(name, text);
+    return quote;
   }
 
   /* =========================================================
@@ -303,6 +357,7 @@
     $('#messageInput').placeholder = '想对' + settings.charName + '说点什么…';
 
     applyAvatar();
+    updateReplyBar();
     updatePoolHint();
   }
 
@@ -355,9 +410,7 @@
     return cards.filter((card) => settings.drawTags.includes(card.tag));
   }
 
-  function resetBag() {
-    bag = [];
-  }
+  function resetBag() { bag = []; }
 
   function drawCard() {
     const pool = eligibleCards();
@@ -386,6 +439,13 @@
     const base = settings.speed === 'fast' ? 380 : settings.speed === 'slow' ? 1500 : 800;
     const extra = Math.min(1000, length * 24);
     return base + extra + Math.random() * 260;
+  }
+
+  function getChainDelay(index) {
+    if (index === 0) return getDelay(20);
+    // 后续条数稍微快一点
+    const base = settings.speed === 'fast' ? 300 : settings.speed === 'slow' ? 900 : 560;
+    return base + Math.random() * 340;
   }
 
   /* =========================================================
@@ -425,8 +485,16 @@
 
     foot.append(number, seal);
     card.append(head, text, foot);
-
     return card;
+  }
+
+  function buildReplyButton(message) {
+    const replyBtn = document.createElement('button');
+    replyBtn.type = 'button';
+    replyBtn.className = 'text-btn';
+    replyBtn.textContent = '↩ 回复';
+    replyBtn.addEventListener('click', () => setPendingReply(message));
+    return replyBtn;
   }
 
   function renderMessage(message) {
@@ -452,15 +520,31 @@
 
     if (message.role === 'user') {
       meta.textContent = timeLabel(message.ts);
+      wrap.appendChild(meta);
+
+      const quote = buildReplyQuote(message.replyTo);
+      if (quote) wrap.appendChild(quote);
+
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
       bubble.textContent = message.text;
-      wrap.append(meta, bubble);
+      wrap.appendChild(bubble);
+
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      actions.appendChild(buildReplyButton(message));
+      wrap.appendChild(actions);
+
       return wrap;
     }
 
     meta.textContent = '镜中来信 · ' + timeLabel(message.ts);
-    wrap.append(meta, buildCardElement(message));
+    wrap.appendChild(meta);
+
+    const quote = buildReplyQuote(message.replyTo);
+    if (quote) wrap.appendChild(quote);
+
+    wrap.appendChild(buildCardElement(message));
 
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
@@ -479,6 +563,7 @@
     cont.addEventListener('click', () => continueReply());
     actions.appendChild(cont);
 
+    actions.appendChild(buildReplyButton(message));
     wrap.appendChild(actions);
 
     return wrap;
@@ -572,7 +657,6 @@
 
   function showTyping() {
     removeTyping();
-
     const wrap = document.createElement('div');
     wrap.className = 'msg msg-typing';
     wrap.id = 'typingMsg';
@@ -604,15 +688,11 @@
     button.textContent = '正在重新抽取…';
 
     await sleep(260);
-
     const card = drawCard();
     button.disabled = false;
     button.textContent = originalLabel;
 
-    if (!card) {
-      toast('抽卡池里没有可用的字卡');
-      return;
-    }
+    if (!card) { toast('抽卡池里没有可用的字卡'); return; }
 
     message.text = card.text;
     message.tag = card.tag;
@@ -644,45 +724,42 @@
 
     const input = $('#messageInput');
     const text = input.value.trim();
-    if (!text) {
-      input.focus();
-      return;
-    }
+    if (!text) { input.focus(); return; }
 
     busy = true;
     $('#sendBtn').disabled = true;
     input.value = '';
     autoGrow(input);
 
-    appendMessage({
+    const replyTo = pendingReply ? { ...pendingReply } : null;
+    clearPendingReply();
+
+    const userMsg = {
       id: uid(),
       role: 'user',
       text,
+      replyTo,
       ts: Date.now()
-    });
+    };
+    appendMessage(userMsg);
 
     setBusyUI(true);
+    await dreamReplyChain(userMsg);
 
-    const totalDelay = getDelay(text.length);
-    const firstWait = Math.min(260, totalDelay * 0.25);
-    await sleep(firstWait);
-    showTyping();
-    await sleep(Math.max(120, totalDelay - firstWait));
-    removeTyping();
+    busy = false;
+    $('#sendBtn').disabled = false;
+    setBusyUI(false);
+    updatePoolHint();
+    input.focus({ preventScroll: true });
+  }
 
-    const card = drawCard();
+  /* =========================================================
+     梦角连发 1-3 条
+     ========================================================= */
 
-    if (card) {
-      appendMessage({
-        id: uid(),
-        role: 'card',
-        text: card.text,
-        tag: card.tag,
-        cardId: card.id,
-        no: cards.findIndex((item) => item.id === card.id) + 1,
-        ts: Date.now()
-      });
-    } else {
+  async function dreamReplyChain(triggerMsg) {
+    const pool = eligibleCards();
+    if (!pool.length) {
       const hasCards = cards.length > 0;
       appendMessage({
         id: uid(),
@@ -694,18 +771,38 @@
         ts: Date.now()
       });
       toast(hasCards ? '当前抽卡池是空的，检查一下标签筛选' : '字卡库是空的，先添加几张字卡吧');
+      return;
     }
 
-    busy = false;
-    $('#sendBtn').disabled = false;
-    setBusyUI(false);
-    updatePoolHint();
-    input.focus({ preventScroll: true });
-  }
+    const count = 1 + Math.floor(Math.random() * 3); // 1 ~ 3
 
-  /* =========================================================
-     让梦角继续说
-     ========================================================= */
+    for (let i = 0; i < count; i += 1) {
+      showTyping();
+      await sleep(getChainDelay(i));
+      removeTyping();
+
+      const card = drawCard();
+      if (!card) break;
+
+      let replyTo = null;
+      if (i === 0 && triggerMsg && Math.random() < 0.5) {
+        replyTo = makeReplyQuote(triggerMsg);
+      }
+
+      appendMessage({
+        id: uid(),
+        role: 'card',
+        text: card.text,
+        tag: card.tag,
+        cardId: card.id,
+        no: cards.findIndex((item) => item.id === card.id) + 1,
+        replyTo,
+        ts: Date.now()
+      });
+
+      if (i < count - 1) await sleep(260);
+    }
+  }
 
   async function continueReply() {
     if (busy) return;
@@ -729,36 +826,13 @@
     busy = true;
     setBusyUI(true);
 
-    const totalDelay = getDelay(20);
-    showTyping();
-    await sleep(totalDelay);
-    removeTyping();
-
-    const card = drawCard();
-
-    if (card) {
-      appendMessage({
-        id: uid(),
-        role: 'card',
-        text: card.text,
-        tag: card.tag,
-        cardId: card.id,
-        no: cards.findIndex((item) => item.id === card.id) + 1,
-        ts: Date.now()
-      });
-    } else {
-      const hasCards = cards.length > 0;
-      appendMessage({
-        id: uid(),
-        role: 'system',
-        text: hasCards
-          ? '当前抽卡池里没有可用的字卡。去字卡库添加对应标签的字卡，或在设定里放宽抽卡池吧。'
-          : '抽卡池里还没有字卡。去字卡库写下几句想听的话，再回来找' + settings.charName + '吧。',
-        action: 'library',
-        ts: Date.now()
-      });
-      toast(hasCards ? '当前抽卡池是空的，检查一下标签筛选' : '字卡库是空的，先添加几张字卡吧');
+    // 找最近一条用户消息，供梦角概率引用
+    let triggerMsg = null;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === 'user') { triggerMsg = messages[i]; break; }
     }
+
+    await dreamReplyChain(triggerMsg);
 
     busy = false;
     setBusyUI(false);
@@ -1050,10 +1124,7 @@
   function refreshDrawPoolHint() {
     const selected = $$('#drawTags input:checked').map((input) => input.value);
     let count = cards.length;
-
-    if (selected.length) {
-      count = cards.filter((card) => selected.includes(card.tag)).length;
-    }
+    if (selected.length) count = cards.filter((card) => selected.includes(card.tag)).length;
 
     $('#drawPoolHint').textContent = selected.length
       ? '已选 ' + selected.length + ' 个标签 · ' + count + ' 张可用'
@@ -1106,7 +1177,6 @@
       try {
         const data = JSON.parse(source);
         let list = null;
-
         if (Array.isArray(data)) list = data;
         else if (data && Array.isArray(data.cards)) list = data.cards;
 
@@ -1308,11 +1378,7 @@
       area.style.opacity = '0';
       document.body.appendChild(area);
       area.select();
-      try {
-        ok = document.execCommand('copy');
-      } catch (copyError) {
-        ok = false;
-      }
+      try { ok = document.execCommand('copy'); } catch (copyError) { ok = false; }
       area.remove();
     }
 
@@ -1416,7 +1482,7 @@
     $('#chatLibraryBtn').addEventListener('click', () => switchView('library'));
     $('#continueBtn').addEventListener('click', continueReply);
 
-    /* 头像：镜框相机按钮 / 设定弹窗按钮 / 隐藏文件框 */
+    /* 头像 */
     const avatarBtn = $('#avatarBtn');
     if (avatarBtn) avatarBtn.addEventListener('click', pickAvatar);
 
@@ -1435,6 +1501,10 @@
       });
     }
 
+    /* 回复栏 */
+    const replyBarClose = $('#replyBarClose');
+    if (replyBarClose) replyBarClose.addEventListener('click', clearPendingReply);
+
     $('#composer').addEventListener('submit', (event) => {
       event.preventDefault();
       handleSend();
@@ -1446,6 +1516,10 @@
       if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
         event.preventDefault();
         $('#composer').requestSubmit();
+      }
+      if (event.key === 'Escape' && pendingReply) {
+        event.preventDefault();
+        clearPendingReply();
       }
     });
 
@@ -1482,6 +1556,8 @@
           const settingsDialog = $('#settingsDialog');
           if (settingsDialog.open) settingsDialog.close();
           messages = [];
+          pendingReply = null;
+          updateReplyBar();
           writeJSON(KEYS.chat, messages);
           renderChat();
           toast('聊天记录已清空');
@@ -1544,7 +1620,7 @@
   }
 
   /* =========================================================
-     PWA：安装到桌面 / 离线可用
+     PWA
      ========================================================= */
 
   let installPrompt = null;
@@ -1574,11 +1650,7 @@
     const button = $('#installBtn');
     if (!button) return;
 
-    if (isStandalone()) {
-      setInstallVisible(false);
-      return;
-    }
-
+    if (isStandalone()) { setInstallVisible(false); return; }
     if (isIos() || isMobile()) setInstallVisible(true);
 
     window.addEventListener('beforeinstallprompt', (event) => {
@@ -1594,17 +1666,9 @@
     });
 
     button.addEventListener('click', async () => {
-      if (!installPrompt) {
-        openDialog($('#installDialog'));
-        return;
-      }
-
+      if (!installPrompt) { openDialog($('#installDialog')); return; }
       installPrompt.prompt();
-      try {
-        await installPrompt.userChoice;
-      } catch (error) {
-        /* 用户取消也算正常结束 */
-      }
+      try { await installPrompt.userChoice; } catch (error) { /* 忽略 */ }
       installPrompt = null;
       setInstallVisible(false);
     });
@@ -1613,7 +1677,6 @@
   function registerOffline() {
     if (!('serviceWorker' in navigator)) return;
     if (!/^https?:$/.test(location.protocol)) return;
-
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     });

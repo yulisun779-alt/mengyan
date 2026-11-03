@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="镜魇" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
 
@@ -26,6 +26,100 @@
     <div class="sky" id="sky"></div>
     <div class="glow glow-a"></div>
     <div class="glow glow-b"></div>
+
+    <!-- 背景中央：窥视的红眼睛（细长眼型 + 长睫毛） -->
+    <div class="watcher" id="watcher">
+      <div class="watcher-eye" id="watcherEye">
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <radialGradient id="scleraGrad" cx="50%" cy="50%" r="72%">
+              <stop offset="0%" stop-color="#f4e3d8"/>
+              <stop offset="45%" stop-color="#e0c2b6"/>
+              <stop offset="82%" stop-color="#b08f88"/>
+              <stop offset="100%" stop-color="#7d5e59"/>
+            </radialGradient>
+            <radialGradient id="irisGrad" cx="50%" cy="44%" r="60%">
+              <stop offset="0%" stop-color="#ffb898"/>
+              <stop offset="10%" stop-color="#f05040"/>
+              <stop offset="32%" stop-color="#cc1a24"/>
+              <stop offset="62%" stop-color="#7a0b12"/>
+              <stop offset="100%" stop-color="#2a0305"/>
+            </radialGradient>
+            <radialGradient id="pupilGrad" cx="50%" cy="50%" r="55%">
+              <stop offset="0%" stop-color="#000"/>
+              <stop offset="100%" stop-color="#0a0203"/>
+            </radialGradient>
+            <radialGradient id="glintGrad" cx="50%" cy="50%" r="55%">
+              <stop offset="0%" stop-color="rgba(255,252,248,0.98)"/>
+              <stop offset="60%" stop-color="rgba(255,232,215,0.4)"/>
+              <stop offset="100%" stop-color="rgba(255,220,200,0)"/>
+            </radialGradient>
+            <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="6"/>
+            </filter>
+            <clipPath id="eyeClip">
+              <path d="M20 110 Q200 10 380 110 Q200 210 20 110 Z"/>
+            </clipPath>
+          </defs>
+
+          <ellipse cx="200" cy="110" rx="170" ry="85" fill="rgba(200,30,30,0.28)" filter="url(#softGlow)"/>
+
+          <g clip-path="url(#eyeClip)">
+            <rect x="0" y="0" width="400" height="220" fill="url(#scleraGrad)"/>
+
+            <g stroke="rgba(170,36,36,0.32)" stroke-width="0.9" fill="none" stroke-linecap="round">
+              <path d="M30 108 Q70 100 110 110 Q140 117 175 112"/>
+              <path d="M35 122 Q80 130 115 121"/>
+              <path d="M370 108 Q330 100 290 110 Q260 117 225 112"/>
+              <path d="M365 122 Q320 130 285 121"/>
+              <path d="M60 128 Q100 137 130 126" stroke-width="0.7" opacity="0.7"/>
+              <path d="M340 128 Q300 137 270 126" stroke-width="0.7" opacity="0.7"/>
+            </g>
+
+            <g id="watcherIris">
+              <circle cx="200" cy="110" r="50" fill="url(#irisGrad)"/>
+              <g stroke="rgba(0,0,0,0.22)" stroke-width="0.8" fill="none" stroke-linecap="round">
+                <line x1="200" y1="63" x2="200" y2="80"/>
+                <line x1="200" y1="140" x2="200" y2="157"/>
+                <line x1="153" y1="110" x2="170" y2="110"/>
+                <line x1="230" y1="110" x2="247" y2="110"/>
+                <line x1="168" y1="77" x2="180" y2="90"/>
+                <line x1="232" y1="77" x2="220" y2="90"/>
+                <line x1="168" y1="143" x2="180" y2="130"/>
+                <line x1="232" y1="143" x2="220" y2="130"/>
+                <line x1="160" y1="93" x2="176" y2="99"/>
+                <line x1="240" y1="93" x2="224" y2="99"/>
+                <line x1="160" y1="127" x2="176" y2="121"/>
+                <line x1="240" y1="127" x2="224" y2="121"/>
+              </g>
+              <circle cx="200" cy="110" r="50" fill="none" stroke="rgba(30,4,6,0.55)" stroke-width="2"/>
+              <circle cx="200" cy="110" r="32" fill="none" stroke="rgba(30,4,6,0.32)" stroke-width="1.4"/>
+              <ellipse cx="200" cy="110" rx="12" ry="24" fill="url(#pupilGrad)"/>
+              <ellipse cx="184" cy="96" rx="12" ry="9" fill="url(#glintGrad)"/>
+              <circle cx="217" cy="122" r="4.2" fill="rgba(255,235,220,0.35)"/>
+            </g>
+
+            <path d="M10 110 Q200 5 390 110 L390 20 L10 20 Z" fill="rgba(30,8,12,0.55)"/>
+            <path d="M10 110 Q200 5 390 110" stroke="rgba(20,4,6,0.78)" stroke-width="12" fill="none"/>
+
+            <path d="M10 110 Q200 215 390 110 L390 200 L10 200 Z" fill="rgba(30,8,12,0.5)"/>
+            <path d="M10 110 Q200 215 390 110" stroke="rgba(20,4,6,0.68)" stroke-width="10" fill="none"/>
+
+            <ellipse cx="200" cy="110" rx="175" ry="58" fill="none" stroke="rgba(50,12,16,0.45)" stroke-width="16"/>
+          </g>
+
+          <path d="M20 110 Q200 10 380 110" stroke="#150507" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+          <path d="M20 110 Q200 210 380 110" stroke="#150507" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+          <g id="lashesTop" stroke="#0e0304" stroke-linecap="round" fill="none"></g>
+          <g id="lashesBottom" stroke="#0e0304" stroke-linecap="round" fill="none"></g>
+
+          <circle cx="36" cy="114" r="4" fill="rgba(255,240,230,0.32)" filter="url(#softGlow)"/>
+          <circle cx="364" cy="112" r="3" fill="rgba(255,240,230,0.28)" filter="url(#softGlow)"/>
+        </svg>
+      </div>
+    </div>
+
     <svg class="bat bat-a" viewBox="0 0 120 50" aria-hidden="true">
       <path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/>
     </svg>
@@ -139,6 +233,12 @@
           </div>
 
           <div class="composer-wrap">
+            <div class="reply-bar" id="replyBar" hidden>
+              <span class="reply-bar-icon" aria-hidden="true">↩</span>
+              <span class="reply-bar-name" id="replyBarName">沈砚</span>
+              <span class="reply-bar-text" id="replyBarText"></span>
+              <button type="button" class="reply-bar-close" id="replyBarClose" aria-label="取消回复">✕</button>
+            </div>
             <form class="composer" id="composer" autocomplete="off">
               <textarea id="messageInput" rows="1" maxlength="1000" placeholder="对着镜子说点什么…" aria-label="输入消息"></textarea>
               <div class="composer-side">
@@ -428,6 +528,137 @@
 
   <input type="file" id="avatarFile" accept="image/*" hidden />
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=10"></script>
+  <script>
+    /* 背景红眼睛：生成睫毛 + 随机注视 + 随机眨眼 */
+    (function () {
+      var SVG_NS = 'http://www.w3.org/2000/svg';
+      var eye = document.getElementById('watcherEye');
+      var iris = document.getElementById('watcherIris');
+      var lashesTop = document.getElementById('lashesTop');
+      var lashesBottom = document.getElementById('lashesBottom');
+      if (!eye || !iris || !lashesTop || !lashesBottom) return;
+
+      function bezier(p0, p1, p2, t) {
+        var mt = 1 - t;
+        return {
+          x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
+          y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y
+        };
+      }
+
+      function tangent(p0, p1, p2, t) {
+        var mt = 1 - t;
+        return {
+          x: 2 * mt * (p1.x - p0.x) + 2 * t * (p2.x - p1.x),
+          y: 2 * mt * (p1.y - p0.y) + 2 * t * (p2.y - p1.y)
+        };
+      }
+
+      function unitNormal(tan, up) {
+        var nx = up ? tan.y : -tan.y;
+        var ny = up ? -tan.x : tan.x;
+        var len = Math.sqrt(nx * nx + ny * ny) || 1;
+        return { x: nx / len, y: ny / len };
+      }
+
+      function makeLash(x1, y1, x2, y2, cx, cy, width) {
+        var p = document.createElementNS(SVG_NS, 'path');
+        p.setAttribute('d',
+          'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) +
+          ' Q' + cx.toFixed(1) + ' ' + cy.toFixed(1) +
+          ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1));
+        p.setAttribute('stroke-width', width.toFixed(2));
+        return p;
+      }
+
+      var topP0 = { x: 20, y: 110 };
+      var topP1 = { x: 200, y: 10 };
+      var topP2 = { x: 380, y: 110 };
+      var topCount = 28;
+      for (var i = 0; i < topCount; i++) {
+        var t = 0.05 + (i / (topCount - 1)) * 0.9;
+        var pt = bezier(topP0, topP1, topP2, t);
+        var tn = tangent(topP0, topP1, topP2, t);
+        var nr = unitNormal(tn, true);
+
+        var midFactor = 1 - Math.abs(t - 0.5) * 1.05;
+        var len = 24 + midFactor * 24 + (Math.random() * 8 - 4);
+        var outward = (t - 0.5) * 38;
+
+        var ex = pt.x + nr.x * len + outward;
+        var ey = pt.y + nr.y * len + (Math.random() * 4 - 2);
+        var cx = pt.x + nr.x * len * 0.4 + outward * 0.6;
+        var cy = pt.y + nr.y * len * 0.55;
+        var w = 1.8 + midFactor * 1.3;
+        lashesTop.appendChild(makeLash(pt.x, pt.y, ex, ey, cx, cy, w));
+      }
+
+      var botP0 = { x: 20, y: 110 };
+      var botP1 = { x: 200, y: 210 };
+      var botP2 = { x: 380, y: 110 };
+      var botCount = 20;
+      for (var j = 0; j < botCount; j++) {
+        var bt = 0.15 + (j / (botCount - 1)) * 0.7;
+        var bp = bezier(botP0, botP1, botP2, bt);
+        var btn = tangent(botP0, botP1, botP2, bt);
+        var bnr = unitNormal(btn, false);
+
+        var bmid = 1 - Math.abs(bt - 0.5) * 1.35;
+        var bLen = 8 + bmid * 11 + Math.random() * 4;
+        var bOut = (bt - 0.5) * 22;
+
+        var bex = bp.x + bnr.x * bLen + bOut;
+        var bey = bp.y + bnr.y * bLen;
+        var bcx = bp.x + bnr.x * bLen * 0.5 + bOut * 0.4;
+        var bcy = bp.y + bnr.y * bLen * 0.55;
+        lashesBottom.appendChild(makeLash(bp.x, bp.y, bex, bey, bcx, bcy, 1.1 + bmid * 0.5));
+      }
+
+      var RANGE_X = 26;
+      var RANGE_Y = 10;
+
+      function look() {
+        var x = (Math.random() * 2 - 1) * RANGE_X;
+        var y = (Math.random() * 2 - 1) * RANGE_Y;
+        iris.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px)';
+      }
+
+      function loopLook() {
+        look();
+        window.setTimeout(loopLook, 1000 + Math.random() * 2800);
+      }
+
+      function blinkOnce() {
+        eye.classList.add('blink');
+        window.setTimeout(function () {
+          eye.classList.remove('blink');
+          if (Math.random() < 0.3) {
+            window.setTimeout(function () {
+              eye.classList.add('blink');
+              window.setTimeout(function () {
+                eye.classList.remove('blink');
+              }, 150);
+            }, 230);
+          }
+        }, 180);
+      }
+
+      function loopBlink() {
+        var wait = 2400 + Math.random() * 5200;
+        window.setTimeout(function () {
+          blinkOnce();
+          loopBlink();
+        }, wait);
+      }
+
+      loopLook();
+      loopBlink();
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') look();
+      });
+    })();
+  </script>
 </body>
 </html>
