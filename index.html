@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="镜魇" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <link rel="stylesheet" href="styles.css?v=14" />
+  <link rel="stylesheet" href="styles.css?v=17" />
 </head>
 <body>
 
@@ -296,6 +296,11 @@
         </div>
 
         <div class="lib-toolbar">
+          <button type="button" class="tag-toggle" id="tagToggleBtn" aria-expanded="true" aria-controls="tagFilter">
+            <span class="tag-toggle-label" id="tagToggleLabel">收起标签</span>
+            <span class="tag-toggle-count" id="tagToggleCount" hidden></span>
+            <span class="tag-toggle-caret" aria-hidden="true">▾</span>
+          </button>
           <div class="tag-filter" id="tagFilter" aria-label="按标签筛选"></div>
           <div class="search-box">
             <span class="search-icon" aria-hidden="true">⌕</span>
@@ -620,7 +625,7 @@
 
   <input type="file" id="avatarFile" accept="image/*" hidden />
 
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=17"></script>
   <script>
     /* 背景红眼睛：生成睫毛 + 随机注视 + 随机眨眼 */
     (function () {

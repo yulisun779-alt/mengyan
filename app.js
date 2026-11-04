@@ -246,6 +246,7 @@
   let editingKind = 'daily';
   let confirmCallback = null;
   let libFilter = { tag: 'all', query: '' };
+  let tagFilterCollapsed = false;
   let activeKind = 'daily';
   let selectMode = false;
   let selectedIds = new Set();
@@ -609,40 +610,16 @@
      聊天渲染
      ========================================================= */
 
-  function buildCardElement(message) {
-    const card = document.createElement('div');
-    card.className = 'card';
+  function buildReplyBubble(message) {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble bubble-reply';
+    bubble.textContent = personalize(message.text);
+    return bubble;
+  }
 
-    const head = document.createElement('div');
-    head.className = 'card-head';
-
-    const brand = document.createElement('span');
-    brand.className = 'card-brand';
-    brand.textContent = '镜魇 · 字卡';
-
-    const tag = document.createElement('span');
-    tag.className = 'card-tag';
-    tag.textContent = message.tag || '日常';
-
-    head.append(brand, tag);
-
-    const text = document.createElement('p');
-    text.className = 'card-text';
-    text.textContent = personalize(message.text);
-
-    const foot = document.createElement('div');
-    foot.className = 'card-foot';
-
-    const number = document.createElement('span');
-    number.textContent = message.no ? 'NO. ' + pad3(message.no) : 'NO. —';
-
-    const seal = document.createElement('span');
-    seal.className = 'seal';
-    seal.textContent = '魇';
-
-    foot.append(number, seal);
-    card.append(head, text, foot);
-    return card;
+  function replyMetaText(message) {
+    const tag = message.tag ? ' · ' + message.tag : '';
+    return '镜后密语 · ' + timeLabel(message.ts) + tag;
   }
 
   function buildReplyButton(message) {
@@ -695,13 +672,13 @@
       return wrap;
     }
 
-    meta.textContent = '镜后密语 · ' + timeLabel(message.ts);
+    meta.textContent = replyMetaText(message);
     wrap.appendChild(meta);
 
     const quote = buildReplyQuote(message.replyTo);
     if (quote) wrap.appendChild(quote);
 
-    wrap.appendChild(buildCardElement(message));
+    wrap.appendChild(buildReplyBubble(message));
 
     const actions = document.createElement('div');
     actions.className = 'msg-actions';
@@ -862,11 +839,11 @@
     message.ts = Date.now();
     writeJSON(KEYS.chat, messages);
 
-    const oldCard = $('.card', wrap);
-    if (oldCard) oldCard.replaceWith(buildCardElement(message));
+    const oldBubble = $('.bubble-reply', wrap);
+    if (oldBubble) oldBubble.replaceWith(buildReplyBubble(message));
 
     const meta = $('.msg-meta', wrap);
-    if (meta) meta.textContent = '镜后密语 · ' + timeLabel(message.ts);
+    if (meta) meta.textContent = replyMetaText(message);
 
     updatePoolHint();
   }
@@ -1262,6 +1239,46 @@
     });
   }
 
+  function syncTagToggle() {
+    const button = $('#tagToggleBtn');
+    if (!button) return;
+
+    const label = $('#tagToggleLabel');
+    if (label) label.textContent = tagFilterCollapsed ? '标签筛选' : '收起标签';
+
+    const count = $('#tagToggleCount');
+    const selectedTag = libFilter.tag && libFilter.tag !== 'all';
+    if (count) {
+      count.hidden = !selectedTag;
+      count.textContent = selectedTag ? libFilter.tag : '';
+    }
+    button.title = selectedTag ? '当前筛选：' + libFilter.tag : '显示或隐藏标签筛选';
+
+    button.classList.toggle('collapsed', tagFilterCollapsed);
+    button.setAttribute('aria-expanded', String(!tagFilterCollapsed));
+  }
+
+  function setTagFilterCollapsed(collapsed, persist = true) {
+    tagFilterCollapsed = !!collapsed;
+    const filter = $('#tagFilter');
+    if (filter) filter.hidden = tagFilterCollapsed;
+    syncTagToggle();
+
+    if (persist) {
+      try { localStorage.setItem('jingyan.tagFilterCollapsed', tagFilterCollapsed ? '1' : '0'); } catch (error) { /* 忽略 */ }
+    }
+  }
+
+  function initTagFilterToggle() {
+    let stored = null;
+    try { stored = localStorage.getItem('jingyan.tagFilterCollapsed'); } catch (error) { stored = null; }
+
+    const collapsed = stored === null
+      ? window.matchMedia('(max-width: 760px)').matches
+      : stored === '1';
+    setTagFilterCollapsed(collapsed, false);
+  }
+
   function renderTagFilter() {
     const container = $('#tagFilter');
     if (!container) return;
@@ -1303,6 +1320,8 @@
       });
       container.appendChild(chip);
     });
+
+    syncTagToggle();
   }
 
   function renderCardGrid() {
@@ -2290,6 +2309,10 @@
       renderCardGrid();
     });
 
+    $('#tagToggleBtn').addEventListener('click', () => {
+      setTagFilterCollapsed(!tagFilterCollapsed);
+    });
+
     $('#exportJsonBtn').addEventListener('click', exportJSON);
     $('#exportTxtBtn').addEventListener('click', exportTXT);
     $('#copyJsonBtn').addEventListener('click', copyJSON);
@@ -2457,6 +2480,7 @@
     applySettings();
     updateCounts();
     renderChat();
+    initTagFilterToggle();
     renderLibrary();
     bindEvents();
     setupInstall();
