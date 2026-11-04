@@ -1,1684 +1,1267 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0506" />
-  <title>镜魇 · 字卡传讯</title>
-  <meta name="description" content="对着镜子说话，镜后传来密语。日常字卡与体感字卡可自由编辑与导入，所有数据保存在本机。" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="application-name" content="镜魇" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="镜魇" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="format-detection" content="telephone=no" />
-  <link rel="stylesheet" href="styles.css?v=17" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0506" />
+<title>镜魇 · 字卡传讯</title>
+<meta name="description" content="对着镜子说话，镜后传来密语。" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="manifest" href="manifest.json" />
+<meta name="application-name" content="镜魇" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="镜魇" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="stylesheet" href="styles.css?v=17" />
 
-  <style id="perfStyle">
-    /* ===== 性能优化 ===== */
+<style id="customStyle">
+/* ===== 性能 ===== */
+html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animation-play-state:paused!important}
+.sky span:nth-child(n+33){display:none!important}
+@media(max-width:768px){
+.sidebar,.chat-shell,.view-library.active,.view-diary.active,.view-painting.active,.composer,.modal::backdrop,.sensation-overlay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.chat-shell{box-shadow:0 0 0 4px rgba(52,16,19,.2),0 24px 60px -40px rgba(0,0,0,.9)!important}
+.view-library.active,.view-diary.active,.view-painting.active{box-shadow:0 0 0 4px rgba(52,16,19,.22),0 24px 60px -40px rgba(0,0,0,.9)!important}
+.glow-a,.glow-b{filter:blur(50px)!important;opacity:.1!important}
+.bat{opacity:.3!important}.lace-bloom{opacity:.1!important}
+}
 
-    /* 页面隐藏时暂停所有动画（后台不消耗 CPU/GPU） */
-    html.page-hidden *,
-    html.page-hidden *::before,
-    html.page-hidden *::after {
-      animation-play-state: paused !important;
-    }
+/* ===== 抽屉 ===== */
+.composer-wrap{position:relative}
+.plus-btn{display:grid;place-items:center;width:36px;height:36px;margin-right:6px;padding:0;border:1px solid var(--line-strong);border-radius:50%;background:rgba(255,255,255,.03);color:var(--muted);font-size:17px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .22s cubic-bezier(.3,.9,.4,1.2),border-color .18s,color .18s,background .18s}
+.plus-btn:hover{border-color:rgba(181,111,107,.55);color:var(--text);background:rgba(181,111,107,.1)}
+.plus-btn.active{border-color:rgba(181,111,107,.55);color:var(--text);background:rgba(181,111,107,.18);transform:rotate(45deg)}
+@media(max-width:760px){.plus-btn{width:32px;height:32px;font-size:15px;margin-right:4px}}
+.composer-drawer{position:absolute;bottom:calc(100% - 6px);left:26px;right:26px;z-index:12;padding:12px 14px 14px;border:1px solid rgba(198,128,118,.24);border-radius:16px;background:radial-gradient(120% 100% at 50% 0%,rgba(84,28,32,.42),transparent 62%),linear-gradient(165deg,rgba(30,11,14,.98),rgba(16,6,8,.98));box-shadow:0 22px 50px -20px rgba(0,0,0,.98),inset 0 1px 0 rgba(255,230,220,.04);transform:translateY(10px);opacity:0;pointer-events:none;transition:transform .22s cubic-bezier(.2,.9,.3,1),opacity .18s ease}
+.composer-drawer[hidden]{display:none}
+.composer-drawer.open{transform:translateY(0);opacity:1;pointer-events:auto}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:9px;border-bottom:1px dashed rgba(198,128,118,.14)}
+.drawer-title{color:rgba(185,154,114,.72);font-size:10px;letter-spacing:.22em}
+.drawer-close{display:grid;place-items:center;width:24px;height:24px;padding:0;border:1px solid rgba(198,128,118,.2);border-radius:50%;background:transparent;color:var(--muted);font-size:10px;cursor:pointer;transition:all .18s}
+.drawer-close:hover{border-color:rgba(181,111,107,.5);color:var(--text);background:rgba(181,111,107,.1)}
+.drawer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.drawer-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border:1px solid rgba(198,128,118,.16);border-radius:10px;background:rgba(255,255,255,.02);color:var(--muted);font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .18s}
+.drawer-item:hover{border-color:rgba(181,111,107,.5);color:var(--text);background:rgba(181,111,107,.1);transform:translateY(-1px)}
+.drawer-icon{color:var(--accent);font-size:16px;line-height:1}
+.drawer-label{font-size:10.5px;letter-spacing:.06em}
+@media(max-width:760px){.composer-drawer{left:10px;right:10px;padding:10px 12px 12px;border-radius:14px}.drawer-grid{gap:6px}.drawer-item{padding:10px 4px}.drawer-icon{font-size:15px}.drawer-label{font-size:10px}}
 
-    /* 星星从 84 颗减到 32 颗，节省 GPU 绘制 */
-    .sky span:nth-child(n+33) {
-      display: none !important;
-    }
+/* ===== 聊天中的影象卡片 ===== */
+.msg-painting{display:flex;flex-direction:column;align-items:center;gap:10px;align-self:center;max-width:min(300px,92%);padding:14px;border:1px solid rgba(198,128,118,.24);border-radius:16px;background:radial-gradient(120% 100% at 50% 0%,rgba(84,28,32,.28),transparent 62%),rgba(255,255,255,.02);box-shadow:0 20px 40px -28px #000;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:msgIn .45s cubic-bezier(.2,.8,.3,1) both;transition:border-color .2s,transform .18s}
+.msg-painting:hover{border-color:rgba(181,111,107,.45);transform:translateY(-1px)}
+.msg-painting .chat-painting-thumb{border-radius:10px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.55),0 0 0 1px rgba(185,154,114,.12)}
+.msg-painting .chat-painting-thumb canvas{display:block}
+.chat-painting-info{text-align:center}
+.chat-painting-eyebrow{margin:0;color:rgba(185,154,114,.72);font-size:9.5px;letter-spacing:.22em}
+.chat-painting-title{margin:4px 0 3px;font-family:var(--font-serif);font-size:14px;font-weight:500;color:#f0e3dd;letter-spacing:.06em}
+.chat-painting-sub{margin:0;color:var(--muted-2);font-size:10px;letter-spacing:.04em}
+@media(max-width:760px){.msg-painting{max-width:88%;padding:12px;gap:8px}.chat-painting-title{font-size:13px}.chat-painting-sub{font-size:9.5px}}
 
-    /* 手机上去除耗性能的模糊、减少阴影层 */
-    @media (max-width: 768px) {
-      .sidebar,
-      .chat-shell,
-      .view-library.active,
-      .view-diary.active,
-      .composer,
-      .modal::backdrop,
-      .sensation-overlay {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-      }
+/* ===== 日记本 ===== */
+.view-diary.active{flex-direction:column;width:100%;max-width:880px;height:100%;margin:0 auto;overflow:hidden;border:1px solid rgba(190,126,112,.18);border-radius:20px;background:radial-gradient(100% 60% at 20% 0%,rgba(90,30,33,.18),transparent 62%),linear-gradient(170deg,rgba(23,8,10,.9),rgba(8,3,4,.95));box-shadow:0 0 0 6px rgba(52,16,19,.2),0 0 0 7px rgba(168,104,92,.1),0 50px 130px -50px #000;backdrop-filter:blur(14px)}
+.diary-scroll{flex:1;min-height:0;overflow-y:auto;padding:4px 30px 36px;scrollbar-width:thin;scrollbar-color:rgba(198,128,118,.22) transparent}
+.diary-scroll::-webkit-scrollbar{width:6px}
+.diary-scroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(198,128,118,.22)}
+.diary-list{display:flex;flex-direction:column;gap:14px}
+.diary-day-card{position:relative;padding:20px 24px;border:1px solid rgba(198,128,118,.16);border-radius:14px;background:radial-gradient(120% 100% at 0% 0%,rgba(84,28,32,.22),transparent 62%),rgba(255,255,255,.015);box-shadow:0 20px 40px -30px #000}
+.diary-day-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px dashed rgba(198,128,118,.14)}
+.diary-day-left{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.diary-day{font-family:var(--font-serif);font-size:17px;letter-spacing:.06em;color:#f0e3dd}
+.diary-weekday{color:var(--muted-2);font-size:10.5px;letter-spacing:.08em}
+.diary-count{padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.04);color:var(--muted-2);font-size:9.5px}
+.diary-entries{display:flex;flex-direction:column}
+.diary-entry{padding:2px 0}
+.diary-sep{height:1px;margin:18px 0 14px;background:linear-gradient(90deg,transparent,rgba(198,128,118,.14),transparent)}
+.diary-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.diary-tag{display:inline-flex;align-items:center;padding:3px 9px;border:1px solid;border-radius:999px;font-size:10px;white-space:nowrap}
+.diary-tag.conn-smooth{color:#b7d7a8;border-color:rgba(140,190,120,.35);background:rgba(80,140,80,.08)}
+.diary-tag.conn-ok{color:#d9c8a8;border-color:rgba(200,170,120,.3);background:rgba(160,130,80,.06)}
+.diary-tag.conn-hesitant{color:#d4b08a;border-color:rgba(200,150,100,.3);background:rgba(160,110,70,.06)}
+.diary-tag.conn-foggy{color:#a89090;border-color:rgba(140,120,120,.28);background:rgba(120,100,100,.05)}
+.diary-tag.energy-full{color:#f0c890;border-color:rgba(220,170,100,.35);background:rgba(200,140,60,.08)}
+.diary-tag.energy-steady{color:#c9b8a0;border-color:rgba(180,160,130,.28);background:rgba(150,130,100,.06)}
+.diary-tag.energy-tired{color:#a89aa0;border-color:rgba(140,130,150,.28);background:rgba(100,90,110,.05)}
+.diary-tag.energy-empty{color:#8a7a80;border-color:rgba(120,110,120,.28);background:rgba(90,80,90,.05)}
+.diary-body{display:flex;flex-direction:column;gap:12px}
+.diary-p{margin:0;color:#d6c2bb;font-family:var(--font-serif);font-size:calc(13.5px * var(--msg-scale,1));line-height:2.05;letter-spacing:.03em;white-space:pre-wrap;overflow-wrap:anywhere}
+.diary-actions{display:flex;gap:14px;margin-top:12px;padding-top:10px;border-top:1px dashed rgba(198,128,118,.1)}
+.diary-act{padding:2px 0;border:none;background:none;color:var(--muted-2);font-size:10.5px;letter-spacing:.06em;cursor:pointer}
+.diary-act:hover{color:var(--accent)}
+.diary-act.del:hover{color:var(--danger)}
+.diary-comments{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding:10px 12px 10px 14px;border-left:2px solid rgba(185,154,114,.45);border-radius:0 8px 8px 0;background:rgba(185,154,114,.04)}
+.diary-comments-label{display:flex;align-items:center;gap:6px;color:rgba(185,154,114,.75);font-size:9.5px;letter-spacing:.18em;margin-bottom:2px}
+.diary-comment{padding:8px 10px;border-radius:7px;background:rgba(255,255,255,.02)}
+.diary-comment-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:rgba(185,154,114,.6);font-size:9px}
+.diary-comment-del{padding:0 4px;border:none;background:none;color:rgba(185,154,114,.35);font-size:10px;cursor:pointer}
+.diary-comment-del:hover{color:var(--danger)}
+.diary-comment-text{margin:4px 0 0;color:#d9c8a8;font-size:11.5px;line-height:1.8;font-style:italic;white-space:pre-wrap;overflow-wrap:anywhere}
+.diary-comment-form{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.diary-comment-form[hidden]{display:none!important}
+.diary-comment-form textarea{width:100%;min-height:62px;padding:9px 11px;border:1px solid rgba(198,128,118,.2);border-radius:8px;background:rgba(255,255,255,.03);color:var(--text);font-size:12px;font-family:inherit;line-height:1.65;resize:vertical;outline:none}
+.diary-comment-form textarea:focus{border-color:rgba(181,111,107,.55);box-shadow:0 0 0 3px rgba(181,111,107,.06)}
+.diary-comment-form-actions{display:flex;gap:6px;justify-content:flex-end}
+@media(max-width:760px){
+.view-diary.active{border-radius:15px}
+.diary-scroll{padding:4px 16px calc(26px + env(safe-area-inset-bottom))}
+.diary-day-card{padding:16px;border-radius:12px}
+.diary-day{font-size:15.5px}
+.diary-p{font-size:calc(13px * var(--msg-scale,1));line-height:1.95}
+.diary-tag{font-size:9.5px;padding:2px 7px}
+.diary-act{font-size:10px}
+.diary-comment-text{font-size:11px}
+}
 
-      .chat-shell {
-        box-shadow:
-          0 0 0 4px rgba(52, 16, 19, .2),
-          0 24px 60px -40px rgba(0, 0, 0, .9) !important;
-      }
-
-      .view-library.active,
-      .view-diary.active {
-        box-shadow:
-          0 0 0 4px rgba(52, 16, 19, .22),
-          0 24px 60px -40px rgba(0, 0, 0, .9) !important;
-      }
-
-      /* 光晕弱化 */
-      .glow-a, .glow-b {
-        filter: blur(50px) !important;
-        opacity: .1 !important;
-      }
-
-      /* 蝙蝠透明度降低 */
-      .bat {
-        opacity: .3 !important;
-      }
-
-      /* 弱化半透明花边 */
-      .lace-bloom {
-        opacity: .1 !important;
-      }
-    }
-  </style>
-
-  <style id="diaryStyle">
-    .view-diary.active {
-      flex-direction: column;
-      width: 100%;
-      max-width: 880px;
-      height: 100%;
-      margin: 0 auto;
-      overflow: hidden;
-      border: 1px solid rgba(190,126,112,.18);
-      border-radius: 20px;
-      background:
-        radial-gradient(100% 60% at 20% 0%, rgba(90,30,33,.18), transparent 62%),
-        linear-gradient(170deg, rgba(23,8,10,.9), rgba(8,3,4,.95));
-      box-shadow:
-        0 0 0 6px rgba(52,16,19,.2),
-        0 0 0 7px rgba(168,104,92,.1),
-        0 50px 130px -50px #000;
-      backdrop-filter: blur(14px);
-    }
-    .diary-scroll {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 4px 30px 36px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(198,128,118,.22) transparent;
-    }
-    .diary-scroll::-webkit-scrollbar { width: 6px; }
-    .diary-scroll::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(198,128,118,.22); }
-    .diary-list { display: flex; flex-direction: column; gap: 14px; }
-    .diary-day-card {
-      position: relative;
-      padding: 20px 24px;
-      border: 1px solid rgba(198,128,118,.16);
-      border-radius: 14px;
-      background:
-        radial-gradient(120% 100% at 0% 0%, rgba(84,28,32,.22), transparent 62%),
-        rgba(255,255,255,.015);
-      box-shadow: 0 20px 40px -30px #000;
-    }
-    .diary-day-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 20px;
-      right: 20px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(185,154,114,.26), transparent);
-    }
-    .diary-day-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding-bottom: 12px;
-      margin-bottom: 12px;
-      border-bottom: 1px dashed rgba(198,128,118,.14);
-    }
-    .diary-day-left { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-    .diary-day {
-      font-family: var(--font-serif);
-      font-size: 17px;
-      letter-spacing: .06em;
-      color: #f0e3dd;
-    }
-    .diary-weekday { color: var(--muted-2); font-size: 10.5px; letter-spacing: .08em; }
-    .diary-count {
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.04);
-      color: var(--muted-2);
-      font-size: 9.5px;
-      letter-spacing: .04em;
-    }
-    .diary-entries { display: flex; flex-direction: column; }
-    .diary-entry { padding: 2px 0; }
-    .diary-sep {
-      height: 1px;
-      margin: 18px 0 14px;
-      background: linear-gradient(90deg, transparent, rgba(198,128,118,.14), transparent);
-    }
-    .diary-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-    .diary-tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 9px;
-      border: 1px solid;
-      border-radius: 999px;
-      font-size: 10px;
-      letter-spacing: .04em;
-      white-space: nowrap;
-    }
-    .diary-tag.conn-smooth   { color: #b7d7a8; border-color: rgba(140,190,120,.35); background: rgba(80,140,80,.08); }
-    .diary-tag.conn-ok       { color: #d9c8a8; border-color: rgba(200,170,120,.3);  background: rgba(160,130,80,.06); }
-    .diary-tag.conn-hesitant { color: #d4b08a; border-color: rgba(200,150,100,.3);  background: rgba(160,110,70,.06); }
-    .diary-tag.conn-foggy    { color: #a89090; border-color: rgba(140,120,120,.28); background: rgba(120,100,100,.05); }
-    .diary-tag.energy-full   { color: #f0c890; border-color: rgba(220,170,100,.35); background: rgba(200,140,60,.08); }
-    .diary-tag.energy-steady { color: #c9b8a0; border-color: rgba(180,160,130,.28); background: rgba(150,130,100,.06); }
-    .diary-tag.energy-tired  { color: #a89aa0; border-color: rgba(140,130,150,.28); background: rgba(100,90,110,.05); }
-    .diary-tag.energy-empty  { color: #8a7a80; border-color: rgba(120,110,120,.28); background: rgba(90,80,90,.05); }
-    .diary-body { display: flex; flex-direction: column; gap: 12px; }
-    .diary-p {
-      margin: 0;
-      color: #d6c2bb;
-      font-family: var(--font-serif);
-      font-size: calc(13.5px * var(--msg-scale, 1));
-      line-height: 2.05;
-      letter-spacing: .03em;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .diary-actions {
-      display: flex;
-      gap: 14px;
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(198,128,118,.1);
-    }
-    .diary-act {
-      padding: 2px 0;
-      border: none;
-      background: none;
-      color: var(--muted-2);
-      font-size: 10.5px;
-      letter-spacing: .06em;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: color .18s;
-    }
-    .diary-act:hover { color: var(--accent); }
-    .diary-act.del:hover { color: var(--danger); }
-
-    .diary-comments {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-      padding: 10px 12px 10px 14px;
-      border-left: 2px solid rgba(185,154,114,.45);
-      border-radius: 0 8px 8px 0;
-      background: rgba(185,154,114,.04);
-    }
-    .diary-comments-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: rgba(185,154,114,.75);
-      font-size: 9.5px;
-      letter-spacing: .18em;
-      margin-bottom: 2px;
-    }
-    .diary-comments-label::before {
-      content: "❝";
-      font-size: 12px;
-      letter-spacing: 0;
-    }
-    .diary-comment {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding: 8px 10px;
-      border-radius: 7px;
-      background: rgba(255,255,255,.02);
-    }
-    .diary-comment-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      color: rgba(185,154,114,.6);
-      font-size: 9px;
-      letter-spacing: .06em;
-    }
-    .diary-comment-time { color: rgba(185,154,114,.45); }
-    .diary-comment-del {
-      padding: 0 4px;
-      border: none;
-      background: none;
-      color: rgba(185,154,114,.35);
-      font-size: 10px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: color .18s;
-    }
-    .diary-comment-del:hover { color: var(--danger); }
-    .diary-comment-text {
-      margin: 0;
-      color: #d9c8a8;
-      font-size: 11.5px;
-      line-height: 1.8;
-      font-style: italic;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .diary-comment-form {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .diary-comment-form[hidden] { display: none !important; }
-    .diary-comment-form textarea {
-      width: 100%;
-      min-height: 62px;
-      padding: 9px 11px;
-      border: 1px solid rgba(198,128,118,.2);
-      border-radius: 8px;
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      font-size: 12px;
-      font-family: inherit;
-      line-height: 1.65;
-      resize: vertical;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .diary-comment-form textarea:focus {
-      border-color: rgba(181,111,107,.55);
-      box-shadow: 0 0 0 3px rgba(181,111,107,.06);
-    }
-    .diary-comment-form-actions {
-      display: flex;
-      gap: 6px;
-      justify-content: flex-end;
-    }
-
-    @media (max-width: 760px) {
-      .view-diary.active {
-        border-radius: 15px;
-        box-shadow: 0 0 0 4px rgba(52,16,19,.22), 0 30px 80px -40px #000;
-      }
-      .diary-scroll { padding: 4px 16px calc(26px + env(safe-area-inset-bottom)); }
-      .diary-day-card { padding: 16px; border-radius: 12px; }
-      .diary-day { font-size: 15.5px; }
-      .diary-weekday { font-size: 10px; }
-      .diary-p { font-size: calc(13px * var(--msg-scale, 1)); line-height: 1.95; }
-      .diary-tag { font-size: 9.5px; padding: 2px 7px; }
-      .diary-act { font-size: 10px; }
-      .diary-comment-text { font-size: 11px; }
-    }
-  </style>
+/* ===== 镜中影 ===== */
+.view-painting.active{flex-direction:column;width:100%;max-width:900px;height:100%;margin:0 auto;overflow:hidden;border:1px solid rgba(190,126,112,.18);border-radius:20px;background:radial-gradient(100% 60% at 20% 0%,rgba(90,30,33,.18),transparent 62%),linear-gradient(170deg,rgba(23,8,10,.9),rgba(8,3,4,.95));box-shadow:0 0 0 6px rgba(52,16,19,.2),0 0 0 7px rgba(168,104,92,.1),0 50px 130px -50px #000;backdrop-filter:blur(14px)}
+.painting-scroll{flex:1;min-height:0;overflow-y:auto;padding:4px 30px 36px;scrollbar-width:thin;scrollbar-color:rgba(198,128,118,.22) transparent}
+.painting-scroll::-webkit-scrollbar{width:6px}
+.painting-scroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(198,128,118,.22)}
+.painting-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.painting-card{position:relative;padding:14px;border:1px solid rgba(198,128,118,.16);border-radius:14px;background:radial-gradient(120% 100% at 0% 0%,rgba(84,28,32,.22),transparent 62%),rgba(255,255,255,.015);box-shadow:0 20px 40px -30px #000}
+.painting-canvas-wrap{position:relative;width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#050203;box-shadow:inset 0 0 30px rgba(0,0,0,.6),0 0 0 1px rgba(185,154,114,.15)}
+.painting-canvas{display:block;width:100%!important;height:100%!important}
+.painting-meta{margin-top:12px}
+.painting-title{margin:0;font-family:var(--font-serif);font-size:16px;color:#f0e3dd;letter-spacing:.06em}
+.painting-sub{margin:4px 0 0;color:var(--muted-2);font-size:10px;letter-spacing:.06em}
+.painting-ref{margin:10px 0 4px;color:rgba(185,154,114,.7);font-size:9.5px;letter-spacing:.18em}
+.painting-ref-list{padding-left:2px}
+.painting-ref-text{margin:3px 0;color:#c9b8a0;font-family:var(--font-serif);font-size:11.5px;line-height:1.75;font-style:italic;overflow-wrap:anywhere}
+.painting-actions{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(198,128,118,.1)}
+.painting-act{padding:2px 0;border:none;background:none;color:var(--muted-2);font-size:10px;letter-spacing:.06em;cursor:pointer}
+.painting-act.del:hover{color:var(--danger)}
+@media(max-width:760px){
+.view-painting.active{border-radius:15px}
+.painting-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.painting-scroll{padding:4px 16px calc(26px + env(safe-area-inset-bottom))}
+.painting-card{padding:12px}
+.painting-title{font-size:14.5px}
+.painting-ref-text{font-size:11px}
+}
+</style>
 </head>
 <body>
 
-  <div class="backdrop" aria-hidden="true">
-    <span class="veil veil-a"></span>
-    <span class="veil veil-b"></span>
-    <span class="veil veil-c"></span>
-    <div class="sky" id="sky"></div>
-    <div class="glow glow-a"></div>
-    <div class="glow glow-b"></div>
-
-    <div class="watcher" id="watcher">
-      <div class="watcher-eye" id="watcherEye">
-        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <radialGradient id="scleraGrad" cx="50%" cy="50%" r="72%">
-              <stop offset="0%" stop-color="#f4e3d8"/>
-              <stop offset="45%" stop-color="#e0c2b6"/>
-              <stop offset="82%" stop-color="#b08f88"/>
-              <stop offset="100%" stop-color="#7d5e59"/>
-            </radialGradient>
-            <radialGradient id="irisGrad" cx="50%" cy="44%" r="60%">
-              <stop offset="0%" stop-color="#ffb898"/>
-              <stop offset="10%" stop-color="#f05040"/>
-              <stop offset="32%" stop-color="#cc1a24"/>
-              <stop offset="62%" stop-color="#7a0b12"/>
-              <stop offset="100%" stop-color="#2a0305"/>
-            </radialGradient>
-            <radialGradient id="pupilGrad" cx="50%" cy="50%" r="55%">
-              <stop offset="0%" stop-color="#000"/>
-              <stop offset="100%" stop-color="#0a0203"/>
-            </radialGradient>
-            <radialGradient id="glintGrad" cx="50%" cy="50%" r="55%">
-              <stop offset="0%" stop-color="rgba(255,252,248,0.98)"/>
-              <stop offset="60%" stop-color="rgba(255,232,215,0.4)"/>
-              <stop offset="100%" stop-color="rgba(255,220,200,0)"/>
-            </radialGradient>
-            <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="6"/>
-            </filter>
-            <clipPath id="eyeClip">
-              <path d="M20 110 Q200 10 380 110 Q200 210 20 110 Z"/>
-            </clipPath>
-          </defs>
-
-          <ellipse cx="200" cy="110" rx="170" ry="85" fill="rgba(200,30,30,0.28)" filter="url(#softGlow)"/>
-
-          <g clip-path="url(#eyeClip)">
-            <rect x="0" y="0" width="400" height="220" fill="url(#scleraGrad)"/>
-
-            <g stroke="rgba(170,36,36,0.32)" stroke-width="0.9" fill="none" stroke-linecap="round">
-              <path d="M30 108 Q70 100 110 110 Q140 117 175 112"/>
-              <path d="M35 122 Q80 130 115 121"/>
-              <path d="M370 108 Q330 100 290 110 Q260 117 225 112"/>
-              <path d="M365 122 Q320 130 285 121"/>
-              <path d="M60 128 Q100 137 130 126" stroke-width="0.7" opacity="0.7"/>
-              <path d="M340 128 Q300 137 270 126" stroke-width="0.7" opacity="0.7"/>
-            </g>
-
-            <g id="watcherIris">
-              <circle cx="200" cy="110" r="50" fill="url(#irisGrad)"/>
-              <g stroke="rgba(0,0,0,0.22)" stroke-width="0.8" fill="none" stroke-linecap="round">
-                <line x1="200" y1="63" x2="200" y2="80"/>
-                <line x1="200" y1="140" x2="200" y2="157"/>
-                <line x1="153" y1="110" x2="170" y2="110"/>
-                <line x1="230" y1="110" x2="247" y2="110"/>
-                <line x1="168" y1="77" x2="180" y2="90"/>
-                <line x1="232" y1="77" x2="220" y2="90"/>
-                <line x1="168" y1="143" x2="180" y2="130"/>
-                <line x1="232" y1="143" x2="220" y2="130"/>
-                <line x1="160" y1="93" x2="176" y2="99"/>
-                <line x1="240" y1="93" x2="224" y2="99"/>
-                <line x1="160" y1="127" x2="176" y2="121"/>
-                <line x1="240" y1="127" x2="224" y2="121"/>
-              </g>
-              <circle cx="200" cy="110" r="50" fill="none" stroke="rgba(30,4,6,0.55)" stroke-width="2"/>
-              <circle cx="200" cy="110" r="32" fill="none" stroke="rgba(30,4,6,0.32)" stroke-width="1.4"/>
-              <ellipse cx="200" cy="110" rx="12" ry="24" fill="url(#pupilGrad)"/>
-              <ellipse cx="184" cy="96" rx="12" ry="9" fill="url(#glintGrad)"/>
-              <circle cx="217" cy="122" r="4.2" fill="rgba(255,235,220,0.35)"/>
-            </g>
-
-            <path d="M10 110 Q200 5 390 110 L390 20 L10 20 Z" fill="rgba(30,8,12,0.55)"/>
-            <path d="M10 110 Q200 5 390 110" stroke="rgba(20,4,6,0.78)" stroke-width="12" fill="none"/>
-
-            <path d="M10 110 Q200 215 390 110 L390 200 L10 200 Z" fill="rgba(30,8,12,0.5)"/>
-            <path d="M10 110 Q200 215 390 110" stroke="rgba(20,4,6,0.68)" stroke-width="10" fill="none"/>
-
-            <ellipse cx="200" cy="110" rx="175" ry="58" fill="none" stroke="rgba(50,12,16,0.45)" stroke-width="16"/>
-          </g>
-
-          <path d="M20 110 Q200 10 380 110" stroke="#150507" stroke-width="3.6" fill="none" stroke-linecap="round"/>
-          <path d="M20 110 Q200 210 380 110" stroke="#150507" stroke-width="2" fill="none" stroke-linecap="round"/>
-
-          <g id="lashesTop" stroke="#0e0304" stroke-linecap="round" fill="none"></g>
-          <g id="lashesBottom" stroke="#0e0304" stroke-linecap="round" fill="none"></g>
-
-          <circle cx="36" cy="114" r="4" fill="rgba(255,240,230,0.32)" filter="url(#softGlow)"/>
-          <circle cx="364" cy="112" r="3" fill="rgba(255,240,230,0.28)" filter="url(#softGlow)"/>
-        </svg>
-      </div>
-    </div>
-
-    <svg class="bat bat-a" viewBox="0 0 120 50" aria-hidden="true">
-      <path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/>
-    </svg>
-    <svg class="bat bat-b" viewBox="0 0 120 50" aria-hidden="true">
-      <path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/>
-    </svg>
-
-    <div class="vignette"></div>
-  </div>
-
-  <div class="lace" aria-hidden="true">
-    <span class="lace-bloom lace-tl"></span>
-    <span class="lace-bloom lace-tr"></span>
-    <span class="lace-bloom lace-bl"></span>
-    <span class="lace-bloom lace-br"></span>
-    <span class="lace-rule lace-top"></span>
-    <span class="lace-rule lace-bottom"></span>
-  </div>
-
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none">
-            <ellipse cx="16" cy="14.5" rx="7.6" ry="10.2" stroke="currentColor" stroke-width="1.3"/>
-            <ellipse cx="16" cy="14.5" rx="5.4" ry="7.8" stroke="currentColor" stroke-width=".7" opacity=".5"/>
-            <path d="M16 24.7v3.4M11.6 29.2h8.8M16 4.3V2.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-            <circle cx="16" cy="2.2" r="1.1" fill="currentColor"/>
-            <circle cx="16" cy="28.1" r="1" fill="currentColor" opacity=".7"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <h1>镜魇</h1>
-          <p>MIRROR&nbsp;WHISPER</p>
-        </div>
-      </div>
-
-      <section class="profile" aria-label="梦角资料">
-        <div class="mirror-wrap">
-          <span class="mirror-finial" aria-hidden="true"></span>
-          <div class="mirror-frame">
-            <div class="mirror-glass">
-              <span class="mirror-glow"></span>
-              <svg class="mirror-shadow" viewBox="0 0 140 210" aria-hidden="true">
-                <defs>
-                  <linearGradient id="figureGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#1b0b0d"/>
-                    <stop offset="55%" stop-color="#100607"/>
-                    <stop offset="100%" stop-color="#050203"/>
-                  </linearGradient>
-                  <radialGradient id="auraGrad" cx="50%" cy="42%" r="52%">
-                    <stop offset="0%" stop-color="rgba(146, 62, 62, .38)"/>
-                    <stop offset="60%" stop-color="rgba(96, 32, 36, .14)"/>
-                    <stop offset="100%" stop-color="rgba(96, 32, 36, 0)"/>
-                  </radialGradient>
-                </defs>
-                <ellipse cx="70" cy="88" rx="64" ry="82" fill="url(#auraGrad)"/>
-                <path d="M70 34c-16 0-26 14-26 31 0 13 7 21 11 28 3 4 1 8-4 11-18 8-31 24-34 46-2 18 4 30 14 32h78c10-2 16-14 14-32-3-22-16-38-34-46-5-3-7-7-4-11 4-7 11-15 11-28 0-17-10-31-26-31Z" fill="url(#figureGrad)"/>
-                <ellipse cx="70" cy="64" rx="16" ry="19" fill="#090304"/>
-                <path d="M70 34c-9 0-16 6-20 15 6-6 12-8 20-8s14 2 20 8c-4-9-11-15-20-15Z" fill="#2c1113" opacity=".6"/>
-                <path d="M50 53c2-13 10-21 20-21s18 8 20 21" fill="none" stroke="#6b2c2f" stroke-width="1.2" opacity=".42"/>
-                <path d="M45 139c5-19 15-31 24-36" fill="none" stroke="#7a3438" stroke-width="1.4" opacity=".22"/>
-              </svg>
-              <img class="mirror-avatar" id="avatarImg" alt="" hidden />
-              <span class="mirror-mist"></span>
-              <span class="mirror-shine"></span>
-            </div>
-            <span class="mirror-rim" aria-hidden="true"></span>
-            <button type="button" class="avatar-btn" id="avatarBtn" title="从相册换头像" aria-label="从相册换头像">📷</button>
-          </div>
-          <span class="mirror-base" aria-hidden="true"></span>
-        </div>
-
-        <h2 id="charNameLabel">沈砚</h2>
-        <p class="profile-title" id="charTitleLabel">住在镜子背面的人</p>
-        <div class="profile-status"><span class="pulse"></span><span id="charStatus">在等你的消息</span></div>
-        <button type="button" class="ghost-btn" id="openSettingsBtn">✎&nbsp; 编辑梦角</button>
-      </section>
-
-      <nav class="nav" aria-label="主导航">
-        <button type="button" class="nav-btn active" data-view="chat">
-          <span class="nav-icon" aria-hidden="true">✦</span>
-          <span>传讯</span>
-        </button>
-        <button type="button" class="nav-btn" data-view="library">
-          <span class="nav-icon" aria-hidden="true">❖</span>
-          <span>字卡库</span>
-          <span class="nav-count" id="navCardCount">0</span>
-        </button>
-        <button type="button" class="nav-btn" data-view="diary" id="diaryNavBtn">
-          <span class="nav-icon" aria-hidden="true">✎</span>
-          <span>日记本</span>
-          <span class="nav-count" id="navDiaryCount">0</span>
-        </button>
-      </nav>
-
-      <div class="sidebar-foot">
-        <p>镜面会记住你说过的每一句话，<br />也会替你把回信送到。</p>
-        <div class="sep"></div>
-        <p class="tiny">数据仅保存在本机浏览器</p>
-      </div>
-    </aside>
-
-    <main class="main">
-      <section class="view view-chat active" id="viewChat" aria-label="传讯">
-        <div class="chat-shell">
-          <header class="chat-head">
-            <div class="chat-who">
-              <span class="chat-mirror" aria-hidden="true"><i></i><img class="chat-avatar" id="chatAvatar" alt="" hidden /></span>
-              <div class="chat-who-text">
-                <strong id="chatName">沈砚</strong>
-                <span id="chatSub">镜中有人在等你</span>
-              </div>
-            </div>
-            <div class="chat-actions">
-              <button type="button" class="icon-btn install-btn" id="installBtn" title="安装到桌面" aria-label="安装到桌面" hidden>⤓</button>
-              <button type="button" class="icon-btn font-btn" id="fontBtn" title="调整字号" aria-label="调整字号">Aa</button>
-              <button type="button" class="icon-btn" id="sensationBtn" title="接住一道体感" aria-label="接住一道体感">❋</button>
-              <button type="button" class="icon-btn" id="continueBtn" title="让梦角继续说" aria-label="让梦角继续说">✧</button>
-              <button type="button" class="icon-btn" id="chatLibraryBtn" title="打开字卡库" aria-label="打开字卡库">❖</button>
-              <button type="button" class="icon-btn" id="chatSettingsBtn" title="梦角设定" aria-label="梦角设定">⚙</button>
-            </div>
-          </header>
-
-          <div class="chat-scroll" id="chatScroll">
-            <div class="chat-list" id="chatList"></div>
-          </div>
-
-          <div class="composer-wrap">
-            <div class="reply-bar" id="replyBar" hidden>
-              <span class="reply-bar-icon" aria-hidden="true">↩</span>
-              <span class="reply-bar-name" id="replyBarName">沈砚</span>
-              <span class="reply-bar-text" id="replyBarText"></span>
-              <button type="button" class="reply-bar-close" id="replyBarClose" aria-label="取消回复">✕</button>
-            </div>
-            <form class="composer" id="composer" autocomplete="off">
-              <textarea id="messageInput" rows="1" maxlength="1000" placeholder="对着镜子说点什么…" aria-label="输入消息"></textarea>
-              <div class="composer-side">
-                <button type="submit" class="send-btn" id="sendBtn" aria-label="发送消息">
-                  <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">
-                    <path d="M3.4 20.6 21.4 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/>
-                  </svg>
-                </button>
-              </div>
-            </form>
-            <p class="composer-hint">
-              <span class="kbd">Enter</span> 发送 · <span class="kbd">Shift</span>+<span class="kbd">Enter</span> 换行
-              · 回信从 <span id="poolHint">0</span> 张字卡中抽取
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section class="view view-library" id="viewLibrary" aria-label="字卡库">
-        <header class="page-head">
-          <div class="page-head-text">
-            <p class="eyebrow">CARD ARCHIVE</p>
-            <h2>字卡库</h2>
-            <p class="page-sub" id="librarySummary">共 0 张字卡</p>
-          </div>
-          <div class="page-actions">
-            <button type="button" class="btn primary" id="newCardBtn">＋ 新建字卡</button>
-            <button type="button" class="btn" id="importBtn">导入</button>
-            <button type="button" class="btn" id="exportBtn">导出</button>
-            <button type="button" class="btn" id="selectModeBtn">☑ 批量管理</button>
-          </div>
-        </header>
-
-        <div class="lib-kinds" id="libKinds" role="tablist" aria-label="字卡类型">
-          <button type="button" class="kind-btn active" data-kind="daily" role="tab" aria-selected="true">
-            日常字卡 <span class="kind-count" id="dailyCount">0</span>
-          </button>
-          <button type="button" class="kind-btn" data-kind="sensation" role="tab" aria-selected="false">
-            体感字卡 <span class="kind-count" id="sensationCount">0</span>
-          </button>
-        </div>
-
-        <div class="lib-toolbar">
-          <button type="button" class="tag-toggle" id="tagToggleBtn" aria-expanded="true" aria-controls="tagFilter">
-            <span class="tag-toggle-label" id="tagToggleLabel">收起标签</span>
-            <span class="tag-toggle-count" id="tagToggleCount" hidden></span>
-            <span class="tag-toggle-caret" aria-hidden="true">▾</span>
-          </button>
-          <div class="tag-filter" id="tagFilter" aria-label="按标签筛选"></div>
-          <div class="search-box">
-            <span class="search-icon" aria-hidden="true">⌕</span>
-            <input type="search" id="cardSearch" placeholder="搜索字卡内容或标签" aria-label="搜索字卡" />
-          </div>
-        </div>
-
-        <div class="batch-bar" id="batchBar" hidden>
-          <button type="button" class="btn small" id="selectAllBtn">全选当前</button>
-          <button type="button" class="btn small" id="selectAllAllBtn">全选全部</button>
-          <span class="batch-count" id="batchCount">已选 0 张</span>
-          <select class="input batch-select" id="batchMoveSelect" aria-label="选择要移动到的标签"></select>
-          <button type="button" class="btn small" id="batchMoveBtn">移动</button>
-          <button type="button" class="btn small danger" id="batchDeleteBtn">删除所选</button>
-          <button type="button" class="btn small" id="batchExitBtn">退出批量</button>
-        </div>
-
-        <p class="lib-note" id="libNote">每行一句心意。支持占位符 <code>{我}</code>（你的昵称）与 <code>{名字}</code>（梦角名字）。</p>
-
-        <div class="lib-scroll" id="libScroll">
-          <div class="card-grid" id="cardGrid"></div>
-          <div class="empty-state" id="libEmpty" hidden>
-            <div class="empty-mark">❖</div>
-            <h3>镜中还没有回声</h3>
-            <p id="libEmptyText">写下第一张字卡，或从文本 / JSON 批量导入。</p>
-            <button type="button" class="btn primary" id="emptyAddBtn">＋ 新建字卡</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="view view-diary" id="viewDiary" aria-label="日记本">
-        <header class="page-head">
-          <div class="page-head-text">
-            <p class="eyebrow">DIARY</p>
-            <h2>日记本</h2>
-            <p class="page-sub" id="diarySummary">镜子的另一端，他每天写下的只言片语。</p>
-          </div>
-        </header>
-        <div class="diary-scroll" id="diaryScroll">
-          <div class="diary-list" id="diaryList"></div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <dialog class="modal" id="settingsDialog">
-    <form class="modal-card" id="settingsForm" novalidate>
-      <header class="modal-head">
-        <div>
-          <p class="eyebrow">PROFILE</p>
-          <h3>梦角设定</h3>
-        </div>
-        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
-      </header>
-      <div class="modal-body">
-        <div class="field-row">
-          <div class="field">
-            <label for="setCharName">梦角名字</label>
-            <input class="input" id="setCharName" maxlength="16" placeholder="例如：沈砚" />
-          </div>
-          <div class="field">
-            <label for="setMyName">你的昵称 <span class="label-hint">{我} 会替换成它</span></label>
-            <input class="input" id="setMyName" maxlength="16" placeholder="你" />
-          </div>
-        </div>
-        <div class="field">
-          <label for="setCharTitle">身份或签名</label>
-          <input class="input" id="setCharTitle" maxlength="30" placeholder="住在镜子背面的人" />
-        </div>
-
-        <div class="field">
-          <label>状态卡池 <span class="label-hint" id="statusPoolHint">随机出现在名字下方</span></label>
-          <div class="status-pool" id="statusPoolList"></div>
-          <div class="status-add-row">
-            <input class="input" id="statusAddInput" maxlength="20" placeholder="写一个新状态，例如：在镜后等你" />
-            <button type="button" class="btn small" id="statusAddBtn">添加</button>
-          </div>
-          <p class="field-help">当前状态会从卡池里随机抽取，大约每 2–5 分钟换一次。</p>
-        </div>
-
-        <div class="field">
-          <label>梦角头像 <span class="label-hint">从相册选一张照片</span></label>
-          <div class="avatar-edit">
-            <div class="avatar-preview" id="avatarPreview"></div>
-            <div class="avatar-actions">
-              <button type="button" class="btn small" id="pickAvatarBtn">📷 从相册选择</button>
-              <button type="button" class="btn small" id="clearAvatarBtn">恢复默认</button>
-            </div>
-          </div>
-          <p class="field-help">照片会自动压缩后保存在本机浏览器，不会上传到任何服务器。</p>
-        </div>
-
-        <div class="field">
-          <label>回复速度</label>
-          <div class="segmented" id="speedGroup">
-            <label><input type="radio" name="speed" value="slow" /><span>慢 · 有 suspense</span></label>
-            <label><input type="radio" name="speed" value="normal" /><span>正常</span></label>
-            <label><input type="radio" name="speed" value="fast" /><span>快</span></label>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>字号 <span class="label-hint">聊天与字卡的文字大小</span></label>
-          <div class="segmented" id="fontGroup">
-            <label><input type="radio" name="fontScale" value="0.85" /><span>小</span></label>
-            <label><input type="radio" name="fontScale" value="1" /><span>标准</span></label>
-            <label><input type="radio" name="fontScale" value="1.12" /><span>大</span></label>
-            <label><input type="radio" name="fontScale" value="1.25" /><span>特大</span></label>
-          </div>
-        </div>
-
-        <div class="field switch-field">
-          <div>
-            <label for="setAvoidRepeat">避免连续重复</label>
-            <p class="field-help">抽完一轮之前，同一张字卡不会再次出现。</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="setAvoidRepeat" />
-            <span class="switch-track"><span class="switch-thumb"></span></span>
-          </label>
-        </div>
-
-        <div class="field switch-field">
-          <div>
-            <label for="setProactive">主动传讯</label>
-            <p class="field-help">你安静一会儿后，梦角会主动说 1–2 句话，间隔随机。</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="setProactive" />
-            <span class="switch-track"><span class="switch-thumb"></span></span>
-          </label>
-        </div>
-
-        <div class="field switch-field">
-          <div>
-            <label for="setSensation">体感弹窗</label>
-            <p class="field-help">梦角偶尔会传来一阵体感，7 秒后自动收起。</p>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="setSensation" />
-            <span class="switch-track"><span class="switch-thumb"></span></span>
-          </label>
-        </div>
-
-        <div class="field">
-          <label>抽卡池 <span class="label-hint" id="drawPoolHint">不选 = 全部字卡</span></label>
-          <div class="tag-checks" id="drawTags"></div>
-        </div>
-
-        <div class="field data-zone">
-          <label>数据</label>
-          <div class="data-actions">
-            <button type="button" class="btn small" id="clearChatBtn">清空聊天记录</button>
-            <button type="button" class="btn small danger" id="resetCardsBtn">清空字卡库</button>
-          </div>
-          <div class="data-actions" style="margin-top: 8px;">
-            <button type="button" class="btn small" id="cleanCacheBtn">整理 &amp; 重启</button>
-            <button type="button" class="btn small danger" id="clearAllBtn">清空所有数据</button>
-          </div>
-          <p class="field-help">
-            「整理 &amp; 重启」会压缩聊天记录（保留最近 80 条）、清空临时会话并刷新页面，用于释放内存。
-            「清空所有数据」会彻底删除聊天、字卡、日记、镜中密语、占卜记录和全部设定，操作不可撤销。
-          </p>
-        </div>
-      </div>
-      <footer class="modal-foot">
-        <button type="button" class="btn" data-close>取消</button>
-        <button type="submit" class="btn primary">保存设定</button>
-      </footer>
-    </form>
-  </dialog>
-
-  <dialog class="modal" id="cardDialog">
-    <form class="modal-card" id="cardForm" novalidate>
-      <header class="modal-head">
-        <div>
-          <p class="eyebrow">CARD</p>
-          <h3 id="cardDialogTitle">新建字卡</h3>
-        </div>
-        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
-      </header>
-      <div class="modal-body">
-        <div class="field">
-          <label for="cardText">字卡内容</label>
-          <textarea class="input textarea" id="cardText" maxlength="200" rows="5" placeholder="写下梦角会对你说的那句话…"></textarea>
-          <div class="field-foot"><span class="field-error" id="cardTextError"></span><span class="counter" id="cardTextCount">0 / 200</span></div>
-        </div>
-        <div class="field">
-          <label for="cardTag">标签</label>
-          <input class="input" id="cardTag" maxlength="12" list="tagSuggestions" placeholder="例如：低语、渴念、深夜" />
-          <datalist id="tagSuggestions"></datalist>
-          <p class="field-help" id="cardTagHelp">标签用于分类筛选，也可以限定抽卡池。留空则归入「日常」。</p>
-        </div>
-        <div class="field">
-          <label>效果预览</label>
-          <div class="preview-card" id="cardPreview">
-            <div class="preview-card-head"><span>镜魇 · 字卡</span><span class="card-tag" id="previewTag">日常</span></div>
-            <p class="preview-card-text" id="previewText">你的字卡会出现在这里。</p>
-            <div class="preview-card-foot"><span>No. ???</span><span class="seal">魇</span></div>
-          </div>
-        </div>
-      </div>
-      <footer class="modal-foot">
-        <button type="button" class="btn" data-close>取消</button>
-        <button type="submit" class="btn primary">保存字卡</button>
-      </footer>
-    </form>
-  </dialog>
-
-  <dialog class="modal" id="importDialog">
-    <form class="modal-card" id="importForm" novalidate>
-      <header class="modal-head">
-        <div>
-          <p class="eyebrow">IMPORT</p>
-          <h3>导入字卡</h3>
-        </div>
-        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
-      </header>
-      <div class="modal-body">
-        <div class="field">
-          <label for="importText">粘贴文本</label>
-          <textarea class="input textarea" id="importText" rows="9" placeholder="每行一张字卡：&#10;低语 | 过来。别怕，我不会让你疼。&#10;渴念 | 镜子里没有你的时候，我数着时间。&#10;&#10;#深夜&#10;睡不着就叫我。今晚我不睡。"></textarea>
-          <p class="field-help">支持「标签 | 内容」或纯文本；以 <code>#标签</code> 开头的行可切换后续字卡的标签。也可以直接粘贴 JSON。</p>
-        </div>
-        <div class="field">
-          <label for="importFile">或选择文件</label>
-          <input class="input file-input" type="file" id="importFile" accept=".txt,.json,application/json,text/plain" />
-          <p class="field-help" id="importHint">支持 .txt 与 .json（导出文件可直接再导入）。</p>
-        </div>
-        <div class="field">
-          <label>导入方式</label>
-          <div class="segmented">
-            <label><input type="radio" name="importMode" value="append" checked /><span>追加到现有字卡</span></label>
-            <label><input type="radio" name="importMode" value="replace" /><span>替换全部字卡</span></label>
-          </div>
-        </div>
-      </div>
-      <footer class="modal-foot">
-        <button type="button" class="btn" data-close>取消</button>
-        <button type="submit" class="btn primary">开始导入</button>
-      </footer>
-    </form>
-  </dialog>
-
-  <dialog class="modal" id="exportDialog">
-    <form class="modal-card" id="exportForm">
-      <header class="modal-head">
-        <div>
-          <p class="eyebrow">EXPORT</p>
-          <h3>导出字卡</h3>
-        </div>
-        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
-      </header>
-      <div class="modal-body">
-        <p class="export-note" id="exportSummary">共 0 张字卡。</p>
-        <div class="export-actions">
-          <button type="button" class="btn primary" id="exportJsonBtn">下载 JSON</button>
-          <button type="button" class="btn" id="exportTxtBtn">下载 TXT</button>
-          <button type="button" class="btn" id="copyJsonBtn">复制 JSON</button>
-        </div>
-        <p class="field-help" id="exportHint">导出的 JSON 可以再次导入，也可以分享给同好。</p>
-      </div>
-      <footer class="modal-foot">
-        <button type="button" class="btn" data-close>关闭</button>
-      </footer>
-    </form>
-  </dialog>
-
-  <dialog class="modal modal-sm" id="confirmDialog">
-    <div class="modal-card">
-      <header class="modal-head">
-        <div>
-          <p class="eyebrow">ARE YOU SURE</p>
-          <h3 id="confirmTitle">确认操作</h3>
-        </div>
-      </header>
-      <div class="modal-body">
-        <p class="confirm-text" id="confirmText"></p>
-      </div>
-      <footer class="modal-foot">
-        <button type="button" class="btn" id="confirmCancel">取消</button>
-        <button type="button" class="btn danger" id="confirmOk">确认</button>
-      </footer>
-    </div>
-  </dialog>
-
-  <dialog class="modal" id="installDialog">
-    <form class="modal-card" method="dialog" novalidate>
-      <header class="modal-head">
-        <div>
-          <p class="eyebrow">INSTALL</p>
-          <h3>装到桌面</h3>
-        </div>
-        <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
-      </header>
-      <div class="modal-body">
-        <p class="install-lead">装好之后，桌面会多一个「镜魇」的图标，点开就是全屏，和 App 一样；字卡依旧只存在这台设备里。</p>
-        <div class="install-steps">
-          <div class="install-step">
-            <b>安卓 · Chrome</b>
-            <span>点右上角 ⋮，选「安装应用」或「添加到主屏幕」。</span>
-          </div>
-          <div class="install-step">
-            <b>iPhone · Safari</b>
-            <span>点底部的分享按钮，往下找「添加到主屏幕」。</span>
-          </div>
-          <div class="install-step">
-            <b>电脑 · Chrome / Edge</b>
-            <span>点地址栏右侧的安装图标，或在菜单里选「安装镜魇」。</span>
-          </div>
-        </div>
-        <p class="field-help">没看到安装入口时，先确认是用 Chrome 打开的，并且地址以 https:// 开头。</p>
-      </div>
-      <footer class="modal-foot">
-        <button type="button" class="btn primary" data-close>知道了</button>
-      </footer>
-    </form>
-  </dialog>
-
-  <div class="sensation-overlay" id="sensationOverlay" hidden>
-    <div class="sensation-card" role="dialog" aria-modal="true" aria-labelledby="sensationTitle">
-      <p class="sensation-eyebrow">BODY WHISPER</p>
-      <h3 id="sensationTitle">镜后传来一阵体感</h3>
-      <p class="sensation-text" id="sensationText"></p>
-      <div class="sensation-actions">
-        <button type="button" class="btn small primary" data-sensation="felt">我感觉到了</button>
-        <button type="button" class="btn small" data-sensation="none">没感觉到</button>
-        <button type="button" class="btn small" data-sensation="weak">感觉太弱</button>
-      </div>
-      <div class="sensation-timer" aria-hidden="true"><span id="sensationProgress"></span></div>
-      <p class="sensation-count" id="sensationTimerText">7 秒后收起</p>
-    </div>
-  </div>
-
-  <div class="toast-root" id="toastRoot" role="status" aria-live="polite"></div>
-
-  <input type="file" id="avatarFile" accept="image/*" hidden />
-
-  <script src="app.js?v=17"></script>
-  <script src="mirror.js"></script>
-
-  <script>
-  /* ============================================================
-     性能优化：页面隐藏时暂停动画 + 清理缓存功能
-     ============================================================ */
-  (function () {
-    'use strict';
-
-    /* --- 页面隐藏时暂停所有动画 --- */
-    function syncHidden() {
-      document.documentElement.classList.toggle('page-hidden', document.hidden);
-    }
-    syncHidden();
-    document.addEventListener('visibilitychange', syncHidden);
-
-    /* --- 整理 & 重启 --- */
-    function cleanCache() {
-      var msg = '整理 & 重启会做这些事：\n'
-        + '· 聊天记录保留最近 80 条（较早的会移除）\n'
-        + '· 清空临时会话数据\n'
-        + '· 刷新页面以释放内存\n\n'
-        + '字卡、日记、设定、镜中密语、占卜记录都不会被删除。\n\n继续吗？';
-      if (!window.confirm(msg)) return;
-
-      // 1. 聊天记录只保留最近 80 条
-      try {
-        var raw = localStorage.getItem('jingyan.chat.v1');
-        if (raw) {
-          var chat = JSON.parse(raw);
-          if (Array.isArray(chat) && chat.length > 80) {
-            chat = chat.slice(-80);
-            localStorage.setItem('jingyan.chat.v1', JSON.stringify(chat));
-          }
-        }
-      } catch (e) { /* 忽略 */ }
-
-      // 2. 清理 sessionStorage
-      try { sessionStorage.clear(); } catch (e) { /* 忽略 */ }
-
-      // 3. 刷新
-      location.reload();
-    }
-
-    /* --- 清空所有数据 --- */
-    function clearAllData() {
-      var msg = '⚠ 这会彻底删除所有数据：\n'
-        + '· 聊天记录\n'
-        + '· 日常字卡 / 体感字卡\n'
-        + '· 日记本（含你的批注）\n'
-        + '· 镜中密语 / 占卜记录\n'
-        + '· 所有设定（含头像）\n\n'
-        + '操作不可撤销。确定吗？';
-      if (!window.confirm(msg)) return;
-
-      var msg2 = '再次确认：真的要清空所有数据吗？\n\n（点「确定」后将无法恢复）';
-      if (!window.confirm(msg2)) return;
-
-      try {
-        var keys = Object.keys(localStorage);
-        for (var i = 0; i < keys.length; i++) {
-          if (keys[i].indexOf('jingyan.') === 0) {
-            localStorage.removeItem(keys[i]);
-          }
-        }
-      } catch (e) { /* 忽略 */ }
-
-      try { sessionStorage.clear(); } catch (e) { /* 忽略 */ }
-
-      location.reload();
-    }
-
-    /* --- 绑定按钮（必须在 app.js 加载之后） --- */
-    function bind() {
-      var cleanBtn = document.getElementById('cleanCacheBtn');
-      if (cleanBtn) cleanBtn.addEventListener('click', cleanCache);
-
-      var clearBtn = document.getElementById('clearAllBtn');
-      if (clearBtn) clearBtn.addEventListener('click', clearAllData);
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', bind);
-    } else {
-      bind();
-    }
-  })();
-  </script>
-
-  <script>
-  /* ============================================================
-     日记本 · 内联模块
-     - 从功能上线当天开始记录，不补造历史
-     - 每篇日记可删除、可评论
-     ============================================================ */
-  (function () {
-    'use strict';
-
-    var DIARY_KEY = 'jingyan.diary.v1';
-    var CARDS_KEY = 'jingyan.cards.v1';
-    var SETTINGS_KEY = 'jingyan.settings.v1';
-    var WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
-
-    var CONN = {
-      smooth:   { text: '很顺畅',    cls: 'conn-smooth' },
-      ok:       { text: '顺畅',      cls: 'conn-ok' },
-      hesitant: { text: '有些迟疑',  cls: 'conn-hesitant' },
-      foggy:    { text: '隔着一层雾', cls: 'conn-foggy' }
-    };
-    var ENERGY = {
-      full:   { text: '能量很满',   cls: 'energy-full' },
-      steady: { text: '能量平稳',   cls: 'energy-steady' },
-      tired:  { text: '有些疲惫',   cls: 'energy-tired' },
-      empty:  { text: '几乎是空的', cls: 'energy-empty' }
-    };
-
-    function uid() { return 'd_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
-    function cuid() { return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
-    function clamp(v, n) { return String(v == null ? '' : v).trim().slice(0, n); }
-    function pad2(n) { return String(n).padStart(2, '0'); }
-
-    function readJSON(key, fb) {
-      try { var r = localStorage.getItem(key); return r ? JSON.parse(r) : fb; }
-      catch (e) { return fb; }
-    }
-    function writeJSON(key, v) {
-      try { localStorage.setItem(key, JSON.stringify(v)); }
-      catch (e) { console.warn('[diary] save fail', e); }
-    }
-
-    function formatDate(d) {
-      return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-    }
-    function parseDate(s) {
-      var p = s.split('-').map(Number);
-      return new Date(p[0], p[1] - 1, p[2]);
-    }
-    function formatDateLabel(s) {
-      var d = parseDate(s);
-      return (d.getMonth() + 1) + '月' + d.getDate() + '日';
-    }
-    function formatTimeLabel(ts) {
-      try {
-        var d = new Date(ts);
-        return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
-      } catch (e) { return ''; }
-    }
-
-    function personalize(text) {
-      var s = readJSON(SETTINGS_KEY, {}) || {};
-      var myName = clamp(s.myName, 16) || '你';
-      var charName = clamp(s.charName, 16) || '梦角';
-      return String(text).split('{我}').join(myName).split('{名字}').join(charName);
-    }
-
-    function loadCards() {
-      var raw = readJSON(CARDS_KEY, []);
-      if (!Array.isArray(raw)) return [];
-      return raw.filter(function (c) { return c && typeof c.text === 'string' && c.text.trim(); });
-    }
-
-    function loadDiary() {
-      var raw = readJSON(DIARY_KEY, { entries: [] });
-      var list = raw && Array.isArray(raw.entries) ? raw.entries : [];
-      return list
-        .filter(function (e) { return e && e.date && Array.isArray(e.paragraphs); })
-        .map(function (e) {
-          if (!Array.isArray(e.comments)) e.comments = [];
-          return e;
-        });
-    }
-
-    function saveDiary(entries) { writeJSON(DIARY_KEY, { entries: entries }); }
-
-    function pickWeighted(opts) {
-      var total = opts.reduce(function (s, o) { return s + o.w; }, 0);
-      var r = Math.random() * total;
-      for (var i = 0; i < opts.length; i++) { r -= opts[i].w; if (r <= 0) return opts[i].v; }
-      return opts[opts.length - 1].v;
-    }
-
-    function pickMood() {
-      var conn = pickWeighted([
-        { v: 'smooth', w: 3 }, { v: 'ok', w: 4 }, { v: 'hesitant', w: 2 }, { v: 'foggy', w: 1 }
-      ]);
-      var energy = pickWeighted([
-        { v: 'full', w: 2 }, { v: 'steady', w: 4 }, { v: 'tired', w: 2 }, { v: 'empty', w: 1 }
-      ]);
-      return { connection: conn, energy: energy };
-    }
-
-    function paragraphPlan(mood) {
-      var minP = 2, maxP = 3;
-      if (mood.energy === 'full') { minP = 3; maxP = 4; }
-      else if (mood.energy === 'tired') { minP = 1; maxP = 2; }
-      else if (mood.energy === 'empty') { minP = 1; maxP = 1; }
-
-      if (mood.connection === 'smooth' && maxP < 4) maxP += 1;
-      if (mood.connection === 'foggy') { minP = 1; maxP = Math.max(1, maxP - 1); }
-
-      var pCount = minP + Math.floor(Math.random() * (maxP - minP + 1));
-
-      var minC = 1, maxC = 2;
-      if (mood.connection === 'smooth' && mood.energy === 'full') { minC = 2; maxC = 3; }
-      else if (mood.energy === 'empty') { minC = 1; maxC = 1; }
-
-      return { pCount: pCount, minC: minC, maxC: maxC };
-    }
-
-    function generateEntry(dateStr) {
-      var cards = loadCards();
-      var mood = pickMood();
-      var plan = paragraphPlan(mood);
-
-      if (!cards.length) {
-        return {
-          id: uid(), date: dateStr, ts: Date.now(),
-          connection: mood.connection, energy: mood.energy,
-          paragraphs: ['镜子里很安静。今天没有可以写下的话。'],
-          comments: []
-        };
-      }
-
-      var used = {};
-      var paragraphs = [];
-      for (var p = 0; p < plan.pCount; p++) {
-        var count = plan.minC + Math.floor(Math.random() * (plan.maxC - plan.minC + 1));
-        var lines = [];
-        for (var i = 0; i < count; i++) {
-          var pool = cards.filter(function (c) { return c.id && !used[c.id]; });
-          if (!pool.length) { used = {}; pool = cards.slice(); }
-          if (!pool.length) break;
-          var card = pool[Math.floor(Math.random() * pool.length)];
-          used[card.id] = true;
-          lines.push(personalize(card.text));
-        }
-        if (lines.length) paragraphs.push(lines.join('\n'));
-      }
-
-      if (!paragraphs.length) {
-        paragraphs.push(personalize(cards[Math.floor(Math.random() * cards.length)].text));
-      }
-
-      return {
-        id: uid(), date: dateStr, ts: Date.now(),
-        connection: mood.connection, energy: mood.energy,
-        paragraphs: paragraphs,
-        comments: []
-      };
-    }
-
-    function ensureDailyDiary() {
-      var entries = loadDiary();
-      var today = formatDate(new Date());
-
-      if (!entries.length) {
-        entries.push(generateEntry(today));
-        saveDiary(entries);
-        return entries;
-      }
-
-      var hasToday = entries.some(function (e) { return e.date === today; });
-      if (!hasToday) {
-        entries.push(generateEntry(today));
-        saveDiary(entries);
-        return entries;
-      }
-
-      var todayEntries = entries.filter(function (e) { return e.date === today; });
-      if (todayEntries.length < 3 && Math.random() < 0.4) {
-        entries.push(generateEntry(today));
-        saveDiary(entries);
-      }
-      return entries;
-    }
-
-    function buildEntryElement(entry) {
-      var entryEl = document.createElement('div');
-      entryEl.className = 'diary-entry';
-      entryEl.dataset.id = entry.id;
-
-      var tags = document.createElement('div');
-      tags.className = 'diary-tags';
-
-      var c = CONN[entry.connection] || CONN.ok;
-      var e = ENERGY[entry.energy] || ENERGY.steady;
-
-      var cTag = document.createElement('span');
-      cTag.className = 'diary-tag ' + c.cls;
-      cTag.textContent = '沟通 · ' + c.text;
-
-      var eTag = document.createElement('span');
-      eTag.className = 'diary-tag ' + e.cls;
-      eTag.textContent = '能量 · ' + e.text;
-
-      tags.appendChild(cTag);
-      tags.appendChild(eTag);
-
-      var content = document.createElement('div');
-      content.className = 'diary-body';
-      entry.paragraphs.forEach(function (p) {
-        var pEl = document.createElement('p');
-        pEl.className = 'diary-p';
-        pEl.textContent = p;
-        content.appendChild(pEl);
-      });
-
-      var actions = document.createElement('div');
-      actions.className = 'diary-actions';
-
-      var commentBtn = document.createElement('button');
-      commentBtn.type = 'button';
-      commentBtn.className = 'diary-act';
-      commentBtn.textContent = '✎ 评论';
-      commentBtn.addEventListener('click', function () {
-        var form = entryEl.querySelector('.diary-comment-form');
-        if (form) {
-          form.hidden = !form.hidden;
-          if (!form.hidden) {
-            var ta = form.querySelector('textarea');
-            if (ta) setTimeout(function () { ta.focus(); }, 30);
-          }
-        }
-      });
-
-      var delBtn = document.createElement('button');
-      delBtn.type = 'button';
-      delBtn.className = 'diary-act del';
-      delBtn.textContent = '✕ 删除';
-      delBtn.addEventListener('click', function () {
-        if (!window.confirm('确定删除这一篇日记吗？此操作不可撤销。')) return;
-        var all = loadDiary().filter(function (x) { return x.id !== entry.id; });
-        saveDiary(all);
-        renderDiary();
-      });
-
-      actions.appendChild(commentBtn);
-      actions.appendChild(delBtn);
-
-      if (entry.comments && entry.comments.length) {
-        var wrap = document.createElement('div');
-        wrap.className = 'diary-comments';
-
-        var lbl = document.createElement('div');
-        lbl.className = 'diary-comments-label';
-        lbl.textContent = '你的批注';
-        wrap.appendChild(lbl);
-
-        entry.comments.forEach(function (cm) {
-          var cmEl = document.createElement('div');
-          cmEl.className = 'diary-comment';
-
-          var head = document.createElement('div');
-          head.className = 'diary-comment-head';
-
-          var timeSpan = document.createElement('span');
-          timeSpan.className = 'diary-comment-time';
-          timeSpan.textContent = formatTimeLabel(cm.ts);
-
-          var delC = document.createElement('button');
-          delC.type = 'button';
-          delC.className = 'diary-comment-del';
-          delC.textContent = '✕';
-          delC.setAttribute('aria-label', '删除这条批注');
-          delC.addEventListener('click', function () {
-            var all = loadDiary();
-            var t = null;
-            for (var i = 0; i < all.length; i++) if (all[i].id === entry.id) { t = all[i]; break; }
-            if (!t || !Array.isArray(t.comments)) return;
-            t.comments = t.comments.filter(function (x) { return x.id !== cm.id; });
-            saveDiary(all);
-            renderDiary();
-          });
-
-          head.appendChild(timeSpan);
-          head.appendChild(delC);
-
-          var txt = document.createElement('p');
-          txt.className = 'diary-comment-text';
-          txt.textContent = cm.text;
-
-          cmEl.appendChild(head);
-          cmEl.appendChild(txt);
-          wrap.appendChild(cmEl);
-        });
-
-        entryEl.appendChild(wrap);
-      }
-
-      var form = document.createElement('div');
-      form.className = 'diary-comment-form';
-      form.hidden = true;
-
-      var ta = document.createElement('textarea');
-      ta.maxLength = 400;
-      ta.placeholder = '写下你的批注……';
-      ta.rows = 3;
-
-      var formActions = document.createElement('div');
-      formActions.className = 'diary-comment-form-actions';
-
-      var cancelBtn = document.createElement('button');
-      cancelBtn.type = 'button';
-      cancelBtn.className = 'btn small';
-      cancelBtn.textContent = '取消';
-      cancelBtn.addEventListener('click', function () {
-        ta.value = '';
-        form.hidden = true;
-      });
-
-      var submitBtn = document.createElement('button');
-      submitBtn.type = 'button';
-      submitBtn.className = 'btn small primary';
-      submitBtn.textContent = '写下';
-      submitBtn.addEventListener('click', function () {
-        var val = ta.value.trim();
-        if (!val) { ta.focus(); return; }
-        var all = loadDiary();
-        var t = null;
-        for (var i = 0; i < all.length; i++) if (all[i].id === entry.id) { t = all[i]; break; }
-        if (!t) return;
-        if (!Array.isArray(t.comments)) t.comments = [];
-        t.comments.push({ id: cuid(), text: clamp(val, 400), ts: Date.now() });
-        saveDiary(all);
-        renderDiary();
-      });
-
-      formActions.appendChild(cancelBtn);
-      formActions.appendChild(submitBtn);
-
-      form.appendChild(ta);
-      form.appendChild(formActions);
-
-      entryEl.appendChild(tags);
-      entryEl.appendChild(content);
-      entryEl.appendChild(actions);
-      entryEl.appendChild(form);
-
-      return entryEl;
-    }
-
-    function buildDayCard(dateStr, entries) {
-      var d = parseDate(dateStr);
-      var today = formatDate(new Date());
-      var y = new Date(); y.setDate(y.getDate() - 1);
-      var yesterday = formatDate(y);
-
-      var label = formatDateLabel(dateStr);
-      if (dateStr === today) label = '今天 · ' + label;
-      else if (dateStr === yesterday) label = '昨天 · ' + label;
-
-      var card = document.createElement('article');
-      card.className = 'diary-day-card';
-
-      var head = document.createElement('header');
-      head.className = 'diary-day-head';
-
-      var left = document.createElement('div');
-      left.className = 'diary-day-left';
-
-      var day = document.createElement('span');
-      day.className = 'diary-day';
-      day.textContent = label;
-
-      var wk = document.createElement('span');
-      wk.className = 'diary-weekday';
-      wk.textContent = '星期' + WEEKDAYS[d.getDay()];
-
-      left.appendChild(day);
-      left.appendChild(wk);
-
-      var cnt = document.createElement('span');
-      cnt.className = 'diary-count';
-      cnt.textContent = entries.length + ' 篇';
-
-      head.appendChild(left);
-      head.appendChild(cnt);
-
-      var body = document.createElement('div');
-      body.className = 'diary-entries';
-
-      entries.forEach(function (entry, idx) {
-        if (idx > 0) {
-          var sep = document.createElement('div');
-          sep.className = 'diary-sep';
-          body.appendChild(sep);
-        }
-        body.appendChild(buildEntryElement(entry));
-      });
-
-      card.appendChild(head);
-      card.appendChild(body);
-      return card;
-    }
-
-    function renderDiary() {
-      var list = document.getElementById('diaryList');
-      var summary = document.getElementById('diarySummary');
-      var countEl = document.getElementById('navDiaryCount');
-      if (!list) return;
-
-      var entries = loadDiary();
-      if (countEl) countEl.textContent = String(entries.length);
-
-      list.innerHTML = '';
-
-      if (!entries.length) {
-        if (summary) summary.textContent = '镜子的另一端，他每天写下的只言片语。';
-        return;
-      }
-
-      var byDate = {};
-      entries.forEach(function (e) {
-        if (!byDate[e.date]) byDate[e.date] = [];
-        byDate[e.date].push(e);
-      });
-
-      var dates = Object.keys(byDate).sort().reverse();
-      dates.forEach(function (dateStr) {
-        var items = byDate[dateStr].slice().sort(function (a, b) { return b.ts - a.ts; });
-        list.appendChild(buildDayCard(dateStr, items));
-      });
-
-      if (summary) {
-        var earliest = dates[dates.length - 1];
-        summary.textContent = '共 ' + entries.length + ' 篇 · 从 ' + formatDateLabel(earliest) + ' 起';
-      }
-    }
-
-    function switchToDiary() {
-      document.getElementById('viewChat').classList.remove('active');
-      document.getElementById('viewLibrary').classList.remove('active');
-      document.getElementById('viewDiary').classList.add('active');
-
-      var navs = document.querySelectorAll('.nav-btn');
-      for (var i = 0; i < navs.length; i++) {
-        navs[i].classList.toggle('active', navs[i].getAttribute('data-view') === 'diary');
-      }
-
-      ensureDailyDiary();
-      renderDiary();
-
-      var scroller = document.getElementById('diaryScroll');
-      if (scroller) scroller.scrollTop = 0;
-    }
-
-    function watchSwitchAway() {
-      var chat = document.getElementById('viewChat');
-      var library = document.getElementById('viewLibrary');
-      var diary = document.getElementById('viewDiary');
-
-      function check() {
-        if (!diary) return;
-        if (chat.classList.contains('active') || library.classList.contains('active')) {
-          diary.classList.remove('active');
-        }
-      }
-
-      if (typeof MutationObserver === 'function') {
-        var mo = new MutationObserver(check);
-        mo.observe(chat, { attributes: true, attributeFilter: ['class'] });
-        mo.observe(library, { attributes: true, attributeFilter: ['class'] });
-      }
-    }
-
-    function init() {
-      var btn = document.getElementById('diaryNavBtn');
-      if (btn) btn.addEventListener('click', switchToDiary);
-
-      watchSwitchAway();
-
-      ensureDailyDiary();
-      renderDiary();
-
-      var lastCheck = 0;
-      document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState !== 'visible') return;
-        var now = Date.now();
-        if (now - lastCheck < 60000) return;
-        lastCheck = now;
-
-        ensureDailyDiary();
-
-        var diary = document.getElementById('viewDiary');
-        if (diary && diary.classList.contains('active')) {
-          renderDiary();
-        } else {
-          var countEl = document.getElementById('navDiaryCount');
-          var entries = loadDiary();
-          if (countEl) countEl.textContent = String(entries.length);
-        }
-      });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
-  })();
-  </script>
-
-  <script>
-    /* 背景红眼睛：生成睫毛 + 随机注视 + 随机眨眼 */
-    (function () {
-      var SVG_NS = 'http://www.w3.org/2000/svg';
-      var eye = document.getElementById('watcherEye');
-      var iris = document.getElementById('watcherIris');
-      var lashesTop = document.getElementById('lashesTop');
-      var lashesBottom = document.getElementById('lashesBottom');
-      if (!eye || !iris || !lashesTop || !lashesBottom) return;
-
-      function bezier(p0, p1, p2, t) {
-        var mt = 1 - t;
-        return {
-          x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
-          y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y
-        };
-      }
-
-      function tangent(p0, p1, p2, t) {
-        var mt = 1 - t;
-        return {
-          x: 2 * mt * (p1.x - p0.x) + 2 * t * (p2.x - p1.x),
-          y: 2 * mt * (p1.y - p0.y) + 2 * t * (p2.y - p1.y)
-        };
-      }
-
-      function unitNormal(tan, up) {
-        var nx = up ? tan.y : -tan.y;
-        var ny = up ? -tan.x : tan.x;
-        var len = Math.sqrt(nx * nx + ny * ny) || 1;
-        return { x: nx / len, y: ny / len };
-      }
-
-      function makeLash(x1, y1, x2, y2, cx, cy, width) {
-        var p = document.createElementNS(SVG_NS, 'path');
-        p.setAttribute('d',
-          'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) +
-          ' Q' + cx.toFixed(1) + ' ' + cy.toFixed(1) +
-          ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1));
-        p.setAttribute('stroke-width', width.toFixed(2));
-        return p;
-      }
-
-      var topP0 = { x: 20, y: 110 };
-      var topP1 = { x: 200, y: 10 };
-      var topP2 = { x: 380, y: 110 };
-      var topCount = 28;
-      for (var i = 0; i < topCount; i++) {
-        var t = 0.05 + (i / (topCount - 1)) * 0.9;
-        var pt = bezier(topP0, topP1, topP2, t);
-        var tn = tangent(topP0, topP1, topP2, t);
-        var nr = unitNormal(tn, true);
-
-        var midFactor = 1 - Math.abs(t - 0.5) * 1.05;
-        var len = 24 + midFactor * 24 + (Math.random() * 8 - 4);
-        var outward = (t - 0.5) * 38;
-
-        var ex = pt.x + nr.x * len + outward;
-        var ey = pt.y + nr.y * len + (Math.random() * 4 - 2);
-        var cx = pt.x + nr.x * len * 0.4 + outward * 0.6;
-        var cy = pt.y + nr.y * len * 0.55;
-        var w = 1.8 + midFactor * 1.3;
-        lashesTop.appendChild(makeLash(pt.x, pt.y, ex, ey, cx, cy, w));
-      }
-
-      var botP0 = { x: 20, y: 110 };
-      var botP1 = { x: 200, y: 210 };
-      var botP2 = { x: 380, y: 110 };
-      var botCount = 20;
-      for (var j = 0; j < botCount; j++) {
-        var bt = 0.15 + (j / (botCount - 1)) * 0.7;
-        var bp = bezier(botP0, botP1, botP2, bt);
-        var btn = tangent(botP0, botP1, botP2, bt);
-        var bnr = unitNormal(btn, false);
-
-        var bmid = 1 - Math.abs(bt - 0.5) * 1.35;
-        var bLen = 8 + bmid * 11 + Math.random() * 4;
-        var bOut = (bt - 0.5) * 22;
-
-        var bex = bp.x + bnr.x * bLen + bOut;
-        var bey = bp.y + bnr.y * bLen;
-        var bcx = bp.x + bnr.x * bLen * 0.5 + bOut * 0.4;
-        var bcy = bp.y + bnr.y * bLen * 0.55;
-        lashesBottom.appendChild(makeLash(bp.x, bp.y, bex, bey, bcx, bcy, 1.1 + bmid * 0.5));
-      }
-
-      var RANGE_X = 26;
-      var RANGE_Y = 10;
-
-      function look() {
-        if (document.hidden) return;
-        var x = (Math.random() * 2 - 1) * RANGE_X;
-        var y = (Math.random() * 2 - 1) * RANGE_Y;
-        iris.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px)';
-      }
-
-      function loopLook() {
-        look();
-        window.setTimeout(loopLook, 1000 + Math.random() * 2800);
-      }
-
-      function blinkOnce() {
-        if (document.hidden) return;
-        eye.classList.add('blink');
-        window.setTimeout(function () {
-          eye.classList.remove('blink');
-          if (Math.random() < 0.3 && !document.hidden) {
-            window.setTimeout(function () {
-              eye.classList.add('blink');
-              window.setTimeout(function () {
-                eye.classList.remove('blink');
-              }, 150);
-            }, 230);
-          }
-        }, 180);
-      }
-
-      function loopBlink() {
-        var wait = 2400 + Math.random() * 5200;
-        window.setTimeout(function () {
-          blinkOnce();
-          loopBlink();
-        }, wait);
-      }
-
-      loopLook();
-      loopBlink();
-
-      document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState === 'visible') look();
-      });
-    })();
-  </script>
+<div class="backdrop" aria-hidden="true">
+<span class="veil veil-a"></span><span class="veil veil-b"></span><span class="veil veil-c"></span>
+<div class="sky" id="sky"></div>
+<div class="glow glow-a"></div><div class="glow glow-b"></div>
+<div class="watcher" id="watcher">
+<div class="watcher-eye" id="watcherEye">
+<svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+<defs>
+<radialGradient id="scleraGrad" cx="50%" cy="50%" r="72%"><stop offset="0%" stop-color="#f4e3d8"/><stop offset="45%" stop-color="#e0c2b6"/><stop offset="82%" stop-color="#b08f88"/><stop offset="100%" stop-color="#7d5e59"/></radialGradient>
+<radialGradient id="irisGrad" cx="50%" cy="44%" r="60%"><stop offset="0%" stop-color="#ffb898"/><stop offset="10%" stop-color="#f05040"/><stop offset="32%" stop-color="#cc1a24"/><stop offset="62%" stop-color="#7a0b12"/><stop offset="100%" stop-color="#2a0305"/></radialGradient>
+<radialGradient id="pupilGrad" cx="50%" cy="50%" r="55%"><stop offset="0%" stop-color="#000"/><stop offset="100%" stop-color="#0a0203"/></radialGradient>
+<radialGradient id="glintGrad" cx="50%" cy="50%" r="55%"><stop offset="0%" stop-color="rgba(255,252,248,0.98)"/><stop offset="60%" stop-color="rgba(255,232,215,0.4)"/><stop offset="100%" stop-color="rgba(255,220,200,0)"/></radialGradient>
+<filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<clipPath id="eyeClip"><path d="M20 110 Q200 10 380 110 Q200 210 20 110 Z"/></clipPath>
+</defs>
+<ellipse cx="200" cy="110" rx="170" ry="85" fill="rgba(200,30,30,0.28)" filter="url(#softGlow)"/>
+<g clip-path="url(#eyeClip)">
+<rect x="0" y="0" width="400" height="220" fill="url(#scleraGrad)"/>
+<g stroke="rgba(170,36,36,0.32)" stroke-width="0.9" fill="none" stroke-linecap="round">
+<path d="M30 108 Q70 100 110 110 Q140 117 175 112"/>
+<path d="M35 122 Q80 130 115 121"/>
+<path d="M370 108 Q330 100 290 110 Q260 117 225 112"/>
+<path d="M365 122 Q320 130 285 121"/>
+</g>
+<g id="watcherIris">
+<circle cx="200" cy="110" r="50" fill="url(#irisGrad)"/>
+<circle cx="200" cy="110" r="50" fill="none" stroke="rgba(30,4,6,0.55)" stroke-width="2"/>
+<circle cx="200" cy="110" r="32" fill="none" stroke="rgba(30,4,6,0.32)" stroke-width="1.4"/>
+<ellipse cx="200" cy="110" rx="12" ry="24" fill="url(#pupilGrad)"/>
+<ellipse cx="184" cy="96" rx="12" ry="9" fill="url(#glintGrad)"/>
+<circle cx="217" cy="122" r="4.2" fill="rgba(255,235,220,0.35)"/>
+</g>
+<path d="M10 110 Q200 5 390 110 L390 20 L10 20 Z" fill="rgba(30,8,12,0.55)"/>
+<path d="M10 110 Q200 5 390 110" stroke="rgba(20,4,6,0.78)" stroke-width="12" fill="none"/>
+<path d="M10 110 Q200 215 390 110 L390 200 L10 200 Z" fill="rgba(30,8,12,0.5)"/>
+<path d="M10 110 Q200 215 390 110" stroke="rgba(20,4,6,0.68)" stroke-width="10" fill="none"/>
+</g>
+<path d="M20 110 Q200 10 380 110" stroke="#150507" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+<path d="M20 110 Q200 210 380 110" stroke="#150507" stroke-width="2" fill="none" stroke-linecap="round"/>
+<g id="lashesTop" stroke="#0e0304" stroke-linecap="round" fill="none"></g>
+<g id="lashesBottom" stroke="#0e0304" stroke-linecap="round" fill="none"></g>
+<circle cx="36" cy="114" r="4" fill="rgba(255,240,230,0.32)" filter="url(#softGlow)"/>
+<circle cx="364" cy="112" r="3" fill="rgba(255,240,230,0.28)" filter="url(#softGlow)"/>
+</svg>
+</div>
+</div>
+<svg class="bat bat-a" viewBox="0 0 120 50" aria-hidden="true"><path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/></svg>
+<svg class="bat bat-b" viewBox="0 0 120 50" aria-hidden="true"><path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/></svg>
+<div class="vignette"></div>
+</div>
+
+<div class="lace" aria-hidden="true">
+<span class="lace-bloom lace-tl"></span><span class="lace-bloom lace-tr"></span>
+<span class="lace-bloom lace-bl"></span><span class="lace-bloom lace-br"></span>
+<span class="lace-rule lace-top"></span><span class="lace-rule lace-bottom"></span>
+</div>
+
+<div class="app">
+<aside class="sidebar">
+<div class="brand">
+<div class="brand-mark" aria-hidden="true">
+<svg viewBox="0 0 32 32" fill="none">
+<ellipse cx="16" cy="14.5" rx="7.6" ry="10.2" stroke="currentColor" stroke-width="1.3"/>
+<ellipse cx="16" cy="14.5" rx="5.4" ry="7.8" stroke="currentColor" stroke-width=".7" opacity=".5"/>
+<path d="M16 24.7v3.4M11.6 29.2h8.8M16 4.3V2.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+<circle cx="16" cy="2.2" r="1.1" fill="currentColor"/>
+<circle cx="16" cy="28.1" r="1" fill="currentColor" opacity=".7"/>
+</svg>
+</div>
+<div class="brand-text"><h1>镜魇</h1><p>MIRROR&nbsp;WHISPER</p></div>
+</div>
+
+<section class="profile" aria-label="梦角资料">
+<div class="mirror-wrap">
+<span class="mirror-finial" aria-hidden="true"></span>
+<div class="mirror-frame">
+<div class="mirror-glass">
+<span class="mirror-glow"></span>
+<svg class="mirror-shadow" viewBox="0 0 140 210" aria-hidden="true">
+<defs>
+<linearGradient id="figureGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1b0b0d"/><stop offset="55%" stop-color="#100607"/><stop offset="100%" stop-color="#050203"/></linearGradient>
+<radialGradient id="auraGrad" cx="50%" cy="42%" r="52%"><stop offset="0%" stop-color="rgba(146,62,62,.38)"/><stop offset="60%" stop-color="rgba(96,32,36,.14)"/><stop offset="100%" stop-color="rgba(96,32,36,0)"/></radialGradient>
+</defs>
+<ellipse cx="70" cy="88" rx="64" ry="82" fill="url(#auraGrad)"/>
+<path d="M70 34c-16 0-26 14-26 31 0 13 7 21 11 28 3 4 1 8-4 11-18 8-31 24-34 46-2 18 4 30 14 32h78c10-2 16-14 14-32-3-22-16-38-34-46-5-3-7-7-4-11 4-7 11-15 11-28 0-17-10-31-26-31Z" fill="url(#figureGrad)"/>
+<ellipse cx="70" cy="64" rx="16" ry="19" fill="#090304"/>
+</svg>
+<img class="mirror-avatar" id="avatarImg" alt="" hidden />
+<span class="mirror-mist"></span>
+<span class="mirror-shine"></span>
+</div>
+<span class="mirror-rim" aria-hidden="true"></span>
+<button type="button" class="avatar-btn" id="avatarBtn" title="从相册换头像" aria-label="从相册换头像">📷</button>
+</div>
+<span class="mirror-base" aria-hidden="true"></span>
+</div>
+<h2 id="charNameLabel">沈砚</h2>
+<p class="profile-title" id="charTitleLabel">住在镜子背面的人</p>
+<div class="profile-status"><span class="pulse"></span><span id="charStatus">在等你的消息</span></div>
+<button type="button" class="ghost-btn" id="openSettingsBtn">✎&nbsp; 编辑梦角</button>
+</section>
+
+<nav class="nav" aria-label="主导航">
+<button type="button" class="nav-btn active" data-view="chat"><span class="nav-icon" aria-hidden="true">✦</span><span>传讯</span></button>
+<button type="button" class="nav-btn" data-view="library"><span class="nav-icon" aria-hidden="true">❖</span><span>字卡库</span><span class="nav-count" id="navCardCount">0</span></button>
+<button type="button" class="nav-btn" data-view="diary" id="diaryNavBtn"><span class="nav-icon" aria-hidden="true">✎</span><span>日记本</span><span class="nav-count" id="navDiaryCount">0</span></button>
+<button type="button" class="nav-btn" data-view="painting" id="paintingNavBtn"><span class="nav-icon" aria-hidden="true">✧</span><span>镜中影</span><span class="nav-count" id="navPaintingCount">0</span></button>
+</nav>
+
+<div class="sidebar-foot">
+<p>镜面会记住你说过的每一句话，<br />也会替你把回信送到。</p>
+<div class="sep"></div>
+<p class="tiny">数据仅保存在本机浏览器</p>
+</div>
+</aside>
+
+<main class="main">
+<section class="view view-chat active" id="viewChat" aria-label="传讯">
+<div class="chat-shell">
+<header class="chat-head">
+<div class="chat-who">
+<span class="chat-mirror" aria-hidden="true"><i></i><img class="chat-avatar" id="chatAvatar" alt="" hidden /></span>
+<div class="chat-who-text"><strong id="chatName">沈砚</strong><span id="chatSub">镜中有人在等你</span></div>
+</div>
+<div class="chat-actions">
+<button type="button" class="icon-btn install-btn" id="installBtn" title="安装到桌面" aria-label="安装到桌面" hidden>⤓</button>
+<button type="button" class="icon-btn font-btn" id="fontBtn" title="调整字号" aria-label="调整字号">Aa</button>
+<button type="button" class="icon-btn" id="sensationBtn" title="接住一道体感" aria-label="接住一道体感">❋</button>
+<button type="button" class="icon-btn" id="continueBtn" title="让梦角继续说" aria-label="让梦角继续说">✧</button>
+<button type="button" class="icon-btn" id="chatLibraryBtn" title="打开字卡库" aria-label="打开字卡库">❖</button>
+<button type="button" class="icon-btn" id="chatSettingsBtn" title="梦角设定" aria-label="梦角设定">⚙</button>
+</div>
+</header>
+
+<div class="chat-scroll" id="chatScroll">
+<div class="chat-list" id="chatList"></div>
+</div>
+
+<div class="composer-wrap">
+<div class="reply-bar" id="replyBar" hidden>
+<span class="reply-bar-icon" aria-hidden="true">↩</span>
+<span class="reply-bar-name" id="replyBarName">沈砚</span>
+<span class="reply-bar-text" id="replyBarText"></span>
+<button type="button" class="reply-bar-close" id="replyBarClose" aria-label="取消回复">✕</button>
+</div>
+
+<div class="composer-drawer" id="composerDrawer" hidden>
+<div class="drawer-head">
+<span class="drawer-title">更多功能</span>
+<button type="button" class="drawer-close" id="drawerCloseBtn" aria-label="收起">✕</button>
+</div>
+<div class="drawer-grid">
+<button type="button" class="drawer-item" data-action="library"><span class="drawer-icon" aria-hidden="true">❖</span><span class="drawer-label">字卡库</span></button>
+<button type="button" class="drawer-item" data-action="diary"><span class="drawer-icon" aria-hidden="true">✎</span><span class="drawer-label">日记本</span></button>
+<button type="button" class="drawer-item" data-action="painting"><span class="drawer-icon" aria-hidden="true">✧</span><span class="drawer-label">镜中影</span></button>
+<button type="button" class="drawer-item" data-action="sendPainting"><span class="drawer-icon" aria-hidden="true">⋆</span><span class="drawer-label">索要影象</span></button>
+<button type="button" class="drawer-item" data-action="sensation"><span class="drawer-icon" aria-hidden="true">❋</span><span class="drawer-label">体感</span></button>
+<button type="button" class="drawer-item" data-action="settings"><span class="drawer-icon" aria-hidden="true">⚙</span><span class="drawer-label">设定</span></button>
+</div>
+</div>
+
+<form class="composer" id="composer" autocomplete="off">
+<textarea id="messageInput" rows="1" maxlength="1000" placeholder="对着镜子说点什么…" aria-label="输入消息"></textarea>
+<div class="composer-side">
+<button type="button" class="plus-btn" id="composerPlusBtn" aria-label="更多功能" title="更多功能">＋</button>
+<button type="submit" class="send-btn" id="sendBtn" aria-label="发送消息">
+<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M3.4 20.6 21.4 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/></svg>
+</button>
+</div>
+</form>
+<p class="composer-hint"><span class="kbd">Enter</span> 发送 · <span class="kbd">Shift</span>+<span class="kbd">Enter</span> 换行 · 回信从 <span id="poolHint">0</span> 张字卡中抽取</p>
+</div>
+</div>
+</section>
+
+<section class="view view-library" id="viewLibrary" aria-label="字卡库">
+<header class="page-head">
+<div class="page-head-text"><p class="eyebrow">CARD ARCHIVE</p><h2>字卡库</h2><p class="page-sub" id="librarySummary">共 0 张字卡</p></div>
+<div class="page-actions">
+<button type="button" class="btn primary" id="newCardBtn">＋ 新建字卡</button>
+<button type="button" class="btn" id="importBtn">导入</button>
+<button type="button" class="btn" id="exportBtn">导出</button>
+<button type="button" class="btn" id="selectModeBtn">☑ 批量管理</button>
+</div>
+</header>
+<div class="lib-kinds" id="libKinds" role="tablist" aria-label="字卡类型">
+<button type="button" class="kind-btn active" data-kind="daily" role="tab" aria-selected="true">日常字卡 <span class="kind-count" id="dailyCount">0</span></button>
+<button type="button" class="kind-btn" data-kind="sensation" role="tab" aria-selected="false">体感字卡 <span class="kind-count" id="sensationCount">0</span></button>
+</div>
+<div class="lib-toolbar">
+<button type="button" class="tag-toggle" id="tagToggleBtn" aria-expanded="true" aria-controls="tagFilter">
+<span class="tag-toggle-label" id="tagToggleLabel">收起标签</span>
+<span class="tag-toggle-count" id="tagToggleCount" hidden></span>
+<span class="tag-toggle-caret" aria-hidden="true">▾</span>
+</button>
+<div class="tag-filter" id="tagFilter" aria-label="按标签筛选"></div>
+<div class="search-box"><span class="search-icon" aria-hidden="true">⌕</span><input type="search" id="cardSearch" placeholder="搜索字卡内容或标签" aria-label="搜索字卡" /></div>
+</div>
+<div class="batch-bar" id="batchBar" hidden>
+<button type="button" class="btn small" id="selectAllBtn">全选当前</button>
+<button type="button" class="btn small" id="selectAllAllBtn">全选全部</button>
+<span class="batch-count" id="batchCount">已选 0 张</span>
+<select class="input batch-select" id="batchMoveSelect" aria-label="选择要移动到的标签"></select>
+<button type="button" class="btn small" id="batchMoveBtn">移动</button>
+<button type="button" class="btn small danger" id="batchDeleteBtn">删除所选</button>
+<button type="button" class="btn small" id="batchExitBtn">退出批量</button>
+</div>
+<p class="lib-note" id="libNote">每行一句心意。支持占位符 <code>{我}</code>（你的昵称）与 <code>{名字}</code>（梦角名字）。</p>
+<div class="lib-scroll" id="libScroll">
+<div class="card-grid" id="cardGrid"></div>
+<div class="empty-state" id="libEmpty" hidden>
+<div class="empty-mark">❖</div>
+<h3>镜中还没有回声</h3>
+<p id="libEmptyText">写下第一张字卡，或从文本 / JSON 批量导入。</p>
+<button type="button" class="btn primary" id="emptyAddBtn">＋ 新建字卡</button>
+</div>
+</div>
+</section>
+
+<section class="view view-diary" id="viewDiary" aria-label="日记本">
+<header class="page-head">
+<div class="page-head-text"><p class="eyebrow">DIARY</p><h2>日记本</h2><p class="page-sub" id="diarySummary">镜子的另一端，他每天写下的只言片语。</p></div>
+</header>
+<div class="diary-scroll" id="diaryScroll"><div class="diary-list" id="diaryList"></div></div>
+</section>
+
+<section class="view view-painting" id="viewPainting" aria-label="镜中影">
+<header class="page-head">
+<div class="page-head-text"><p class="eyebrow">REFLECTIONS</p><h2>镜中影</h2><p class="page-sub" id="paintingSummary">他从镜子里递出来的影象。</p></div>
+<div class="page-actions"><button type="button" class="btn primary" id="requestPaintingBtn">✧ 让他留一幅</button></div>
+</header>
+<div class="painting-scroll" id="paintingScroll">
+<div class="painting-grid" id="paintingGrid"></div>
+<div class="empty-state" id="paintingEmpty" hidden>
+<div class="empty-mark">✧</div>
+<h3>镜中还没有影象</h3>
+<p>让他给你留一幅影象吧——他会从你的字卡里，挑一句此刻想起的。</p>
+<button type="button" class="btn primary" id="emptyRequestBtn">✧ 让他留一幅</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+
+<dialog class="modal" id="settingsDialog">
+<form class="modal-card" id="settingsForm" novalidate>
+<header class="modal-head"><div><p class="eyebrow">PROFILE</p><h3>梦角设定</h3></div><button type="button" class="modal-x" data-close aria-label="关闭">✕</button></header>
+<div class="modal-body">
+<div class="field-row">
+<div class="field"><label for="setCharName">梦角名字</label><input class="input" id="setCharName" maxlength="16" placeholder="例如：沈砚" /></div>
+<div class="field"><label for="setMyName">你的昵称 <span class="label-hint">{我} 会替换成它</span></label><input class="input" id="setMyName" maxlength="16" placeholder="你" /></div>
+</div>
+<div class="field"><label for="setCharTitle">身份或签名</label><input class="input" id="setCharTitle" maxlength="30" placeholder="住在镜子背面的人" /></div>
+<div class="field"><label>状态卡池 <span class="label-hint" id="statusPoolHint">随机出现在名字下方</span></label><div class="status-pool" id="statusPoolList"></div><div class="status-add-row"><input class="input" id="statusAddInput" maxlength="20" placeholder="写一个新状态，例如：在镜后等你" /><button type="button" class="btn small" id="statusAddBtn">添加</button></div><p class="field-help">当前状态会从卡池里随机抽取，大约每 2–5 分钟换一次。</p></div>
+<div class="field"><label>梦角头像 <span class="label-hint">从相册选一张照片</span></label><div class="avatar-edit"><div class="avatar-preview" id="avatarPreview"></div><div class="avatar-actions"><button type="button" class="btn small" id="pickAvatarBtn">📷 从相册选择</button><button type="button" class="btn small" id="clearAvatarBtn">恢复默认</button></div></div><p class="field-help">照片会自动压缩后保存在本机浏览器，不会上传到任何服务器。</p></div>
+<div class="field"><label>回复速度</label><div class="segmented" id="speedGroup"><label><input type="radio" name="speed" value="slow" /><span>慢 · 有 suspense</span></label><label><input type="radio" name="speed" value="normal" /><span>正常</span></label><label><input type="radio" name="speed" value="fast" /><span>快</span></label></div></div>
+<div class="field"><label>字号 <span class="label-hint">聊天与字卡的文字大小</span></label><div class="segmented" id="fontGroup"><label><input type="radio" name="fontScale" value="0.85" /><span>小</span></label><label><input type="radio" name="fontScale" value="1" /><span>标准</span></label><label><input type="radio" name="fontScale" value="1.12" /><span>大</span></label><label><input type="radio" name="fontScale" value="1.25" /><span>特大</span></label></div></div>
+<div class="field switch-field"><div><label for="setAvoidRepeat">避免连续重复</label><p class="field-help">抽完一轮之前，同一张字卡不会再次出现。</p></div><label class="switch"><input type="checkbox" id="setAvoidRepeat" /><span class="switch-track"><span class="switch-thumb"></span></span></label></div>
+<div class="field switch-field"><div><label for="setProactive">主动传讯</label><p class="field-help">你安静一会儿后，梦角会主动说 1–2 句话，间隔随机。</p></div><label class="switch"><input type="checkbox" id="setProactive" /><span class="switch-track"><span class="switch-thumb"></span></span></label></div>
+<div class="field switch-field"><div><label for="setSensation">体感弹窗</label><p class="field-help">梦角偶尔会传来一阵体感，7 秒后自动收起。</p></div><label class="switch"><input type="checkbox" id="setSensation" /><span class="switch-track"><span class="switch-thumb"></span></span></label></div>
+<div class="field"><label>抽卡池 <span class="label-hint" id="drawPoolHint">不选 = 全部字卡</span></label><div class="tag-checks" id="drawTags"></div></div>
+<div class="field data-zone">
+<label>数据</label>
+<div class="data-actions">
+<button type="button" class="btn small" id="clearChatBtn">清空聊天记录</button>
+<button type="button" class="btn small danger" id="resetCardsBtn">清空字卡库</button>
+</div>
+<div class="data-actions" style="margin-top:8px">
+<button type="button" class="btn small" id="cleanCacheBtn">整理 &amp; 重启</button>
+<button type="button" class="btn small danger" id="clearAllBtn">清空所有数据</button>
+</div>
+<p class="field-help">「整理 &amp; 重启」会压缩聊天记录（保留最近 80 条）、清空临时会话并刷新页面，用于释放内存。「清空所有数据」会彻底删除聊天、字卡、日记、镜中密语、占卜记录、镜中影和全部设定，操作不可撤销。</p>
+</div>
+</div>
+<footer class="modal-foot"><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary">保存设定</button></footer>
+</form>
+</dialog>
+
+<dialog class="modal" id="cardDialog">
+<form class="modal-card" id="cardForm" novalidate>
+<header class="modal-head"><div><p class="eyebrow">CARD</p><h3 id="cardDialogTitle">新建字卡</h3></div><button type="button" class="modal-x" data-close aria-label="关闭">✕</button></header>
+<div class="modal-body">
+<div class="field"><label for="cardText">字卡内容</label><textarea class="input textarea" id="cardText" maxlength="200" rows="5" placeholder="写下梦角会对你说的那句话…"></textarea><div class="field-foot"><span class="field-error" id="cardTextError"></span><span class="counter" id="cardTextCount">0 / 200</span></div></div>
+<div class="field"><label for="cardTag">标签</label><input class="input" id="cardTag" maxlength="12" list="tagSuggestions" placeholder="例如：低语、渴念、深夜" /><datalist id="tagSuggestions"></datalist><p class="field-help" id="cardTagHelp">标签用于分类筛选，也可以限定抽卡池。留空则归入「日常」。</p></div>
+<div class="field"><label>效果预览</label><div class="preview-card" id="cardPreview"><div class="preview-card-head"><span>镜魇 · 字卡</span><span class="card-tag" id="previewTag">日常</span></div><p class="preview-card-text" id="previewText">你的字卡会出现在这里。</p><div class="preview-card-foot"><span>No. ???</span><span class="seal">魇</span></div></div></div>
+</div>
+<footer class="modal-foot"><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary">保存字卡</button></footer>
+</form>
+</dialog>
+
+<dialog class="modal" id="importDialog">
+<form class="modal-card" id="importForm" novalidate>
+<header class="modal-head"><div><p class="eyebrow">IMPORT</p><h3>导入字卡</h3></div><button type="button" class="modal-x" data-close aria-label="关闭">✕</button></header>
+<div class="modal-body">
+<div class="field"><label for="importText">粘贴文本</label><textarea class="input textarea" id="importText" rows="9" placeholder="每行一张字卡：&#10;低语 | 过来。别怕。"></textarea><p class="field-help">支持「标签 | 内容」或纯文本；也可以直接粘贴 JSON。</p></div>
+<div class="field"><label for="importFile">或选择文件</label><input class="input file-input" type="file" id="importFile" accept=".txt,.json,application/json,text/plain" /><p class="field-help" id="importHint">支持 .txt 与 .json。</p></div>
+<div class="field"><label>导入方式</label><div class="segmented"><label><input type="radio" name="importMode" value="append" checked /><span>追加到现有字卡</span></label><label><input type="radio" name="importMode" value="replace" /><span>替换全部字卡</span></label></div></div>
+</div>
+<footer class="modal-foot"><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary">开始导入</button></footer>
+</form>
+</dialog>
+
+<dialog class="modal" id="exportDialog">
+<form class="modal-card" id="exportForm">
+<header class="modal-head"><div><p class="eyebrow">EXPORT</p><h3>导出字卡</h3></div><button type="button" class="modal-x" data-close aria-label="关闭">✕</button></header>
+<div class="modal-body">
+<p class="export-note" id="exportSummary">共 0 张字卡。</p>
+<div class="export-actions"><button type="button" class="btn primary" id="exportJsonBtn">下载 JSON</button><button type="button" class="btn" id="exportTxtBtn">下载 TXT</button><button type="button" class="btn" id="copyJsonBtn">复制 JSON</button></div>
+<p class="field-help" id="exportHint">导出的 JSON 可以再次导入，也可以分享给同好。</p>
+</div>
+<footer class="modal-foot"><button type="button" class="btn" data-close>关闭</button></footer>
+</form>
+</dialog>
+
+<dialog class="modal modal-sm" id="confirmDialog">
+<div class="modal-card">
+<header class="modal-head"><div><p class="eyebrow">ARE YOU SURE</p><h3 id="confirmTitle">确认操作</h3></div></header>
+<div class="modal-body"><p class="confirm-text" id="confirmText"></p></div>
+<footer class="modal-foot"><button type="button" class="btn" id="confirmCancel">取消</button><button type="button" class="btn danger" id="confirmOk">确认</button></footer>
+</div>
+</dialog>
+
+<dialog class="modal" id="installDialog">
+<form class="modal-card" method="dialog" novalidate>
+<header class="modal-head"><div><p class="eyebrow">INSTALL</p><h3>装到桌面</h3></div><button type="button" class="modal-x" data-close aria-label="关闭">✕</button></header>
+<div class="modal-body">
+<p class="install-lead">装好之后，桌面会多一个「镜魇」的图标，点开就是全屏，和 App 一样。</p>
+<div class="install-steps">
+<div class="install-step"><b>安卓 · Chrome</b><span>点右上角 ⋮，选「安装应用」或「添加到主屏幕」。</span></div>
+<div class="install-step"><b>iPhone · Safari</b><span>点底部的分享按钮，往下找「添加到主屏幕」。</span></div>
+<div class="install-step"><b>电脑 · Chrome / Edge</b><span>点地址栏右侧的安装图标。</span></div>
+</div>
+</div>
+<footer class="modal-foot"><button type="button" class="btn primary" data-close>知道了</button></footer>
+</form>
+</dialog>
+
+<div class="sensation-overlay" id="sensationOverlay" hidden>
+<div class="sensation-card" role="dialog" aria-modal="true" aria-labelledby="sensationTitle">
+<p class="sensation-eyebrow">BODY WHISPER</p>
+<h3 id="sensationTitle">镜后传来一阵体感</h3>
+<p class="sensation-text" id="sensationText"></p>
+<div class="sensation-actions">
+<button type="button" class="btn small primary" data-sensation="felt">我感觉到了</button>
+<button type="button" class="btn small" data-sensation="none">没感觉到</button>
+<button type="button" class="btn small" data-sensation="weak">感觉太弱</button>
+</div>
+<div class="sensation-timer" aria-hidden="true"><span id="sensationProgress"></span></div>
+<p class="sensation-count" id="sensationTimerText">7 秒后收起</p>
+</div>
+</div>
+
+<div class="toast-root" id="toastRoot" role="status" aria-live="polite"></div>
+<input type="file" id="avatarFile" accept="image/*" hidden />
+
+<script src="app.js?v=17"></script>
+<script src="mirror.js"></script>
+
+<script>
+/* ===== 性能 + 清理 + 抽屉 ===== */
+(function(){
+'use strict';
+
+function syncHidden(){document.documentElement.classList.toggle('page-hidden',document.hidden)}
+syncHidden();document.addEventListener('visibilitychange',syncHidden);
+
+function cleanCache(){
+if(!window.confirm('整理 & 重启：\n· 聊天记录保留最近 80 条\n· 清空临时会话数据\n· 刷新页面释放内存\n\n字卡、日记、设定、镜中密语、占卜记录、镜中影都不会被删除。\n\n继续吗？'))return;
+try{var r=localStorage.getItem('jingyan.chat.v1');if(r){var c=JSON.parse(r);if(Array.isArray(c)&&c.length>80){localStorage.setItem('jingyan.chat.v1',JSON.stringify(c.slice(-80)))}}}catch(e){}
+try{sessionStorage.clear()}catch(e){}
+location.reload();
+}
+function clearAllData(){
+if(!window.confirm('⚠ 会彻底删除所有数据：聊天、字卡、日记、镜中密语、占卜记录、镜中影、所有设定。不可撤销。确定吗？'))return;
+if(!window.confirm('再次确认：真的要清空吗？'))return;
+try{var ks=Object.keys(localStorage);for(var i=0;i<ks.length;i++)if(ks[i].indexOf('jingyan.')===0)localStorage.removeItem(ks[i])}catch(e){}
+try{sessionStorage.clear()}catch(e){}
+location.reload();
+}
+
+function setupDrawer(){
+var plusBtn=document.getElementById('composerPlusBtn');
+var drawer=document.getElementById('composerDrawer');
+var closeBtn=document.getElementById('drawerCloseBtn');
+if(!plusBtn||!drawer)return;
+
+function openD(){drawer.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){drawer.classList.add('open')})});plusBtn.classList.add('active')}
+function closeD(){drawer.classList.remove('open');plusBtn.classList.remove('active');window.setTimeout(function(){if(!drawer.classList.contains('open'))drawer.hidden=true},220)}
+function toggleD(){if(drawer.classList.contains('open'))closeD();else openD()}
+
+plusBtn.addEventListener('click',function(e){e.stopPropagation();toggleD()});
+if(closeBtn)closeBtn.addEventListener('click',closeD);
+document.addEventListener('click',function(e){if(!drawer.classList.contains('open'))return;if(drawer.contains(e.target))return;if(plusBtn.contains(e.target))return;closeD()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&drawer.classList.contains('open'))closeD()});
+
+drawer.querySelectorAll('.drawer-item').forEach(function(item){
+item.addEventListener('click',function(){
+var action=item.getAttribute('data-action');
+closeD();
+window.setTimeout(function(){runAction(action)},120);
+});
+});
+}
+
+function runAction(action){
+if(action==='library'){var nb=document.querySelector('.nav-btn[data-view="library"]');if(nb)nb.click()}
+else if(action==='diary'){var db=document.getElementById('diaryNavBtn');if(db)db.click()}
+else if(action==='painting'){var pb=document.getElementById('paintingNavBtn');if(pb)pb.click()}
+else if(action==='sendPainting'){document.dispatchEvent(new CustomEvent('jingyan:requestPaintingToChat'))}
+else if(action==='sensation'){var sb=document.getElementById('sensationBtn');if(sb)sb.click()}
+else if(action==='settings'){var gb=document.getElementById('chatSettingsBtn');if(gb)gb.click()}
+}
+
+function bind(){
+var b1=document.getElementById('cleanCacheBtn');if(b1)b1.addEventListener('click',cleanCache);
+var b2=document.getElementById('clearAllBtn');if(b2)b2.addEventListener('click',clearAllData);
+setupDrawer();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);
+else bind();
+})();
+</script>
+
+<script>
+/* ===== 日记本 ===== */
+(function(){
+'use strict';
+var DIARY_KEY='jingyan.diary.v1',CARDS_KEY='jingyan.cards.v1',SETTINGS_KEY='jingyan.settings.v1';
+var WEEKDAYS=['日','一','二','三','四','五','六'];
+var CONN={smooth:{text:'很顺畅',cls:'conn-smooth'},ok:{text:'顺畅',cls:'conn-ok'},hesitant:{text:'有些迟疑',cls:'conn-hesitant'},foggy:{text:'隔着一层雾',cls:'conn-foggy'}};
+var ENERGY={full:{text:'能量很满',cls:'energy-full'},steady:{text:'能量平稳',cls:'energy-steady'},tired:{text:'有些疲惫',cls:'energy-tired'},empty:{text:'几乎是空的',cls:'energy-empty'}};
+
+function uid(){return 'd_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
+function cuid(){return 'c_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)}
+function clamp(v,n){return String(v==null?'':v).trim().slice(0,n)}
+function pad2(n){return String(n).padStart(2,'0')}
+function readJSON(k,fb){try{var r=localStorage.getItem(k);return r?JSON.parse(r):fb}catch(e){return fb}}
+function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.warn('[diary]',e)}}
+function formatDate(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
+function parseDate(s){var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])}
+function formatDateLabel(s){var d=parseDate(s);return (d.getMonth()+1)+'月'+d.getDate()+'日'}
+function formatTimeLabel(ts){try{var d=new Date(ts);return pad2(d.getHours())+':'+pad2(d.getMinutes())}catch(e){return ''}}
+function personalize(t){var s=readJSON(SETTINGS_KEY,{})||{};var m=clamp(s.myName,16)||'你';var c=clamp(s.charName,16)||'梦角';return String(t).split('{我}').join(m).split('{名字}').join(c)}
+
+function loadCards(){var r=readJSON(CARDS_KEY,[]);return Array.isArray(r)?r.filter(function(c){return c&&typeof c.text==='string'&&c.text.trim()}):[]}
+function loadDiary(){var r=readJSON(DIARY_KEY,{entries:[]});var l=r&&Array.isArray(r.entries)?r.entries:[];return l.filter(function(e){return e&&e.date&&Array.isArray(e.paragraphs)}).map(function(e){if(!Array.isArray(e.comments))e.comments=[];return e})}
+function saveDiary(l){writeJSON(DIARY_KEY,{entries:l})}
+
+function pickW(o){var t=o.reduce(function(s,x){return s+x.w},0);var r=Math.random()*t;for(var i=0;i<o.length;i++){r-=o[i].w;if(r<=0)return o[i].v}return o[o.length-1].v}
+function pickMood(){return{connection:pickW([{v:'smooth',w:3},{v:'ok',w:4},{v:'hesitant',w:2},{v:'foggy',w:1}]),energy:pickW([{v:'full',w:2},{v:'steady',w:4},{v:'tired',w:2},{v:'empty',w:1}])}}
+function plan(m){var minP=2,maxP=3;if(m.energy==='full'){minP=3;maxP=4}else if(m.energy==='tired'){minP=1;maxP=2}else if(m.energy==='empty'){minP=1;maxP=1}if(m.connection==='smooth'&&maxP<4)maxP+=1;if(m.connection==='foggy'){minP=1;maxP=Math.max(1,maxP-1)}var pc=minP+Math.floor(Math.random()*(maxP-minP+1));var minC=1,maxC=2;if(m.connection==='smooth'&&m.energy==='full'){minC=2;maxC=3}else if(m.energy==='empty'){minC=1;maxC=1}return{pc:pc,minC:minC,maxC:maxC}}
+
+function gen(dateStr){
+var cards=loadCards();var mood=pickMood();var p=plan(mood);
+if(!cards.length)return{id:uid(),date:dateStr,ts:Date.now(),connection:mood.connection,energy:mood.energy,paragraphs:['镜子里很安静。今天没有可以写下的话。'],comments:[]};
+var used={};var paras=[];
+for(var i=0;i<p.pc;i++){
+var cnt=p.minC+Math.floor(Math.random()*(p.maxC-p.minC+1));var lines=[];
+for(var j=0;j<cnt;j++){
+var pool=cards.filter(function(c){return c.id&&!used[c.id]});
+if(!pool.length){used={};pool=cards.slice()}
+if(!pool.length)break;
+var card=pool[Math.floor(Math.random()*pool.length)];used[card.id]=true;
+lines.push(personalize(card.text));
+}
+if(lines.length)paras.push(lines.join('\n'));
+}
+if(!paras.length)paras.push(personalize(cards[Math.floor(Math.random()*cards.length)].text));
+return{id:uid(),date:dateStr,ts:Date.now(),connection:mood.connection,energy:mood.energy,paragraphs:paras,comments:[]};
+}
+
+function ensure(){
+var entries=loadDiary();var today=formatDate(new Date());
+if(!entries.length){entries.push(gen(today));saveDiary(entries);return}
+var hasToday=entries.some(function(e){return e.date===today});
+if(!hasToday){entries.push(gen(today));saveDiary(entries);return}
+var todayEntries=entries.filter(function(e){return e.date===today});
+if(todayEntries.length<3&&Math.random()<0.4){entries.push(gen(today));saveDiary(entries)}
+}
+
+function buildEntry(entry){
+var el=document.createElement('div');el.className='diary-entry';el.dataset.id=entry.id;
+var tags=document.createElement('div');tags.className='diary-tags';
+var c=CONN[entry.connection]||CONN.ok;var e=ENERGY[entry.energy]||ENERGY.steady;
+var ct=document.createElement('span');ct.className='diary-tag '+c.cls;ct.textContent='沟通 · '+c.text;
+var et=document.createElement('span');et.className='diary-tag '+e.cls;et.textContent='能量 · '+e.text;
+tags.appendChild(ct);tags.appendChild(et);
+var body=document.createElement('div');body.className='diary-body';
+entry.paragraphs.forEach(function(p){var pe=document.createElement('p');pe.className='diary-p';pe.textContent=p;body.appendChild(pe)});
+var actions=document.createElement('div');actions.className='diary-actions';
+var cmBtn=document.createElement('button');cmBtn.type='button';cmBtn.className='diary-act';cmBtn.textContent='✎ 评论';
+cmBtn.addEventListener('click',function(){var f=el.querySelector('.diary-comment-form');if(f){f.hidden=!f.hidden;if(!f.hidden){var ta=f.querySelector('textarea');if(ta)setTimeout(function(){ta.focus()},30)}}});
+var delBtn=document.createElement('button');delBtn.type='button';delBtn.className='diary-act del';delBtn.textContent='✕ 删除';
+delBtn.addEventListener('click',function(){if(!window.confirm('确定删除这一篇日记吗？此操作不可撤销。'))return;saveDiary(loadDiary().filter(function(x){return x.id!==entry.id}));render()});
+actions.appendChild(cmBtn);actions.appendChild(delBtn);
+if(entry.comments&&entry.comments.length){
+var wrap=document.createElement('div');wrap.className='diary-comments';
+var lbl=document.createElement('div');lbl.className='diary-comments-label';lbl.textContent='你的批注';wrap.appendChild(lbl);
+entry.comments.forEach(function(cm){
+var ce=document.createElement('div');ce.className='diary-comment';
+var ch=document.createElement('div');ch.className='diary-comment-head';
+var ts=document.createElement('span');ts.className='diary-comment-time';ts.textContent=formatTimeLabel(cm.ts);
+var dc=document.createElement('button');dc.type='button';dc.className='diary-comment-del';dc.textContent='✕';
+dc.addEventListener('click',function(){var all=loadDiary();var t=null;for(var i=0;i<all.length;i++)if(all[i].id===entry.id){t=all[i];break}if(!t)return;t.comments=t.comments.filter(function(x){return x.id!==cm.id});saveDiary(all);render()});
+ch.appendChild(ts);ch.appendChild(dc);
+var txt=document.createElement('p');txt.className='diary-comment-text';txt.textContent=cm.text;
+ce.appendChild(ch);ce.appendChild(txt);wrap.appendChild(ce);
+});
+el.appendChild(wrap);
+}
+var form=document.createElement('div');form.className='diary-comment-form';form.hidden=true;
+var ta=document.createElement('textarea');ta.maxLength=400;ta.placeholder='写下你的批注……';ta.rows=3;
+var fa=document.createElement('div');fa.className='diary-comment-form-actions';
+var ca=document.createElement('button');ca.type='button';ca.className='btn small';ca.textContent='取消';ca.addEventListener('click',function(){ta.value='';form.hidden=true});
+var sb=document.createElement('button');sb.type='button';sb.className='btn small primary';sb.textContent='写下';
+sb.addEventListener('click',function(){var v=ta.value.trim();if(!v){ta.focus();return}var all=loadDiary();var t=null;for(var i=0;i<all.length;i++)if(all[i].id===entry.id){t=all[i];break}if(!t)return;t.comments.push({id:cuid(),text:clamp(v,400),ts:Date.now()});saveDiary(all);render()});
+fa.appendChild(ca);fa.appendChild(sb);form.appendChild(ta);form.appendChild(fa);
+el.appendChild(tags);el.appendChild(body);el.appendChild(actions);el.appendChild(form);
+return el;
+}
+
+function buildDay(dateStr,entries){
+var d=parseDate(dateStr);var today=formatDate(new Date());var y=new Date();y.setDate(y.getDate()-1);var yest=formatDate(y);
+var label=formatDateLabel(dateStr);if(dateStr===today)label='今天 · '+label;else if(dateStr===yest)label='昨天 · '+label;
+var card=document.createElement('article');card.className='diary-day-card';
+var head=document.createElement('header');head.className='diary-day-head';
+var left=document.createElement('div');left.className='diary-day-left';
+var day=document.createElement('span');day.className='diary-day';day.textContent=label;
+var wk=document.createElement('span');wk.className='diary-weekday';wk.textContent='星期'+WEEKDAYS[d.getDay()];
+left.appendChild(day);left.appendChild(wk);
+var cnt=document.createElement('span');cnt.className='diary-count';cnt.textContent=entries.length+' 篇';
+head.appendChild(left);head.appendChild(cnt);
+var body=document.createElement('div');body.className='diary-entries';
+entries.forEach(function(e,i){if(i>0){var s=document.createElement('div');s.className='diary-sep';body.appendChild(s)}body.appendChild(buildEntry(e))});
+card.appendChild(head);card.appendChild(body);
+return card;
+}
+
+function render(){
+var list=document.getElementById('diaryList');var summary=document.getElementById('diarySummary');var cnt=document.getElementById('navDiaryCount');
+if(!list)return;
+var entries=loadDiary();if(cnt)cnt.textContent=String(entries.length);
+list.innerHTML='';
+if(!entries.length){if(summary)summary.textContent='镜子的另一端，他每天写下的只言片语。';return}
+var byDate={};entries.forEach(function(e){if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e)});
+var dates=Object.keys(byDate).sort().reverse();
+dates.forEach(function(ds){var items=byDate[ds].slice().sort(function(a,b){return b.ts-a.ts});list.appendChild(buildDay(ds,items))});
+if(summary){var e=dates[dates.length-1];summary.textContent='共 '+entries.length+' 篇 · 从 '+formatDateLabel(e)+' 起'}
+}
+
+function switchTo(){
+document.getElementById('viewChat').classList.remove('active');
+document.getElementById('viewLibrary').classList.remove('active');
+document.getElementById('viewDiary').classList.add('active');
+var vs=document.getElementById('viewPainting');if(vs)vs.classList.remove('active');
+var navs=document.querySelectorAll('.nav-btn');
+for(var i=0;i<navs.length;i++)navs[i].classList.toggle('active',navs[i].getAttribute('data-view')==='diary');
+ensure();render();
+var sc=document.getElementById('diaryScroll');if(sc)sc.scrollTop=0;
+}
+
+function watch(){
+var chat=document.getElementById('viewChat'),lib=document.getElementById('viewLibrary'),dia=document.getElementById('viewDiary');
+if(typeof MutationObserver!=='function')return;
+var mo=new MutationObserver(function(){if(dia&&(chat.classList.contains('active')||lib.classList.contains('active')))dia.classList.remove('active')});
+mo.observe(chat,{attributes:true,attributeFilter:['class']});
+mo.observe(lib,{attributes:true,attributeFilter:['class']});
+}
+
+function init(){
+var b=document.getElementById('diaryNavBtn');if(b)b.addEventListener('click',switchTo);
+watch();ensure();render();
+var last=0;
+document.addEventListener('visibilitychange',function(){
+if(document.visibilityState!=='visible')return;
+var now=Date.now();if(now-last<60000)return;last=now;
+ensure();
+var d=document.getElementById('viewDiary');
+if(d&&d.classList.contains('active'))render();
+else{var c=document.getElementById('navDiaryCount');var es=loadDiary();if(c)c.textContent=String(es.length)}
+});
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+else init();
+})();
+</script>
+
+<script>
+/* ===== 镜中影 ===== */
+(function(){
+'use strict';
+console.log('[mirror-painting] v3 内联版');
+
+var PAINTING_KEY='jingyan.paintings.v1';
+var CARDS_KEY='jingyan.cards.v1';
+var SETTINGS_KEY='jingyan.settings.v1';
+
+var PALETTES={
+mirror:{name:'镜面',bg:['#050305','#0a0609','#100a0d','#150a10'],mid:['#2a0f14','#3a1420','#4a1a28','#5a2028'],light:['#7a2a34','#9a3a44','#b84a54','#c85a5e'],accent:['#e6c9a8','#d97676','#b88a5a','#f0d8b8']},
+dark:{name:'暗涌',bg:['#050203','#0a0406','#120507','#1a0608'],mid:['#3a0a10','#4a1018','#5a1820','#6e1a24'],light:['#8a2228','#a83840','#c45256','#d97676'],accent:['#e6c9a8','#f0d8b8','#d97676','#c98a4a']},
+warm:{name:'余温',bg:['#0a0503','#150a05','#1a0d05','#251205'],mid:['#3a1e0a','#5a2e10','#7a3f1a','#8a4a20'],light:['#a85a2a','#c98a4a','#e6b07a','#f0c890'],accent:['#f0d8b8','#e6c9a8','#a85a2a','#f0e8d0']},
+cold:{name:'雾青',bg:['#030608','#050a0f','#080e15','#0a1218'],mid:['#0a1a25','#102a38','#1a3a4a','#225060'],light:['#2a5a6a','#3a7a8a','#5a9aa8','#7abac8'],accent:['#a8c8d0','#c8e0e8','#8ab8c0','#e0f0f0']},
+ink:{name:'墨寂',bg:['#020203','#040405','#060608','#08080a'],mid:['#0f0f14','#171720','#1f1f28','#2a2a36'],light:['#2f2f3a','#4f4f5a','#6f6f7a','#8f8f9a'],accent:['#8f8f9a','#b0b0b8','#d0d0d8','#e8e8ec']}
+};
+
+var ARCHETYPE_WEIGHTS={reflection:4,silhouette:4,fogfigure:4,peek:3,phase:3,ripple:2,vortex:2,crack:2,branch:2,lightspot:2,rift:2,shards:2};
+var ARCHETYPE_NAMES={reflection:'倒影',silhouette:'剪影',fogfigure:'雾中人影',peek:'窥视',phase:'月相',ripple:'涟漪',vortex:'漩涡',crack:'裂纹',branch:'枝影',lightspot:'光斑',rift:'裂隙',shards:'碎片'};
+
+var KEYWORDS={dark:['夜','冷','血','影','黑','暗','沉','冰','寒','骨','墓','渊','痛','亡','噬','裂'],warm:['光','暖','火','唇','烫','热','亮','吻','烧','抱','肩','融','温','梦','痒'],cold:['雨','雾','湖','青','灰','水','风','云','霜','雪','飘','散','泪','湿','浅'],ink:['静','默','空','白','寂','无','远','深','藏','止','听','等','留','别','淡']};
+
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function clamp(v,n){return String(v==null?'':v).trim().slice(0,n)}
+function pad2(n){return String(n).padStart(2,'0')}
+function readJSON(k,fb){try{var r=localStorage.getItem(k);return r?JSON.parse(r):fb}catch(e){return fb}}
+function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.warn('[painting]',e)}}
+function formatTime(ts){var d=new Date(ts);return pad2(d.getMonth()+1)+'/'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes())}
+function personalize(t){var s=readJSON(SETTINGS_KEY,{})||{};var m=clamp(s.myName,16)||'你';var c=clamp(s.charName,16)||'梦角';return String(t).split('{我}').join(m).split('{名字}').join(c)}
+
+function createRng(seed){var s=(seed|0)>>>0;if(s===0)s=1;return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function pick(arr,rng){return arr[Math.floor(rng()*arr.length)]}
+function hexAlpha(hex,a){var v=Math.round(Math.max(0,Math.min(1,a))*255).toString(16).padStart(2,'0');return hex+v}
+
+function loadCards(){var raw=readJSON(CARDS_KEY,[]);if(!Array.isArray(raw))return[];return raw.filter(function(c){return c&&typeof c.text==='string'&&c.text.trim()})}
+function loadPaintings(){var raw=readJSON(PAINTING_KEY,{paintings:[]});var list=raw&&Array.isArray(raw.paintings)?raw.paintings:[];return list.filter(function(p){return p&&p.seed!=null&&Array.isArray(p.cardTexts)}).map(function(p){return Object.assign({},p,{palette:p.palette||'mirror',archetype:p.archetype||'reflection'})})}
+function savePaintings(arr){writeJSON(PAINTING_KEY,{paintings:arr.slice(0,200)})}
+
+function analyzePalette(texts){var all=texts.join('');var scores={dark:0,warm:0,cold:0,ink:0};Object.keys(KEYWORDS).forEach(function(k){KEYWORDS[k].forEach(function(w){if(all.indexOf(w)>=0)scores[k]+=1})});var max=0,best='mirror';Object.keys(scores).forEach(function(k){if(scores[k]>max){max=scores[k];best=k}});return max===0?'mirror':best}
+function pickArchetype(rng){var entries=Object.entries(ARCHETYPE_WEIGHTS);var total=entries.reduce(function(s,x){return s+x[1]},0);var r=rng()*total;for(var i=0;i<entries.length;i++){r-=entries[i][1];if(r<=0)return entries[i][0]}return entries[entries.length-1][0]}
+function extractChinese(text){return String(text==null?'':text).replace(/[^\u4e00-\u9fa5]/g,'')}
+
+function makeTitle(cardTexts,rng){
+var pools=(cardTexts||[]).map(extractChinese).filter(function(s){return s.length>=1});
+if(!pools.length)return '无言';
+var allChars=pools.join('');
+for(var attempt=0;attempt<10;attempt++){
+var seg='';
+if(rng()<0.32&&pools.length>=2){
+var i1=Math.floor(rng()*pools.length);var i2=Math.floor(rng()*pools.length);
+if(i2===i1)i2=(i1+1)%pools.length;
+var a=pools[i1],b=pools[i2];
+var lenA=1+Math.floor(rng()*Math.min(3,a.length));
+var lenB=1+Math.floor(rng()*Math.min(3,b.length));
+seg=(a.slice(0,lenA)+b.slice(b.length-lenB)).slice(0,6);
+}else{
+var src=pools[Math.floor(rng()*pools.length)];
+if(src.length<2){seg=src}
+else{var maxLen=Math.min(6,src.length);var minLen=2;var len=minLen+Math.floor(rng()*(maxLen-minLen+1));var start=Math.floor(rng()*(src.length-len+1));seg=src.slice(start,start+len)}
+}
+seg=seg.replace(/^[的了着]/,'');
+if(seg.length>=2&&seg.length<=6)return seg;
+}
+var len=Math.min(6,Math.max(2,allChars.length));
+if(allChars.length<=6)return allChars.slice(0,len);
+var start2=Math.floor(rng()*(allChars.length-len+1));
+return allChars.slice(start2,start2+len);
+}
+
+function generatePainting(){
+var cards=loadCards();
+var seed=Math.floor(Math.random()*2147483646)+1;
+var rng=createRng(seed);
+if(!cards.length){
+return{id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),ts:Date.now(),seed:seed,palette:'mirror',archetype:'reflection',cardTexts:['镜子里还没有你的字。'],title:'空白'};
+}
+var pool=cards.slice();
+var count=Math.min(1+Math.floor(rng()*3),pool.length);
+var picked=[];
+for(var i=0;i<count;i++){var idx=Math.floor(rng()*pool.length);picked.push(pool.splice(idx,1)[0])}
+var texts=picked.map(function(c){return personalize(c.text)});
+var palette=analyzePalette(texts);
+var archetype=pickArchetype(rng);
+var title=makeTitle(texts,rng);
+return{id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),ts:Date.now(),seed:seed,palette:palette,archetype:archetype,cardTexts:texts,title:title};
+}
+
+/* 12 种构图 */
+function composeReflection(ctx,W,H,pal,rng){
+var cx=W*(0.35+rng()*0.3),cy=H*(0.28+rng()*0.1),rx=W*(0.13+rng()*0.12),ry=H*(0.18+rng()*0.12),lineY=H*(0.52+rng()*0.06);
+var g1=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*1.8);
+g1.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.9));g1.addColorStop(0.5,hexAlpha(pick(pal.mid,rng),0.4));g1.addColorStop(1,hexAlpha(pick(pal.mid,rng),0));
+ctx.fillStyle=g1;ctx.beginPath();ctx.ellipse(cx,cy,rx*1.5,ry*1.5,0,0,Math.PI*2);ctx.fill();
+var gL=ctx.createLinearGradient(0,lineY,W,lineY);
+gL.addColorStop(0,'rgba(0,0,0,0)');gL.addColorStop(0.5,hexAlpha(pick(pal.accent,rng),0.35+rng()*0.25));gL.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=gL;ctx.fillRect(0,lineY-1.5,W,3);
+ctx.save();ctx.globalAlpha=0.55;ctx.translate(0,H);ctx.scale(1,-1);
+var g2=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*2.2);
+g2.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.55));g2.addColorStop(0.6,hexAlpha(pick(pal.mid,rng),0.18));g2.addColorStop(1,hexAlpha(pick(pal.mid,rng),0));
+ctx.fillStyle=g2;ctx.beginPath();ctx.ellipse(cx,cy,rx*1.7,ry*1.7,0,0,Math.PI*2);ctx.fill();ctx.restore();
+var ripples=3+Math.floor(rng()*4);
+for(var i=0;i<ripples;i++){
+var wy=lineY+(H*0.06)*(i+1)+rng()*10;
+ctx.strokeStyle=hexAlpha(pick(pal.light,rng),0.12+rng()*0.15);ctx.lineWidth=0.6+rng()*0.8;
+ctx.beginPath();ctx.moveTo(W*0.08,wy);ctx.quadraticCurveTo(W*0.5,wy+(rng()-0.5)*24,W*0.92,wy);ctx.stroke();
+}
+var gS=ctx.createRadialGradient(cx,lineY,0,cx,lineY,W*0.15);
+gS.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.35));gS.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=gS;ctx.fillRect(cx-W*0.2,lineY-20,W*0.4,40);
+}
+
+function composeSilhouette(ctx,W,H,pal,rng){
+var glowX=W*(0.3+rng()*0.4),glowY=H*(0.3+rng()*0.15),glowR=Math.max(W,H)*(0.5+rng()*0.25);
+var g=ctx.createRadialGradient(glowX,glowY,0,glowX,glowY,glowR);
+g.addColorStop(0,hexAlpha(pick(pal.light,rng),0.55));g.addColorStop(0.4,hexAlpha(pick(pal.mid,rng),0.35));g.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+var headX=W*(0.35+rng()*0.3),headY=H*(0.34+rng()*0.08),headR=W*(0.07+rng()*0.05);
+var shoulderW=headR*2.8+rng()*headR,shoulderY=headY+headR*1.5;
+ctx.save();ctx.fillStyle=pick(pal.bg,rng);
+ctx.beginPath();ctx.arc(headX,headY,headR,0,Math.PI*2);ctx.fill();
+ctx.beginPath();ctx.moveTo(headX-shoulderW,H*1.05);
+ctx.quadraticCurveTo(headX-shoulderW,shoulderY,headX,shoulderY-headR*0.2);
+ctx.quadraticCurveTo(headX+shoulderW,shoulderY,headX+shoulderW,H*1.05);ctx.closePath();ctx.fill();ctx.restore();
+ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.5);ctx.lineWidth=1.4;
+ctx.beginPath();ctx.arc(headX,headY,headR+0.5,Math.PI*1.1,Math.PI*1.9);ctx.stroke();ctx.restore();
+}
+
+function composeFogFigure(ctx,W,H,pal,rng){
+for(var i=0;i<4;i++){
+var fx=W*(0.15+rng()*0.7),fy=H*(0.15+rng()*0.7),fr=Math.max(W,H)*(0.25+rng()*0.3);
+var g=ctx.createRadialGradient(fx,fy,0,fx,fy,fr);
+g.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.28+rng()*0.18));g.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+var cx=W*(0.35+rng()*0.3),headY=H*(0.3+rng()*0.1),headR=W*(0.06+rng()*0.04),bodyBottom=H*(0.85+rng()*0.15);
+ctx.save();
+try{ctx.filter='blur('+(5+rng()*5)+'px)'}catch(e){}
+ctx.fillStyle=pick(pal.bg,rng);ctx.globalAlpha=0.78;
+ctx.beginPath();ctx.arc(cx,headY,headR,0,Math.PI*2);ctx.fill();
+var sw=headR*2.4;ctx.beginPath();
+ctx.moveTo(cx-sw,bodyBottom);ctx.lineTo(cx-sw*0.55,headY+headR*1.3);ctx.lineTo(cx+sw*0.55,headY+headR*1.3);ctx.lineTo(cx+sw,bodyBottom);ctx.closePath();ctx.fill();ctx.restore();
+var v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.2,W/2,H/2,Math.max(W,H)*0.75);
+v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,hexAlpha(pick(pal.bg,rng),0.7));
+ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function composePeek(ctx,W,H,pal,rng){
+var angle=Math.PI*0.5+(rng()-0.5)*0.9;
+var nx=Math.cos(angle),ny=Math.sin(angle);
+var offset=W*(0.15+rng()*0.2);
+var cx=W*0.5,cy=H*0.5;
+var sx=cx-nx*offset,sy=cy-ny*offset;
+var ex=sx+nx*W*2,ey=sy+ny*H*2;
+ctx.save();
+ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.lineTo(ex-ny*H*2,ey+nx*H*2);ctx.lineTo(sx-ny*H*2,sy+nx*H*2);ctx.closePath();ctx.clip();
+var g=ctx.createLinearGradient(sx-nx*250,sy-ny*250,ex,ey);
+g.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.95));g.addColorStop(0.4,hexAlpha(pick(pal.light,rng),0.7));g.addColorStop(1,hexAlpha(pick(pal.bg,rng),0.85));
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+var figX=cx+(rng()-0.5)*W*0.2,figY=cy+(rng()-0.5)*H*0.15,figR=W*0.14;
+ctx.save();
+try{ctx.filter='blur('+(6+rng()*5)+'px)'}catch(e){}
+ctx.fillStyle=pick(pal.bg,rng);ctx.globalAlpha=0.55;
+ctx.beginPath();ctx.ellipse(figX,figY,figR,figR*1.7,0,0,Math.PI*2);ctx.fill();ctx.restore();
+ctx.restore();
+ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.85);ctx.lineWidth=1.5;ctx.shadowColor=pick(pal.accent,rng);ctx.shadowBlur=12;
+ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.restore();
+}
+
+function composePhase(ctx,W,H,pal,rng){
+var cx=W*(0.4+rng()*0.2),cy=H*(0.42+rng()*0.15),radius=Math.min(W,H)*(0.2+rng()*0.15);
+var gG=ctx.createRadialGradient(cx,cy,radius*0.8,cx,cy,radius*2.8);
+gG.addColorStop(0,hexAlpha(pick(pal.light,rng),0.4));gG.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=gG;ctx.fillRect(0,0,W,H);
+ctx.save();ctx.fillStyle=pick(pal.light,rng);
+ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();ctx.restore();
+var offsetX=radius*(0.5+rng()*1.4),offsetY=(rng()-0.5)*radius*0.4;
+ctx.save();ctx.fillStyle=pick(pal.bg,rng);
+ctx.beginPath();ctx.arc(cx+offsetX,cy+offsetY,radius*1.06,0,Math.PI*2);ctx.fill();ctx.restore();
+ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.35);ctx.lineWidth=1;
+ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.stroke();ctx.restore();
+for(var i=0;i<30;i++){ctx.fillStyle=hexAlpha(pick(pal.accent,rng),0.15+rng()*0.55);ctx.beginPath();ctx.arc(rng()*W,rng()*H,0.4+rng()*1.1,0,Math.PI*2);ctx.fill()}
+}
+
+function composeRipple(ctx,W,H,pal,rng){
+var cx=W*(0.3+rng()*0.4),cy=H*(0.35+rng()*0.3),rings=4+Math.floor(rng()*5),maxR=Math.min(W,H)*(0.4+rng()*0.3);
+for(var i=rings;i>=1;i--){
+var t=i/rings;var radius=maxR*t;var alpha=(1-t)*0.7+0.08;
+ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
+ctx.strokeStyle=hexAlpha(pick(pal.light,rng),alpha);ctx.lineWidth=0.8+(1-t)*2.2;ctx.stroke();
+}
+var g=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.2);
+g.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.85));g.addColorStop(0.5,hexAlpha(pick(pal.light,rng),0.35));g.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+
+function composeVortex(ctx,W,H,pal,rng){
+var cx=W*(0.35+rng()*0.3),cy=H*(0.35+rng()*0.3),lines=5+Math.floor(rng()*6),maxR=Math.min(W,H)*(0.42+rng()*0.15);
+for(var i=0;i<lines;i++){
+var startAngle=rng()*Math.PI*2,turns=2+rng()*2.2,steps=80;
+ctx.beginPath();
+for(var s=0;s<=steps;s++){
+var t=s/steps;var radius=maxR*t;var angle=startAngle+t*Math.PI*2*turns;
+var x=cx+Math.cos(angle)*radius;var y=cy+Math.sin(angle)*radius;
+if(s===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+}
+ctx.strokeStyle=hexAlpha(pick(pal.light,rng),0.35+rng()*0.4);ctx.lineWidth=0.8+rng()*1.8;ctx.stroke();
+}
+var g=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.25);
+g.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.75));g.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+
+function composeCrack(ctx,W,H,pal,rng){
+var cx=W*(0.3+rng()*0.4),cy=H*(0.3+rng()*0.4),branches=5+Math.floor(rng()*7),lengthScale=Math.min(W,H)*(0.35+rng()*0.35);
+for(var b=0;b<branches;b++){
+var baseAngle=(b/branches)*Math.PI*2+rng()*0.6,segments=4+Math.floor(rng()*4),length=lengthScale*(0.7+rng()*0.5);
+ctx.beginPath();ctx.moveTo(cx,cy);
+for(var s=1;s<=segments;s++){var t=s/segments;var nx=cx+Math.cos(baseAngle)*length*t+(rng()-0.5)*14;var ny=cy+Math.sin(baseAngle)*length*t+(rng()-0.5)*14;ctx.lineTo(nx,ny)}
+ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.light,rng),0.7);ctx.lineWidth=2+rng()*1.5;ctx.shadowColor=pick(pal.accent,rng);ctx.shadowBlur=10;ctx.stroke();ctx.restore();
+ctx.strokeStyle=pick(pal.bg,rng);ctx.lineWidth=0.8;ctx.stroke();
+}
+var g=ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.12);
+g.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.85));g.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=g;ctx.fillRect(cx-W*0.15,cy-W*0.15,W*0.3,W*0.3);
+}
+
+function composeBranch(ctx,W,H,pal,rng){
+var fromLeft=rng()<0.5,startX=fromLeft?-W*0.05:W*1.05,startY=H*(0.5+rng()*0.3),angleBase=fromLeft?-Math.PI*0.65:-Math.PI*0.35;
+var color=pick(pal.bg,rng);
+ctx.save();ctx.strokeStyle=color;ctx.lineCap='round';
+var branch=function(x,y,angle,length,width,depth){
+if(depth>4||length<12)return;
+var ex=x+Math.cos(angle)*length,ey=y+Math.sin(angle)*length;
+ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo((x+ex)/2+(rng()-0.5)*12,(y+ey)/2+(rng()-0.5)*12,ex,ey);
+ctx.lineWidth=width;ctx.stroke();
+var n=2+Math.floor(rng()*2);
+for(var i=0;i<n;i++)branch(ex,ey,angle+(rng()-0.5)*1.0,length*(0.45+rng()*0.3),width*0.7,depth+1);
+};
+var trunks=2+Math.floor(rng()*2);
+for(var t=0;t<trunks;t++)branch(startX,startY+t*25,angleBase+(rng()-0.5)*0.4,Math.min(W,H)*(0.35+rng()*0.2),3.5+rng()*2.5,0);
+ctx.restore();
+ctx.save();ctx.globalCompositeOperation='lighter';
+var g=ctx.createRadialGradient(W*(0.6+rng()*0.2),H*(0.3+rng()*0.2),0,W*(0.6+rng()*0.2),H*(0.3+rng()*0.2),Math.max(W,H)*0.5);
+g.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.25));g.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.restore();
+}
+
+function composeLightSpot(ctx,W,H,pal,rng){
+var corner=Math.floor(rng()*4);
+var cx=corner===0||corner===2?0:W,cy=corner===0||corner===1?0:H;
+var radius=Math.max(W,H)*(0.65+rng()*0.3);
+var g=ctx.createRadialGradient(cx,cy,0,cx,cy,radius);
+g.addColorStop(0,hexAlpha(pick(pal.light,rng),0.75));g.addColorStop(0.35,hexAlpha(pick(pal.mid,rng),0.35));g.addColorStop(1,'rgba(0,0,0,0)');
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ctx.save();ctx.globalAlpha=0.22;
+var points=8,baseR=Math.min(W,H)*(0.25+rng()*0.2);
+ctx.beginPath();
+for(var i=0;i<=points;i++){var a=(i/points)*Math.PI*2;var v=0.7+rng()*0.6;var px=cx+Math.cos(a)*baseR*v,py=cy+Math.sin(a)*baseR*v;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}
+ctx.closePath();ctx.fillStyle=pick(pal.accent,rng);ctx.fill();ctx.restore();
+}
+
+function composeRift(ctx,W,H,pal,rng){
+var cx=W*(0.35+rng()*0.3),widthBase=W*(0.06+rng()*0.08);
+var lg=ctx.createLinearGradient(0,0,cx,0);lg.addColorStop(0,pick(pal.bg,rng));lg.addColorStop(1,pick(pal.mid,rng));ctx.fillStyle=lg;ctx.fillRect(0,0,cx,H);
+var rg=ctx.createLinearGradient(cx,0,W,0);rg.addColorStop(0,pick(pal.mid,rng));rg.addColorStop(1,pick(pal.bg,rng));ctx.fillStyle=rg;ctx.fillRect(cx,0,W-cx,H);
+var topX=cx+(rng()-0.5)*30,botX=cx+(rng()-0.5)*30,topW=widthBase*0.35,botW=widthBase*0.6;
+ctx.beginPath();ctx.moveTo(topX-topW,0);
+ctx.quadraticCurveTo(cx-widthBase,H*0.5,botX-botW,H);
+ctx.lineTo(botX+botW,H);
+ctx.quadraticCurveTo(cx+widthBase,H*0.5,topX+topW,0);ctx.closePath();
+ctx.fillStyle=pick(pal.bg,rng);ctx.fill();
+ctx.save();ctx.shadowColor=pick(pal.accent,rng);ctx.shadowBlur=15;ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.7);ctx.lineWidth=1.5;
+ctx.beginPath();ctx.moveTo(topX-topW,0);ctx.quadraticCurveTo(cx-widthBase,H*0.5,botX-botW,H);ctx.stroke();
+ctx.beginPath();ctx.moveTo(topX+topW,0);ctx.quadraticCurveTo(cx+widthBase,H*0.5,botX+botW,H);ctx.stroke();ctx.restore();
+}
+
+function composeShards(ctx,W,H,pal,rng){
+var count=4+Math.floor(rng()*4);
+for(var i=0;i<count;i++){
+var cx=W*(0.15+rng()*0.7),cy=H*(0.15+rng()*0.7),size=Math.min(W,H)*(0.12+rng()*0.22),points=3+Math.floor(rng()*3),rotation=rng()*Math.PI*2;
+ctx.beginPath();
+for(var p=0;p<=points;p++){var a=rotation+(p/points)*Math.PI*2;var rad=size*(0.65+rng()*0.6);var x=cx+Math.cos(a)*rad,y=cy+Math.sin(a)*rad;if(p===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}
+ctx.closePath();
+ctx.fillStyle=hexAlpha(pick(pal.mid,rng),0.55+rng()*0.4);ctx.fill();
+ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.35);ctx.lineWidth=0.7+rng()*0.5;ctx.stroke();
+}
+}
+
+var COMPOSERS={reflection:composeReflection,silhouette:composeSilhouette,fogfigure:composeFogFigure,peek:composePeek,phase:composePhase,ripple:composeRipple,vortex:composeVortex,crack:composeCrack,branch:composeBranch,lightspot:composeLightSpot,rift:composeRift,shards:composeShards};
+
+function drawWithScale(ctx,W,H,config){
+var pal=PALETTES[config.palette]||PALETTES.mirror;
+var rng=createRng(config.seed);
+var composer=COMPOSERS[config.archetype]||COMPOSERS.reflection;
+ctx.clearRect(0,0,W,H);
+ctx.fillStyle=pick(pal.bg,rng);ctx.fillRect(0,0,W,H);
+try{composer(ctx,W,H,pal,rng)}catch(e){console.warn('[painting] compose err',e)}
+var v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.78);
+v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,0.62)');
+ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+}
+
+function buildPaintingCard(config){
+var card=document.createElement('article');card.className='painting-card';card.dataset.id=config.id;
+var wrap=document.createElement('div');wrap.className='painting-canvas-wrap';
+var canvas=document.createElement('canvas');canvas.className='painting-canvas';
+var dpr=Math.min(window.devicePixelRatio||1,2);var size=360;
+canvas.width=size*dpr;canvas.height=size*dpr;canvas.style.width=size+'px';canvas.style.height=size+'px';
+var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);wrap.appendChild(canvas);
+drawWithScale(ctx,size,size,config);
+var meta=document.createElement('div');meta.className='painting-meta';
+var title=document.createElement('h3');title.className='painting-title';title.textContent=config.title||'无言';meta.appendChild(title);
+var sub=document.createElement('p');sub.className='painting-sub';
+var pal=PALETTES[config.palette]||PALETTES.mirror;
+sub.textContent=(ARCHETYPE_NAMES[config.archetype]||'影')+' · '+pal.name+' · '+formatTime(config.ts);
+meta.appendChild(sub);
+if(config.cardTexts&&config.cardTexts.length){
+var ref=document.createElement('p');ref.className='painting-ref';ref.textContent='成像时，他想起了：';meta.appendChild(ref);
+var refList=document.createElement('div');refList.className='painting-ref-list';
+config.cardTexts.forEach(function(t){var p=document.createElement('p');p.className='painting-ref-text';p.textContent='「'+t+'」';refList.appendChild(p)});
+meta.appendChild(refList);
+}
+var actions=document.createElement('div');actions.className='painting-actions';
+var delBtn=document.createElement('button');delBtn.type='button';delBtn.className='painting-act del';delBtn.textContent='✕ 收起这幅影象';
+delBtn.addEventListener('click',function(){
+if(!window.confirm('确定要收起这幅影象吗？此操作不可撤销。'))return;
+savePaintings(loadPaintings().filter(function(p){return p.id!==config.id}));
+renderStudio();
+});
+actions.appendChild(delBtn);
+card.appendChild(wrap);card.appendChild(meta);card.appendChild(actions);
+return card;
+}
+
+function renderStudio(){
+var grid=document.getElementById('paintingGrid');
+var empty=document.getElementById('paintingEmpty');
+var summary=document.getElementById('paintingSummary');
+var countEl=document.getElementById('navPaintingCount');
+if(!grid)return;
+var list=loadPaintings();
+if(countEl)countEl.textContent=String(list.length);
+grid.innerHTML='';
+if(empty)empty.hidden=list.length>0;
+if(!list.length){if(summary)summary.textContent='他从镜子里递出来的影象。';return}
+var sorted=list.slice().sort(function(a,b){return b.ts-a.ts});
+sorted.forEach(function(c){grid.appendChild(buildPaintingCard(c))});
+if(summary)summary.textContent='共 '+list.length+' 幅影象 · 最新于 '+formatTime(sorted[0].ts);
+}
+
+function requestPainting(){
+var btn=document.getElementById('requestPaintingBtn');
+if(btn)btn.disabled=true;
+var config=generatePainting();
+var all=loadPaintings();
+all.unshift(config);
+savePaintings(all);
+switchToStudio();
+if(btn)btn.disabled=false;
+}
+
+function switchToStudio(){
+var chat=document.getElementById('viewChat');
+var lib=document.getElementById('viewLibrary');
+var dia=document.getElementById('viewDiary');
+var studio=document.getElementById('viewPainting');
+if(!studio)return;
+if(chat)chat.classList.remove('active');
+if(lib)lib.classList.remove('active');
+if(dia)dia.classList.remove('active');
+studio.classList.add('active');
+$$('.nav-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')==='painting')});
+renderStudio();
+var sc=document.getElementById('paintingScroll');if(sc)sc.scrollTop=0;
+}
+
+function watchSwitchAway(){
+var others=['viewChat','viewLibrary','viewDiary'].map(function(id){return document.getElementById(id)}).filter(Boolean);
+var studio=document.getElementById('viewPainting');
+if(!studio||!others.length)return;
+if(typeof MutationObserver!=='function')return;
+var mo=new MutationObserver(function(){
+if(others.some(function(o){return o.classList.contains('active')}))studio.classList.remove('active');
+});
+others.forEach(function(o){mo.observe(o,{attributes:true,attributeFilter:['class']})});
+}
+
+function insertChatPainting(config){
+var chatList=document.getElementById('chatList');
+if(!chatList){console.warn('[painting] chatList 未找到');return}
+var wrap=document.createElement('div');wrap.className='msg msg-painting';wrap.dataset.paintingId=config.id;
+var thumbWrap=document.createElement('div');thumbWrap.className='chat-painting-thumb';
+var canvas=document.createElement('canvas');
+var dpr=Math.min(window.devicePixelRatio||1,2);var size=180;
+canvas.width=size*dpr;canvas.height=size*dpr;canvas.style.width=size+'px';canvas.style.height=size+'px';
+var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+drawWithScale(ctx,size,size,config);
+thumbWrap.appendChild(canvas);wrap.appendChild(thumbWrap);
+var info=document.createElement('div');info.className='chat-painting-info';
+var eyebrow=document.createElement('p');eyebrow.className='chat-painting-eyebrow';eyebrow.textContent='他递给你一幅影象';
+var title=document.createElement('h4');title.className='chat-painting-title';title.textContent=config.title||'无言';
+var sub=document.createElement('p');sub.className='chat-painting-sub';
+var pal=PALETTES[config.palette]||PALETTES.mirror;
+sub.textContent=(ARCHETYPE_NAMES[config.archetype]||'影')+' · 「'+pal.name+'」· 点开看';
+info.appendChild(eyebrow);info.appendChild(title);info.appendChild(sub);wrap.appendChild(info);
+wrap.addEventListener('click',switchToStudio);
+chatList.appendChild(wrap);
+var sc=document.getElementById('chatScroll');if(sc)sc.scrollTop=sc.scrollHeight;
+console.log('[painting] 影象已插入聊天');
+}
+
+function requestAndSend(){
+console.log('[painting] requestAndSend 被调用');
+var chatBtn=document.querySelector('.nav-btn[data-view="chat"]');
+if(chatBtn)chatBtn.click();
+window.setTimeout(function(){
+var chatList=document.getElementById('chatList');
+if(!chatList){console.warn('[painting] 找不到 chatList');return}
+var hint=document.createElement('div');
+hint.className='msg msg-system chat-painting-hint';
+hint.textContent='他在镜子里翻找……';
+chatList.appendChild(hint);
+var sc=document.getElementById('chatScroll');if(sc)sc.scrollTop=sc.scrollHeight;
+window.setTimeout(function(){
+try{
+if(hint.parentNode)hint.remove();
+var config=generatePainting();
+var all=loadPaintings();
+all.unshift(config);
+savePaintings(all);
+insertChatPainting(config);
+var c=document.getElementById('navPaintingCount');
+if(c)c.textContent=String(all.length);
+}catch(e){console.error('[painting] 生成失败',e)}
+},1400);
+},200);
+}
+
+function watchChat(){
+var chatList=document.getElementById('chatList');
+if(!chatList){console.warn('[painting] watchChat: chatList 未找到');return}
+if(typeof MutationObserver!=='function')return;
+var lastAutoAt=Number(localStorage.getItem('jingyan.painting.lastAutoAt')||0);
+var maybePaint=function(){
+var now=Date.now();
+if(now-lastAutoAt<4*3600*1000)return;
+if(Math.random()>0.20)return;
+lastAutoAt=now;
+try{localStorage.setItem('jingyan.painting.lastAutoAt',String(now))}catch(e){}
+window.setTimeout(function(){
+try{
+var config=generatePainting();
+var all=loadPaintings();
+all.unshift(config);
+savePaintings(all);
+insertChatPainting(config);
+var c=document.getElementById('navPaintingCount');
+if(c)c.textContent=String(all.length);
+}catch(e){console.error('[painting] 主动发画失败',e)}
+},1800);
+};
+var mo=new MutationObserver(function(muts){
+var hasNew=false;
+muts.forEach(function(m){
+m.addedNodes.forEach(function(n){
+if(n.nodeType===1&&n.classList){
+if(n.classList.contains('msg-reply')||n.classList.contains('msg-user'))hasNew=true;
+}
+});
+});
+if(hasNew)maybePaint();
+});
+mo.observe(chatList,{childList:true});
+console.log('[painting] 聊天监听已启动（20% 主动发影象）');
+}
+
+function bind(){
+var navBtn=document.getElementById('paintingNavBtn');
+if(navBtn)navBtn.addEventListener('click',switchToStudio);
+var req=document.getElementById('requestPaintingBtn');
+if(req)req.addEventListener('click',requestPainting);
+var empty=document.getElementById('emptyRequestBtn');
+if(empty)empty.addEventListener('click',requestPainting);
+watchSwitchAway();
+watchChat();
+}
+
+document.addEventListener('jingyan:requestPaintingToChat',function(){
+console.log('[painting] 收到事件 jingyan:requestPaintingToChat');
+requestAndSend();
+});
+
+window.jingyanPainting={requestAndSend:requestAndSend,requestForStudio:requestPainting,version:3};
+
+function init(){
+if(!document.getElementById('viewPainting')){console.warn('[painting] 未找到 #viewPainting');return}
+bind();
+renderStudio();
+console.log('[painting] 初始化完成');
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+else init();
+})();
+</script>
+
+<script>
+/* ===== 背景红眼睛 ===== */
+(function(){
+var SVG_NS='http://www.w3.org/2000/svg';
+var eye=document.getElementById('watcherEye');
+var iris=document.getElementById('watcherIris');
+var lt=document.getElementById('lashesTop');
+var lb=document.getElementById('lashesBottom');
+if(!eye||!iris||!lt||!lb)return;
+function bezier(p0,p1,p2,t){var mt=1-t;return{x:mt*mt*p0.x+2*mt*t*p1.x+t*t*p2.x,y:mt*mt*p0.y+2*mt*t*p1.y+t*t*p2.y}}
+function tangent(p0,p1,p2,t){var mt=1-t;return{x:2*mt*(p1.x-p0.x)+2*t*(p2.x-p1.x),y:2*mt*(p1.y-p0.y)+2*t*(p2.y-p1.y)}}
+function un(tan,up){var nx=up?tan.y:-tan.y,ny=up?-tan.x:tan.x,l=Math.sqrt(nx*nx+ny*ny)||1;return{x:nx/l,y:ny/l}}
+function makeL(x1,y1,x2,y2,cx,cy,w){var p=document.createElementNS(SVG_NS,'path');p.setAttribute('d','M'+x1.toFixed(1)+' '+y1.toFixed(1)+' Q'+cx.toFixed(1)+' '+cy.toFixed(1)+' '+x2.toFixed(1)+' '+y2.toFixed(1));p.setAttribute('stroke-width',w.toFixed(2));return p}
+var a={x:20,y:110},b={x:200,y:10},c={x:380,y:110};
+for(var i=0;i<28;i++){var t=0.05+(i/27)*0.9,pt=bezier(a,b,c,t),tn=tangent(a,b,c,t),nr=un(tn,true);var mf=1-Math.abs(t-0.5)*1.05,len=24+mf*24+(Math.random()*8-4),out=(t-0.5)*38;lt.appendChild(makeL(pt.x,pt.y,pt.x+nr.x*len+out,pt.y+nr.y*len+(Math.random()*4-2),pt.x+nr.x*len*0.4+out*0.6,pt.y+nr.y*len*0.55,1.8+mf*1.3))}
+var d={x:20,y:110},e={x:200,y:210},f={x:380,y:110};
+for(var j=0;j<20;j++){var bt=0.15+(j/19)*0.7,bp=bezier(d,e,f,bt),btn=tangent(d,e,f,bt),bnr=un(btn,false);var bm=1-Math.abs(bt-0.5)*1.35,bl=8+bm*11+Math.random()*4,bo=(bt-0.5)*22;lb.appendChild(makeL(bp.x,bp.y,bp.x+bnr.x*bl+bo,bp.y+bnr.y*bl,bp.x+bnr.x*bl*0.5+bo*0.4,bp.y+bnr.y*bl*0.55,1.1+bm*0.5))}
+function look(){if(document.hidden)return;var x=(Math.random()*2-1)*26,y=(Math.random()*2-1)*10;iris.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px)'}
+function loopLook(){look();window.setTimeout(loopLook,1000+Math.random()*2800)}
+function blinkOnce(){if(document.hidden)return;eye.classList.add('blink');window.setTimeout(function(){eye.classList.remove('blink');if(Math.random()<0.3&&!document.hidden){window.setTimeout(function(){eye.classList.add('blink');window.setTimeout(function(){eye.classList.remove('blink')},150)},230)}},180)}
+function loopBlink(){var w=2400+Math.random()*5200;window.setTimeout(function(){blinkOnce();loopBlink()},w)}
+loopLook();loopBlink();
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')look()});
+})();
+</script>
 </body>
 </html>
