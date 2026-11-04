@@ -16,6 +16,66 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <link rel="stylesheet" href="styles.css?v=17" />
+
+  <style id="perfStyle">
+    /* ===== 性能优化 ===== */
+
+    /* 页面隐藏时暂停所有动画（后台不消耗 CPU/GPU） */
+    html.page-hidden *,
+    html.page-hidden *::before,
+    html.page-hidden *::after {
+      animation-play-state: paused !important;
+    }
+
+    /* 星星从 84 颗减到 32 颗，节省 GPU 绘制 */
+    .sky span:nth-child(n+33) {
+      display: none !important;
+    }
+
+    /* 手机上去除耗性能的模糊、减少阴影层 */
+    @media (max-width: 768px) {
+      .sidebar,
+      .chat-shell,
+      .view-library.active,
+      .view-diary.active,
+      .composer,
+      .modal::backdrop,
+      .sensation-overlay {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
+      .chat-shell {
+        box-shadow:
+          0 0 0 4px rgba(52, 16, 19, .2),
+          0 24px 60px -40px rgba(0, 0, 0, .9) !important;
+      }
+
+      .view-library.active,
+      .view-diary.active {
+        box-shadow:
+          0 0 0 4px rgba(52, 16, 19, .22),
+          0 24px 60px -40px rgba(0, 0, 0, .9) !important;
+      }
+
+      /* 光晕弱化 */
+      .glow-a, .glow-b {
+        filter: blur(50px) !important;
+        opacity: .1 !important;
+      }
+
+      /* 蝙蝠透明度降低 */
+      .bat {
+        opacity: .3 !important;
+      }
+
+      /* 弱化半透明花边 */
+      .lace-bloom {
+        opacity: .1 !important;
+      }
+    }
+  </style>
+
   <style id="diaryStyle">
     .view-diary.active {
       flex-direction: column;
@@ -128,7 +188,6 @@
       overflow-wrap: anywhere;
     }
 
-    /* 日记操作 & 评论 */
     .diary-actions {
       display: flex;
       gap: 14px;
@@ -702,6 +761,14 @@
             <button type="button" class="btn small" id="clearChatBtn">清空聊天记录</button>
             <button type="button" class="btn small danger" id="resetCardsBtn">清空字卡库</button>
           </div>
+          <div class="data-actions" style="margin-top: 8px;">
+            <button type="button" class="btn small" id="cleanCacheBtn">整理 &amp; 重启</button>
+            <button type="button" class="btn small danger" id="clearAllBtn">清空所有数据</button>
+          </div>
+          <p class="field-help">
+            「整理 &amp; 重启」会压缩聊天记录（保留最近 80 条）、清空临时会话并刷新页面，用于释放内存。
+            「清空所有数据」会彻底删除聊天、字卡、日记、镜中密语、占卜记录和全部设定，操作不可撤销。
+          </p>
         </div>
       </div>
       <footer class="modal-foot">
@@ -882,6 +949,93 @@
 
   <script>
   /* ============================================================
+     性能优化：页面隐藏时暂停动画 + 清理缓存功能
+     ============================================================ */
+  (function () {
+    'use strict';
+
+    /* --- 页面隐藏时暂停所有动画 --- */
+    function syncHidden() {
+      document.documentElement.classList.toggle('page-hidden', document.hidden);
+    }
+    syncHidden();
+    document.addEventListener('visibilitychange', syncHidden);
+
+    /* --- 整理 & 重启 --- */
+    function cleanCache() {
+      var msg = '整理 & 重启会做这些事：\n'
+        + '· 聊天记录保留最近 80 条（较早的会移除）\n'
+        + '· 清空临时会话数据\n'
+        + '· 刷新页面以释放内存\n\n'
+        + '字卡、日记、设定、镜中密语、占卜记录都不会被删除。\n\n继续吗？';
+      if (!window.confirm(msg)) return;
+
+      // 1. 聊天记录只保留最近 80 条
+      try {
+        var raw = localStorage.getItem('jingyan.chat.v1');
+        if (raw) {
+          var chat = JSON.parse(raw);
+          if (Array.isArray(chat) && chat.length > 80) {
+            chat = chat.slice(-80);
+            localStorage.setItem('jingyan.chat.v1', JSON.stringify(chat));
+          }
+        }
+      } catch (e) { /* 忽略 */ }
+
+      // 2. 清理 sessionStorage
+      try { sessionStorage.clear(); } catch (e) { /* 忽略 */ }
+
+      // 3. 刷新
+      location.reload();
+    }
+
+    /* --- 清空所有数据 --- */
+    function clearAllData() {
+      var msg = '⚠ 这会彻底删除所有数据：\n'
+        + '· 聊天记录\n'
+        + '· 日常字卡 / 体感字卡\n'
+        + '· 日记本（含你的批注）\n'
+        + '· 镜中密语 / 占卜记录\n'
+        + '· 所有设定（含头像）\n\n'
+        + '操作不可撤销。确定吗？';
+      if (!window.confirm(msg)) return;
+
+      var msg2 = '再次确认：真的要清空所有数据吗？\n\n（点「确定」后将无法恢复）';
+      if (!window.confirm(msg2)) return;
+
+      try {
+        var keys = Object.keys(localStorage);
+        for (var i = 0; i < keys.length; i++) {
+          if (keys[i].indexOf('jingyan.') === 0) {
+            localStorage.removeItem(keys[i]);
+          }
+        }
+      } catch (e) { /* 忽略 */ }
+
+      try { sessionStorage.clear(); } catch (e) { /* 忽略 */ }
+
+      location.reload();
+    }
+
+    /* --- 绑定按钮（必须在 app.js 加载之后） --- */
+    function bind() {
+      var cleanBtn = document.getElementById('cleanCacheBtn');
+      if (cleanBtn) cleanBtn.addEventListener('click', cleanCache);
+
+      var clearBtn = document.getElementById('clearAllBtn');
+      if (clearBtn) clearBtn.addEventListener('click', clearAllData);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bind);
+    } else {
+      bind();
+    }
+  })();
+  </script>
+
+  <script>
+  /* ============================================================
      日记本 · 内联模块
      - 从功能上线当天开始记录，不补造历史
      - 每篇日记可删除、可评论
@@ -907,7 +1061,6 @@
       empty:  { text: '几乎是空的', cls: 'energy-empty' }
     };
 
-    /* ---------- 工具 ---------- */
     function uid() { return 'd_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
     function cuid() { return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
     function clamp(v, n) { return String(v == null ? '' : v).trim().slice(0, n); }
@@ -947,7 +1100,6 @@
       return String(text).split('{我}').join(myName).split('{名字}').join(charName);
     }
 
-    /* ---------- 数据 ---------- */
     function loadCards() {
       var raw = readJSON(CARDS_KEY, []);
       if (!Array.isArray(raw)) return [];
@@ -960,7 +1112,6 @@
       return list
         .filter(function (e) { return e && e.date && Array.isArray(e.paragraphs); })
         .map(function (e) {
-          /* 旧数据兼容：补上 comments 字段 */
           if (!Array.isArray(e.comments)) e.comments = [];
           return e;
         });
@@ -968,7 +1119,6 @@
 
     function saveDiary(entries) { writeJSON(DIARY_KEY, { entries: entries }); }
 
-    /* ---------- 心情 ---------- */
     function pickWeighted(opts) {
       var total = opts.reduce(function (s, o) { return s + o.w; }, 0);
       var r = Math.random() * total;
@@ -1004,7 +1154,6 @@
       return { pCount: pCount, minC: minC, maxC: maxC };
     }
 
-    /* ---------- 生成一篇 ---------- */
     function generateEntry(dateStr) {
       var cards = loadCards();
       var mood = pickMood();
@@ -1047,12 +1196,10 @@
       };
     }
 
-    /* ---------- 保证每天有（不补历史） ---------- */
     function ensureDailyDiary() {
       var entries = loadDiary();
       var today = formatDate(new Date());
 
-      /* 第一次使用：只写今天一篇，这就是日记本的第一天 */
       if (!entries.length) {
         entries.push(generateEntry(today));
         saveDiary(entries);
@@ -1060,15 +1207,12 @@
       }
 
       var hasToday = entries.some(function (e) { return e.date === today; });
-
-      /* 今天还没有：写今天一篇 */
       if (!hasToday) {
         entries.push(generateEntry(today));
         saveDiary(entries);
         return entries;
       }
 
-      /* 今天已有：概率补写（每天最多 3 篇） */
       var todayEntries = entries.filter(function (e) { return e.date === today; });
       if (todayEntries.length < 3 && Math.random() < 0.4) {
         entries.push(generateEntry(today));
@@ -1077,13 +1221,11 @@
       return entries;
     }
 
-    /* ---------- 渲染 ---------- */
     function buildEntryElement(entry) {
       var entryEl = document.createElement('div');
       entryEl.className = 'diary-entry';
       entryEl.dataset.id = entry.id;
 
-      /* 标签 */
       var tags = document.createElement('div');
       tags.className = 'diary-tags';
 
@@ -1101,7 +1243,6 @@
       tags.appendChild(cTag);
       tags.appendChild(eTag);
 
-      /* 正文 */
       var content = document.createElement('div');
       content.className = 'diary-body';
       entry.paragraphs.forEach(function (p) {
@@ -1111,7 +1252,6 @@
         content.appendChild(pEl);
       });
 
-      /* 操作栏 */
       var actions = document.createElement('div');
       actions.className = 'diary-actions';
 
@@ -1144,7 +1284,6 @@
       actions.appendChild(commentBtn);
       actions.appendChild(delBtn);
 
-      /* 已有评论 */
       if (entry.comments && entry.comments.length) {
         var wrap = document.createElement('div');
         wrap.className = 'diary-comments';
@@ -1195,7 +1334,6 @@
         entryEl.appendChild(wrap);
       }
 
-      /* 评论表单 */
       var form = document.createElement('div');
       form.className = 'diary-comment-form';
       form.hidden = true;
@@ -1336,7 +1474,6 @@
       }
     }
 
-    /* ---------- 导航 ---------- */
     function switchToDiary() {
       document.getElementById('viewChat').classList.remove('active');
       document.getElementById('viewLibrary').classList.remove('active');
@@ -1373,18 +1510,15 @@
       }
     }
 
-    /* ---------- 启动 ---------- */
     function init() {
       var btn = document.getElementById('diaryNavBtn');
       if (btn) btn.addEventListener('click', switchToDiary);
 
       watchSwitchAway();
 
-      /* 首次加载时保证今天有日记 */
       ensureDailyDiary();
       renderDiary();
 
-      /* 切回页面时补检查（每天最多 3 篇） */
       var lastCheck = 0;
       document.addEventListener('visibilitychange', function () {
         if (document.visibilityState !== 'visible') return;
@@ -1503,6 +1637,7 @@
       var RANGE_Y = 10;
 
       function look() {
+        if (document.hidden) return;
         var x = (Math.random() * 2 - 1) * RANGE_X;
         var y = (Math.random() * 2 - 1) * RANGE_Y;
         iris.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px)';
@@ -1514,10 +1649,11 @@
       }
 
       function blinkOnce() {
+        if (document.hidden) return;
         eye.classList.add('blink');
         window.setTimeout(function () {
           eye.classList.remove('blink');
-          if (Math.random() < 0.3) {
+          if (Math.random() < 0.3 && !document.hidden) {
             window.setTimeout(function () {
               eye.classList.add('blink');
               window.setTimeout(function () {
