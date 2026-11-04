@@ -415,7 +415,6 @@
   font-size: 10.5px; letter-spacing: .08em; text-align: center;
 }
 
-/* ---------- 镜面对话输入框（极简玻璃条） ---------- */
 .mirror-speak {
   display: flex;
   align-items: center;
@@ -466,7 +465,6 @@
 .mirror-speak-send:active:not(:disabled) { transform: scale(.94); }
 .mirror-speak-send:disabled { cursor: default; opacity: .4; }
 
-/* ---------------- 2D 卡通水晶球 ---------------- */
 .mirror-oracle {
   display: flex;
   flex-direction: column;
@@ -502,7 +500,6 @@
 }
 .mirror-oracle:hover .mirror-oracle-label { color: #f2dfd8; }
 
-/* ---------------- 占卜弹窗 ---------------- */
 .oracle-modal { width: min(660px, calc(100vw - 24px)); }
 .oracle-modal .modal-card {
   background:
@@ -584,7 +581,6 @@
 .oracle-draw-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
 .oracle-draw-btn:disabled { cursor: default; opacity: .5; }
 
-/* ---------------- 洗牌动画 ---------------- */
 #oracleShuffle {
   display: flex;
   flex-direction: column;
@@ -642,7 +638,6 @@
 }
 @keyframes shufflePulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 
-/* ---------------- 抽牌 ---------------- */
 .oracle-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -883,7 +878,6 @@
   font-style: italic;
 }
 
-/* 密语库编辑 */
 .mirror-line-list {
   display: flex; flex-direction: column; gap: 6px;
   max-height: 170px; overflow-y: auto;
@@ -1454,9 +1448,6 @@
 
     setMirrorBusy(false);
     if (hint) hint.textContent = '想再说什么，就再说一次。';
-    if (input && document.activeElement !== input) {
-      // 不自动重新聚焦，避免手机上键盘反复弹起
-    }
   }
 
   function openMirror() {
@@ -1716,9 +1707,7 @@
   }
 
   function openOracle() {
-    const mirrorDialog = $('#mirrorDialog');
-    if (mirrorDialog && mirrorDialog.open) mirrorDialog.close();
-
+    // 不再关闭镜中梦魇弹窗，占卜会叠在它上面；关掉占卜后会自然回到镜中梦魇
     oracleCurrent = null;
     oracleBusy = false;
     oracleCount = 1;
