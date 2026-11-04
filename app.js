@@ -7,9 +7,20 @@
 
   const KEYS = {
     cards: 'jingyan.cards.v1',
+    sensation: 'jingyan.sensationCards.v1',
     settings: 'jingyan.settings.v1',
     chat: 'jingyan.chat.v1'
   };
+
+  const DEFAULT_STATUS_POOL = [
+    '在等你的消息',
+    '在镜后静静看你',
+    '心情不错',
+    '有些困了',
+    '在整理衣领',
+    '想听你说话',
+    '正望着镜面发呆'
+  ];
 
   const DEFAULT_SETTINGS = {
     charName: '沈砚',
@@ -18,8 +29,20 @@
     speed: 'normal',
     avoidRepeat: true,
     drawTags: [],
-    avatar: ''
+    avatar: '',
+    fontScale: 1,
+    status: '在等你的消息',
+    statusPool: DEFAULT_STATUS_POOL.slice(),
+    proactive: true,
+    sensationPopup: true
   };
+
+  const FONT_STEPS = [
+    { value: 0.85, label: '小' },
+    { value: 1, label: '标准' },
+    { value: 1.12, label: '大' },
+    { value: 1.25, label: '特大' }
+  ];
 
   const SUGGESTIONS = ['你在镜子里吗？', '今晚别走', '我想听你的声音', '再说一句'];
 
@@ -52,13 +75,15 @@
     }
   }
 
-  function normalizeCard(input) {
+  function normalizeCard(input, kind = 'daily') {
     if (!input) return null;
+    const resolvedKind = kind === 'sensation' ? 'sensation' : 'daily';
+    const fallbackTag = resolvedKind === 'sensation' ? '体感' : '日常';
 
     if (typeof input === 'string') {
       const text = clampText(input, 200);
       if (!text) return null;
-      return { id: uid(), text, tag: '日常', createdAt: Date.now() };
+      return { id: uid(), text, tag: fallbackTag, kind: resolvedKind, createdAt: Date.now() };
     }
 
     if (typeof input !== 'object') return null;
@@ -73,18 +98,24 @@
       ? input.tag
       : (typeof input.label === 'string' ? input.label : '');
 
+    const itemKind = input.kind === 'sensation'
+      ? 'sensation'
+      : (input.kind === 'daily' ? 'daily' : resolvedKind);
+
     return {
       id: typeof input.id === 'string' && input.id ? input.id : uid(),
       text,
-      tag: clampText(rawTag, 12) || '日常',
+      tag: clampText(rawTag, 12) || (itemKind === 'sensation' ? '体感' : '日常'),
+      kind: itemKind,
       createdAt: Number(input.createdAt) || Date.now()
     };
   }
 
-  function loadCards() {
-    const raw = readJSON(KEYS.cards, []);
+  function loadCards(kind = 'daily') {
+    const key = kind === 'sensation' ? KEYS.sensation : KEYS.cards;
+    const raw = readJSON(key, []);
     if (!Array.isArray(raw)) return [];
-    return raw.map(normalizeCard).filter(Boolean);
+    return raw.map((item) => normalizeCard(item, kind)).filter(Boolean);
   }
 
   function loadSettings() {
@@ -98,6 +129,26 @@
     settings.avoidRepeat = settings.avoidRepeat !== false;
     if (!Array.isArray(settings.drawTags)) settings.drawTags = [];
     settings.drawTags = settings.drawTags.map((tag) => clampText(tag, 12)).filter(Boolean);
+
+    settings.fontScale = Number(settings.fontScale);
+    if (!Number.isFinite(settings.fontScale) || settings.fontScale < 0.8 || settings.fontScale > 1.4) {
+      settings.fontScale = 1;
+    }
+
+    if (!Array.isArray(settings.statusPool)) settings.statusPool = [];
+    settings.statusPool = settings.statusPool
+      .map((status) => clampText(status, 20))
+      .filter(Boolean)
+      .filter((status, index, list) => list.indexOf(status) === index);
+    if (!settings.statusPool.length) settings.statusPool = DEFAULT_STATUS_POOL.slice();
+
+    settings.status = clampText(settings.status, 20);
+    if (!settings.status || !settings.statusPool.includes(settings.status)) {
+      settings.status = settings.statusPool[0];
+    }
+
+    settings.proactive = settings.proactive !== false;
+    settings.sensationPopup = settings.sensationPopup !== false;
 
     if (typeof settings.avatar !== 'string' || !/^data:image\//.test(settings.avatar) || settings.avatar.length > 2000000) {
       settings.avatar = '';
@@ -157,20 +208,56 @@
       .split('{名字}').join(settings.charName || '梦角');
   }
 
+  function cardsOf(kind) {
+    return kind === 'sensation' ? sensationCards : cards;
+  }
+
+  function allCards() {
+    return cards.concat(sensationCards);
+  }
+
+  function findCard(id) {
+    return allCards().find((card) => card.id === id) || null;
+  }
+
+  function getAllTags() {
+    const counts = new Map();
+    allCards().forEach((card) => {
+      counts.set(card.tag, (counts.get(card.tag) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
+      .map(([tag, count]) => ({ tag, count }));
+  }
+
   /* =========================================================
      状态
      ========================================================= */
 
-  let cards = loadCards();
+  let cards = loadCards('daily');
+  let sensationCards = loadCards('sensation');
   let settings = loadSettings();
   let messages = loadMessages();
 
   let bag = [];
+  let sensationBag = [];
   let busy = false;
   let editingId = null;
+  let editingKind = 'daily';
   let confirmCallback = null;
   let libFilter = { tag: 'all', query: '' };
+  let activeKind = 'daily';
+  let selectMode = false;
+  let selectedIds = new Set();
   let pendingReply = null;
+  let statusDraft = [];
+  let statusTimer = null;
+  let proactiveTimer = null;
+  let proactiveQuiet = 0;
+  let lastUserAt = Date.now();
+  let lastSensationAt = 0;
+  let sensationTimer = null;
+  let sensationCountdown = null;
 
   /* =========================================================
      头像
@@ -348,14 +435,37 @@
      UI 基础
      ========================================================= */
 
+  function applyFontScale() {
+    const scale = Number(settings.fontScale) || 1;
+    document.documentElement.style.setProperty('--msg-scale', String(scale));
+  }
+
+  function renderStatus(animated = false) {
+    const status = settings.status || (settings.statusPool && settings.statusPool[0]) || '在等你的消息';
+    const side = $('#charStatus');
+    const sub = $('#chatSub');
+
+    if (side) side.textContent = status;
+    if (sub) sub.textContent = status;
+
+    if (animated) {
+      [side, sub].forEach((node) => {
+        if (!node) return;
+        node.classList.remove('status-change');
+        void node.offsetWidth;
+        node.classList.add('status-change');
+      });
+    }
+  }
+
   function applySettings() {
     $('#charNameLabel').textContent = settings.charName;
     $('#chatName').textContent = settings.charName;
     $('#charTitleLabel').textContent = settings.charTitle;
-    $('#chatSub').textContent = settings.charTitle;
-    $('#charStatus').textContent = '在等你的消息';
     $('#messageInput').placeholder = '想对' + settings.charName + '说点什么…';
 
+    applyFontScale();
+    renderStatus();
     applyAvatar();
     updateReplyBar();
     updatePoolHint();
@@ -363,12 +473,33 @@
 
   function updatePoolHint() {
     const count = eligibleCards().length;
-    $('#poolHint').textContent = String(count);
+    const hint = $('#poolHint');
+    if (hint) hint.textContent = String(count);
   }
 
   function updateCounts() {
-    $('#navCardCount').textContent = String(cards.length);
-    $('#librarySummary').textContent = '共 ' + cards.length + ' 张字卡 · 抽卡池 ' + eligibleCards().length + ' 张';
+    const nav = $('#navCardCount');
+    if (nav) nav.textContent = String(allCards().length);
+
+    const dailyCount = $('#dailyCount');
+    if (dailyCount) dailyCount.textContent = String(cards.length);
+    const sensationCount = $('#sensationCount');
+    if (sensationCount) sensationCount.textContent = String(sensationCards.length);
+
+    const summary = $('#librarySummary');
+    if (summary) {
+      summary.textContent = activeKind === 'sensation'
+        ? '共 ' + sensationCards.length + ' 张体感字卡 · 弹窗会从这里抽取'
+        : '共 ' + cards.length + ' 张日常字卡 · 抽卡池 ' + eligibleCards().length + ' 张';
+    }
+
+    const note = $('#libNote');
+    if (note) {
+      note.innerHTML = activeKind === 'sensation'
+        ? '体感字卡只用于「体感弹窗」，与日常字卡分开存放。支持占位符 <code>{我}</code> 与 <code>{名字}</code>。'
+        : '每行一句心意。支持占位符 <code>{我}</code>（你的昵称）与 <code>{名字}</code>（梦角名字）。';
+    }
+
     updatePoolHint();
   }
 
@@ -383,11 +514,12 @@
 
   function setBusyUI(isBusy) {
     if (isBusy) {
-      $('#charStatus').textContent = '我想说…';
-      $('#chatSub').textContent = '我想说…';
+      const side = $('#charStatus');
+      const sub = $('#chatSub');
+      if (side) side.textContent = '我想说…';
+      if (sub) sub.textContent = '我想说…';
     } else {
-      $('#charStatus').textContent = '在等你的消息';
-      $('#chatSub').textContent = settings.charTitle;
+      renderStatus();
     }
 
     const headBtn = $('#continueBtn');
@@ -432,6 +564,31 @@
     }
 
     const id = bag.pop();
+    return pool.find((card) => card.id === id) || pool[0];
+  }
+
+  function resetSensationBag() { sensationBag = []; }
+
+  function drawSensationCard() {
+    const pool = sensationCards;
+    if (!pool.length) return null;
+
+    if (!settings.avoidRepeat) {
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    const poolIds = new Set(pool.map((card) => card.id));
+    sensationBag = sensationBag.filter((id) => poolIds.has(id));
+
+    if (!sensationBag.length) {
+      sensationBag = pool.map((card) => card.id);
+      for (let i = sensationBag.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sensationBag[i], sensationBag[j]] = [sensationBag[j], sensationBag[i]];
+      }
+    }
+
+    const id = sensationBag.pop();
     return pool.find((card) => card.id === id) || pool[0];
   }
 
@@ -538,7 +695,7 @@
       return wrap;
     }
 
-    meta.textContent = '镜中来信 · ' + timeLabel(message.ts);
+    meta.textContent = '镜后密语 · ' + timeLabel(message.ts);
     wrap.appendChild(meta);
 
     const quote = buildReplyQuote(message.replyTo);
@@ -643,16 +800,20 @@
     scrollToBottom();
   }
 
-  function appendMessage(message) {
+  function appendMessage(message, forceScroll = true) {
     messages.push(message);
     writeJSON(KEYS.chat, messages);
+
+    const scroller = $('#chatScroll');
+    const nearBottom = !scroller
+      || (scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 140);
 
     const list = $('#chatList');
     const welcome = $('.welcome', list);
     if (welcome) welcome.remove();
 
     list.appendChild(renderMessage(message));
-    scrollToBottom();
+    if (forceScroll || nearBottom) scrollToBottom();
   }
 
   function showTyping() {
@@ -697,7 +858,7 @@
     message.text = card.text;
     message.tag = card.tag;
     message.cardId = card.id;
-    message.no = cards.findIndex((item) => item.id === card.id) + 1;
+    message.no = allCards().findIndex((item) => item.id === card.id) + 1;
     message.ts = Date.now();
     writeJSON(KEYS.chat, messages);
 
@@ -705,7 +866,7 @@
     if (oldCard) oldCard.replaceWith(buildCardElement(message));
 
     const meta = $('.msg-meta', wrap);
-    if (meta) meta.textContent = '镜中来信 · ' + timeLabel(message.ts);
+    if (meta) meta.textContent = '镜后密语 · ' + timeLabel(message.ts);
 
     updatePoolHint();
   }
@@ -725,6 +886,8 @@
     const input = $('#messageInput');
     const text = input.value.trim();
     if (!text) { input.focus(); return; }
+
+    noteUserActivity();
 
     busy = true;
     $('#sendBtn').disabled = true;
@@ -750,6 +913,7 @@
     $('#sendBtn').disabled = false;
     setBusyUI(false);
     updatePoolHint();
+    maybeSensation(0.38);
     input.focus({ preventScroll: true });
   }
 
@@ -795,7 +959,7 @@
         text: card.text,
         tag: card.tag,
         cardId: card.id,
-        no: cards.findIndex((item) => item.id === card.id) + 1,
+        no: allCards().findIndex((item) => item.id === card.id) + 1,
         replyTo,
         ts: Date.now()
       });
@@ -825,6 +989,7 @@
 
     busy = true;
     setBusyUI(true);
+    noteUserActivity();
 
     // 找最近一条用户消息，供梦角概率引用
     let triggerMsg = null;
@@ -837,15 +1002,243 @@
     busy = false;
     setBusyUI(false);
     updatePoolHint();
+    maybeSensation(0.3);
+  }
+
+  /* =========================================================
+     状态卡池 / 主动传讯 / 体感
+     ========================================================= */
+
+  function pickStatus() {
+    const pool = settings.statusPool.filter(Boolean);
+    if (pool.length <= 1) return;
+
+    let next = settings.status;
+    for (let i = 0; i < 10 && next === settings.status; i += 1) {
+      next = pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    settings.status = next || pool[0];
+    writeJSON(KEYS.settings, settings);
+    renderStatus(true);
+  }
+
+  function scheduleStatusChange(delay) {
+    window.clearTimeout(statusTimer);
+    if (!settings.statusPool || settings.statusPool.length <= 1) return;
+
+    const wait = typeof delay === 'number'
+      ? delay
+      : (120000 + Math.random() * 180000);
+    statusTimer = window.setTimeout(() => {
+      pickStatus();
+      scheduleStatusChange();
+    }, wait);
+  }
+
+  function noteUserActivity() {
+    lastUserAt = Date.now();
+    proactiveQuiet = 0;
+    scheduleProactiveNext();
+  }
+
+  function scheduleProactiveNext(delay) {
+    window.clearTimeout(proactiveTimer);
+    if (!settings.proactive) return;
+
+    const wait = typeof delay === 'number'
+      ? delay
+      : (45000 + Math.random() * 85000);
+    proactiveTimer = window.setTimeout(runProactivePulse, wait);
+  }
+
+  function lastUserMessage() {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].role === 'user') return messages[i];
+    }
+    return null;
+  }
+
+  async function runProactivePulse() {
+    proactiveTimer = null;
+    if (!settings.proactive) return;
+
+    const chatView = $('#viewChat');
+    const chatActive = chatView && chatView.classList.contains('active');
+
+    if (busy || document.visibilityState !== 'visible' || !chatActive
+      || !eligibleCards().length || document.querySelector('dialog[open]')) {
+      scheduleProactiveNext(40000 + Math.random() * 50000);
+      return;
+    }
+
+    const input = $('#messageInput');
+    if (input && document.activeElement === input && input.value.trim()) {
+      scheduleProactiveNext(35000 + Math.random() * 40000);
+      return;
+    }
+
+    const idle = Date.now() - lastUserAt;
+    if (idle < 30000) {
+      scheduleProactiveNext(30000 + Math.random() * 40000);
+      return;
+    }
+
+    let chance = proactiveQuiet === 0 ? 0.62 : 0.46;
+    if (idle > 10 * 60 * 1000) chance = 0.16;
+    else if (idle > 5 * 60 * 1000) chance = 0.32;
+    if (!lastUserMessage()) chance *= 0.6;
+
+    if (Math.random() > chance) {
+      scheduleProactiveNext(45000 + Math.random() * 80000);
+      return;
+    }
+
+    await sendProactiveMessages();
+  }
+
+  async function sendProactiveMessages() {
+    if (busy) return;
+    const pool = eligibleCards();
+    if (!pool.length) { scheduleProactiveNext(90000); return; }
+
+    busy = true;
+    setBusyUI(true);
+
+    const count = Math.random() < 0.74 ? 1 : 2;
+    const triggerMsg = lastUserMessage();
+
+    for (let i = 0; i < count; i += 1) {
+      showTyping();
+      await sleep(1200 + Math.random() * 1600 + (settings.speed === 'slow' ? 900 : 0));
+      removeTyping();
+
+      const card = drawCard();
+      if (!card) break;
+
+      let replyTo = null;
+      if (i === 0 && triggerMsg && Math.random() < 0.32) {
+        replyTo = makeReplyQuote(triggerMsg);
+      }
+
+      appendMessage({
+        id: uid(),
+        role: 'card',
+        text: card.text,
+        tag: card.tag,
+        cardId: card.id,
+        no: allCards().findIndex((item) => item.id === card.id) + 1,
+        replyTo,
+        ts: Date.now()
+      }, false);
+
+      if (i < count - 1) await sleep(900 + Math.random() * 1700);
+    }
+
+    busy = false;
+    setBusyUI(false);
+    updatePoolHint();
+    proactiveQuiet += 1;
+
+    maybeSensation(0.45);
+
+    const next = proactiveQuiet >= 3
+      ? (150000 + Math.random() * 240000)
+      : (75000 + Math.random() * 130000);
+    scheduleProactiveNext(next);
+  }
+
+  function maybeSensation(probability = 0.35) {
+    if (!settings.sensationPopup) return;
+    if (!sensationCards.length) return;
+    if (Date.now() - lastSensationAt < 90000) return;
+    if (!$('#sensationOverlay').hidden) return;
+    if (document.querySelector('dialog[open]')) return;
+    if (Math.random() > probability) return;
+
+    lastSensationAt = Date.now();
+    window.clearTimeout(sensationTimer);
+    sensationTimer = window.setTimeout(() => showSensation(true), 1200 + Math.random() * 2200);
+  }
+
+  function showSensation(auto = true) {
+    if (!sensationCards.length) {
+      if (!auto) toast('先在体感字卡库写几张字卡吧');
+      return;
+    }
+
+    const overlay = $('#sensationOverlay');
+    if (!overlay || !overlay.hidden) return;
+
+    const card = drawSensationCard();
+    if (!card) return;
+
+    lastSensationAt = Date.now();
+    const text = $('#sensationText');
+    if (text) text.textContent = personalize(card.text);
+
+    overlay.hidden = false;
+
+    const progress = $('#sensationProgress');
+    if (progress) {
+      progress.style.animation = 'none';
+      void progress.offsetWidth;
+      progress.style.animation = '';
+    }
+
+    let left = 7;
+    const countEl = $('#sensationTimerText');
+    if (countEl) countEl.textContent = left + ' 秒后收起';
+
+    window.clearInterval(sensationCountdown);
+    window.clearTimeout(sensationTimer);
+
+    sensationCountdown = window.setInterval(() => {
+      left = Math.max(0, left - 1);
+      if (countEl) countEl.textContent = left > 0 ? left + ' 秒后收起' : '正在收起…';
+    }, 1000);
+
+    sensationTimer = window.setTimeout(closeSensation, 7000);
+  }
+
+  function closeSensation() {
+    window.clearTimeout(sensationTimer);
+    window.clearInterval(sensationCountdown);
+    sensationTimer = null;
+    sensationCountdown = null;
+    const overlay = $('#sensationOverlay');
+    if (overlay) overlay.hidden = true;
+  }
+
+  function cycleFontScale() {
+    const current = Number(settings.fontScale) || 1;
+    let index = FONT_STEPS.findIndex((step) => Math.abs(step.value - current) < 0.001);
+    index = (index + 1 + FONT_STEPS.length) % FONT_STEPS.length;
+    const step = FONT_STEPS[index];
+
+    settings.fontScale = step.value;
+    writeJSON(KEYS.settings, settings);
+    applyFontScale();
+    toast('字号：' + step.label);
+  }
+
+  function restartPresenceTimers() {
+    scheduleStatusChange(90000 + Math.random() * 150000);
+    if (settings.proactive) {
+      scheduleProactiveNext(40000 + Math.random() * 70000);
+    } else {
+      window.clearTimeout(proactiveTimer);
+      proactiveTimer = null;
+    }
   }
 
   /* =========================================================
      字卡库
      ========================================================= */
 
-  function getTags() {
+  function getTags(kind = activeKind) {
     const counts = new Map();
-    cards.forEach((card) => {
+    cardsOf(kind).forEach((card) => {
       counts.set(card.tag, (counts.get(card.tag) || 0) + 1);
     });
     return Array.from(counts.entries())
@@ -853,11 +1246,29 @@
       .map(([tag, count]) => ({ tag, count }));
   }
 
+  function persistKind(kind) {
+    if (kind === 'sensation') writeJSON(KEYS.sensation, sensationCards);
+    else writeJSON(KEYS.cards, cards);
+  }
+
+  function visibleCards() {
+    const query = libFilter.query.trim().toLowerCase();
+    return cardsOf(activeKind).filter((card) => {
+      const matchTag = libFilter.tag === 'all' || card.tag === libFilter.tag;
+      const matchQuery = !query
+        || card.text.toLowerCase().includes(query)
+        || card.tag.toLowerCase().includes(query);
+      return matchTag && matchQuery;
+    });
+  }
+
   function renderTagFilter() {
     const container = $('#tagFilter');
+    if (!container) return;
     container.innerHTML = '';
 
-    if (libFilter.tag !== 'all' && !cards.some((card) => card.tag === libFilter.tag)) {
+    const source = cardsOf(activeKind);
+    if (libFilter.tag !== 'all' && !source.some((card) => card.tag === libFilter.tag)) {
       libFilter.tag = 'all';
     }
 
@@ -867,7 +1278,7 @@
     all.textContent = '全部';
     const allCount = document.createElement('span');
     allCount.className = 'chip-count';
-    allCount.textContent = String(cards.length);
+    allCount.textContent = String(source.length);
     all.appendChild(allCount);
     all.addEventListener('click', () => {
       libFilter.tag = 'all';
@@ -876,7 +1287,7 @@
     });
     container.appendChild(all);
 
-    getTags().forEach(({ tag, count }) => {
+    getTags(activeKind).forEach(({ tag, count }) => {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'chip' + (libFilter.tag === tag ? ' active' : '');
@@ -899,29 +1310,35 @@
     const empty = $('#libEmpty');
     if (!grid || !empty) return;
 
-    grid.innerHTML = '';
+    const source = cardsOf(activeKind);
+    const filtered = visibleCards();
 
-    const query = libFilter.query.trim().toLowerCase();
-    const filtered = cards.filter((card) => {
-      const matchTag = libFilter.tag === 'all' || card.tag === libFilter.tag;
-      const matchQuery = !query
-        || card.text.toLowerCase().includes(query)
-        || card.tag.toLowerCase().includes(query);
-      return matchTag && matchQuery;
-    });
+    grid.innerHTML = '';
+    grid.classList.toggle('select-mode', selectMode);
 
     empty.hidden = filtered.length > 0;
     if (!filtered.length) {
-      $('#libEmptyText').textContent = cards.length
+      $('#libEmptyText').textContent = source.length
         ? '没有找到匹配的字卡，换个关键词或标签试试。'
-        : '新建一张字卡，或从文本 / JSON 批量导入。';
+        : (activeKind === 'sensation'
+          ? '还没有体感字卡。写几句梦角传给你的身体感觉吧。'
+          : '新建一张字卡，或从文本 / JSON 批量导入。');
     }
 
     filtered.forEach((card) => {
-      const number = cards.findIndex((item) => item.id === card.id) + 1;
+      const number = source.findIndex((item) => item.id === card.id) + 1;
 
       const item = document.createElement('article');
-      item.className = 'lib-card';
+      item.className = 'lib-card' + (selectedIds.has(card.id) ? ' selected' : '');
+      item.dataset.id = card.id;
+
+      if (selectMode) {
+        const check = document.createElement('span');
+        check.className = 'lib-check';
+        check.textContent = '✓';
+        item.appendChild(check);
+        item.addEventListener('click', () => toggleCardSelection(card.id));
+      }
 
       const top = document.createElement('div');
       top.className = 'lib-card-top';
@@ -966,33 +1383,185 @@
       item.append(top, text, foot);
       grid.appendChild(item);
     });
+
+    syncBatchUI();
   }
 
   function renderLibrary() {
+    selectedIds = new Set(Array.from(selectedIds).filter((id) => findCard(id)));
     renderTagFilter();
     renderCardGrid();
     updateCounts();
     updateTagSuggestions();
+    syncKindButtons();
+    renderBatchTagOptions();
+    syncBatchUI();
   }
 
   function updateTagSuggestions() {
     const datalist = $('#tagSuggestions');
+    if (!datalist) return;
     datalist.innerHTML = '';
-    getTags().forEach(({ tag }) => {
+    getAllTags().forEach(({ tag }) => {
       const option = document.createElement('option');
       option.value = tag;
       datalist.appendChild(option);
     });
   }
 
-  function deleteCard(id) {
-    const card = cards.find((item) => item.id === id);
-    if (!card) return;
+  function syncKindButtons() {
+    $$('#libKinds .kind-btn').forEach((button) => {
+      const isActive = button.dataset.kind === activeKind;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+  }
 
-    cards = cards.filter((item) => item.id !== id);
+  function setActiveKind(kind) {
+    activeKind = kind === 'sensation' ? 'sensation' : 'daily';
+    libFilter.tag = 'all';
+    libFilter.query = '';
+    $('#cardSearch').value = '';
+    selectMode = false;
+    selectedIds.clear();
+    renderLibrary();
+  }
+
+  function syncBatchUI() {
+    const bar = $('#batchBar');
+    if (!bar) return;
+    bar.hidden = !selectMode;
+
+    const countEl = $('#batchCount');
+    if (countEl) countEl.textContent = '已选 ' + selectedIds.size + ' 张';
+
+    const modeBtn = $('#selectModeBtn');
+    if (modeBtn) {
+      modeBtn.classList.toggle('primary', selectMode);
+      modeBtn.textContent = selectMode ? '✕ 退出批量' : '☑ 批量管理';
+    }
+  }
+
+  function renderBatchTagOptions() {
+    const select = $('#batchMoveSelect');
+    if (!select) return;
+
+    const previous = select.value;
+    select.innerHTML = '';
+
+    const tags = getAllTags();
+    if (!tags.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = '还没有标签';
+      select.appendChild(option);
+      return;
+    }
+
+    tags.forEach(({ tag, count }) => {
+      const option = document.createElement('option');
+      option.value = tag;
+      option.textContent = tag + ' · ' + count;
+      select.appendChild(option);
+    });
+
+    if (previous && tags.some((item) => item.tag === previous)) select.value = previous;
+  }
+
+  function setSelectMode(on) {
+    selectMode = !!on;
+    if (!selectMode) selectedIds.clear();
+    renderCardGrid();
+    syncBatchUI();
+  }
+
+  function toggleCardSelection(id) {
+    if (!selectMode) return;
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    renderCardGrid();
+  }
+
+  function selectAllVisible() {
+    const list = visibleCards();
+    if (!list.length) return;
+    const allSelected = list.every((card) => selectedIds.has(card.id));
+    if (allSelected) list.forEach((card) => selectedIds.delete(card.id));
+    else list.forEach((card) => selectedIds.add(card.id));
+    renderCardGrid();
+  }
+
+  function selectAllCards() {
+    const list = allCards();
+    if (!list.length) return;
+    const allSelected = list.every((card) => selectedIds.has(card.id));
+    if (allSelected) selectedIds.clear();
+    else list.forEach((card) => selectedIds.add(card.id));
+    renderCardGrid();
+  }
+
+  function batchDelete() {
+    if (!selectedIds.size) { toast('先选中要删除的字卡'); return; }
+    const total = selectedIds.size;
+    const ids = new Set(selectedIds);
+
+    askConfirm(
+      '删除所选字卡？',
+      '将删除 ' + total + ' 张字卡，日常与体感字卡中选中的都会移除。此操作不可撤销。',
+      '删除所选',
+      () => {
+        cards = cards.filter((card) => !ids.has(card.id));
+        sensationCards = sensationCards.filter((card) => !ids.has(card.id));
+        writeJSON(KEYS.cards, cards);
+        writeJSON(KEYS.sensation, sensationCards);
+        pruneDrawTags();
+        resetBag();
+        resetSensationBag();
+        selectedIds.clear();
+        selectMode = false;
+        renderLibrary();
+        toast('已删除 ' + total + ' 张字卡');
+      }
+    );
+  }
+
+  function batchMove() {
+    if (!selectedIds.size) { toast('先选中要移动的字卡'); return; }
+    const select = $('#batchMoveSelect');
+    const tag = select ? select.value : '';
+    if (!tag) { toast('先选择一个目标标签'); return; }
+
+    const total = selectedIds.size;
+    allCards().forEach((card) => {
+      if (selectedIds.has(card.id)) card.tag = tag;
+    });
+
     writeJSON(KEYS.cards, cards);
+    writeJSON(KEYS.sensation, sensationCards);
     pruneDrawTags();
     resetBag();
+    resetSensationBag();
+    selectedIds.clear();
+    renderLibrary();
+    toast('已把 ' + total + ' 张字卡移到「' + tag + '」');
+  }
+
+  function deleteCard(id) {
+    const card = findCard(id);
+    if (!card) return;
+
+    if (card.kind === 'sensation') {
+      sensationCards = sensationCards.filter((item) => item.id !== id);
+      writeJSON(KEYS.sensation, sensationCards);
+      resetSensationBag();
+    } else {
+      cards = cards.filter((item) => item.id !== id);
+      writeJSON(KEYS.cards, cards);
+      pruneDrawTags();
+      resetBag();
+    }
+
+    selectedIds.delete(id);
     renderLibrary();
 
     const preview = card.text.length > 20 ? card.text.slice(0, 20) + '…' : card.text;
@@ -1005,11 +1574,21 @@
 
   function openCardDialog(id = null) {
     editingId = id || null;
-    const card = editingId ? cards.find((item) => item.id === editingId) : null;
+    const card = editingId ? findCard(editingId) : null;
+    editingKind = card ? card.kind : activeKind;
 
-    $('#cardDialogTitle').textContent = card ? '编辑字卡' : '新建字卡';
+    const kindLabel = editingKind === 'sensation' ? '体感' : '日常';
+    $('#cardDialogTitle').textContent = (card ? '编辑' : '新建') + kindLabel + '字卡';
+
+    const fallbackTag = editingKind === 'sensation' ? '体感' : '日常';
     $('#cardText').value = card ? card.text : '';
-    $('#cardTag').value = card ? card.tag : (libFilter.tag !== 'all' ? libFilter.tag : '');
+    $('#cardTag').value = card ? card.tag : (libFilter.tag !== 'all' ? libFilter.tag : fallbackTag);
+    $('#cardTagHelp').textContent = editingKind === 'sensation'
+      ? '体感字卡独立于日常字卡，只用于体感弹窗。留空则归入「体感」。'
+      : '标签用于分类筛选，也可以限定抽卡池。留空则归入「日常」。';
+    $('#cardText').placeholder = editingKind === 'sensation'
+      ? '写下梦角传来的身体感觉，例如：后颈忽然一凉…'
+      : '写下梦角会对你说的那句话…';
     $('#cardTextError').textContent = '';
     $('#cardTextCount').textContent = (card ? card.text.length : 0) + ' / 200';
 
@@ -1022,7 +1601,8 @@
 
   function updateCardPreview() {
     const text = $('#cardText').value.trim();
-    const tag = $('#cardTag').value.trim() || '日常';
+    const fallbackTag = editingKind === 'sensation' ? '体感' : '日常';
+    const tag = $('#cardTag').value.trim() || fallbackTag;
 
     $('#previewText').textContent = personalize(text || '你的字卡会出现在这里。');
     $('#previewTag').textContent = tag.slice(0, 12);
@@ -1033,7 +1613,8 @@
     event.preventDefault();
 
     const text = $('#cardText').value.trim();
-    const tag = clampText($('#cardTag').value, 12) || '日常';
+    const fallbackTag = editingKind === 'sensation' ? '体感' : '日常';
+    const tag = clampText($('#cardTag').value, 12) || fallbackTag;
 
     if (!text) {
       $('#cardTextError').textContent = '写点什么吧，字卡不能是空的。';
@@ -1044,25 +1625,31 @@
     $('#cardTextError').textContent = '';
 
     if (editingId) {
-      const card = cards.find((item) => item.id === editingId);
+      const card = findCard(editingId);
       if (card) {
         card.text = text.slice(0, 200);
         card.tag = tag;
       }
       toast('字卡已更新');
     } else {
-      cards.push({
+      const card = {
         id: uid(),
         text: text.slice(0, 200),
         tag,
+        kind: editingKind,
         createdAt: Date.now()
-      });
-      toast('字卡已加入抽卡池');
+      };
+      if (editingKind === 'sensation') sensationCards.push(card);
+      else cards.push(card);
+      toast(editingKind === 'sensation' ? '体感字卡已加入弹窗池' : '字卡已加入抽卡池');
     }
 
     editingId = null;
+    editingKind = 'daily';
     writeJSON(KEYS.cards, cards);
+    writeJSON(KEYS.sensation, sensationCards);
     resetBag();
+    resetSensationBag();
     $('#cardDialog').close();
     renderLibrary();
     updatePoolHint();
@@ -1080,18 +1667,86 @@
     const speedRadio = $('input[name="speed"][value="' + settings.speed + '"]');
     if (speedRadio) speedRadio.checked = true;
 
-    $('#setAvoidRepeat').checked = settings.avoidRepeat;
+    const fontRadio = $('input[name="fontScale"][value="' + String(settings.fontScale) + '"]');
+    if (fontRadio) fontRadio.checked = true;
+    $$('input[name="fontScale"]').forEach((input) => {
+      if (input !== fontRadio) input.checked = false;
+    });
 
+    $('#setAvoidRepeat').checked = settings.avoidRepeat;
+    $('#setProactive').checked = settings.proactive;
+    $('#setSensation').checked = settings.sensationPopup;
+    const statusInput = $('#statusAddInput');
+    if (statusInput) statusInput.value = '';
+
+    statusDraft = settings.statusPool.slice();
+    renderStatusPoolEditor();
     renderDrawTags();
     applyAvatar();
     openDialog($('#settingsDialog'));
+  }
+
+  function renderStatusPoolEditor() {
+    const list = $('#statusPoolList');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    if (!statusDraft.length) {
+      const empty = document.createElement('p');
+      empty.className = 'status-empty';
+      empty.textContent = '卡池是空的，至少留下一个状态吧。';
+      list.appendChild(empty);
+    }
+
+    statusDraft.forEach((status, index) => {
+      const row = document.createElement('div');
+      row.className = 'status-row';
+
+      const input = document.createElement('input');
+      input.className = 'input';
+      input.maxLength = 20;
+      input.value = status;
+      input.setAttribute('aria-label', '状态 ' + (index + 1));
+      input.addEventListener('input', () => {
+        statusDraft[index] = input.value;
+      });
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'status-del';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', '删除这个状态');
+      del.addEventListener('click', () => {
+        statusDraft.splice(index, 1);
+        renderStatusPoolEditor();
+      });
+
+      row.append(input, del);
+      list.appendChild(row);
+    });
+
+    const hint = $('#statusPoolHint');
+    if (hint) hint.textContent = '共 ' + statusDraft.length + ' 个状态 · 随机抽取';
+  }
+
+  function addStatusFromInput() {
+    const input = $('#statusAddInput');
+    if (!input) return;
+    const value = clampText(input.value, 20);
+    if (!value) { input.focus(); return; }
+    if (statusDraft.includes(value)) { toast('这个状态已经在卡池里了'); return; }
+    statusDraft.push(value);
+    input.value = '';
+    renderStatusPoolEditor();
+    input.focus();
   }
 
   function renderDrawTags() {
     const container = $('#drawTags');
     container.innerHTML = '';
 
-    const tags = getTags();
+    const tags = getTags('daily');
     if (!tags.length) {
       const hint = document.createElement('span');
       hint.className = 'none-hint';
@@ -1136,6 +1791,16 @@
 
     const selectedTags = $$('#drawTags input:checked').map((input) => input.value);
     const speedInput = $('input[name="speed"]:checked');
+    const fontInput = $('input[name="fontScale"]:checked');
+
+    let nextStatusPool = statusDraft
+      .map((status) => clampText(status, 20))
+      .filter(Boolean)
+      .filter((status, index, list) => list.indexOf(status) === index);
+    if (!nextStatusPool.length) nextStatusPool = [DEFAULT_STATUS_POOL[0]];
+
+    const previousStatus = settings.status;
+    const nextFont = fontInput ? Number(fontInput.value) : (Number(settings.fontScale) || 1);
 
     settings = {
       charName: clampText($('#setCharName').value, 16) || DEFAULT_SETTINGS.charName,
@@ -1144,7 +1809,12 @@
       speed: speedInput ? speedInput.value : 'normal',
       avoidRepeat: $('#setAvoidRepeat').checked,
       drawTags: selectedTags,
-      avatar: settings.avatar || ''
+      avatar: settings.avatar || '',
+      fontScale: nextFont,
+      statusPool: nextStatusPool,
+      status: nextStatusPool.includes(previousStatus) ? previousStatus : nextStatusPool[0],
+      proactive: $('#setProactive').checked,
+      sensationPopup: $('#setSensation').checked
     };
 
     writeJSON(KEYS.settings, settings);
@@ -1152,7 +1822,9 @@
     renderChat();
     renderLibrary();
     resetBag();
+    resetSensationBag();
     $('#settingsDialog').close();
+    restartPresenceTimers();
 
     if (!eligibleCards().length) {
       toast('当前抽卡池是空的，请调整标签或添加字卡');
@@ -1166,23 +1838,33 @@
      ========================================================= */
 
   function dedupeKey(card) {
-    return card.tag + '|' + card.text.replace(/\s+/g, ' ').trim();
+    return (card.kind === 'sensation' ? 'sensation' : 'daily') + '|' + card.tag + '|' + card.text.replace(/\s+/g, ' ').trim();
   }
 
-  function parseImportText(raw) {
+  function parseImportText(raw, defaultKind = 'daily') {
     const source = String(raw || '').trim();
+    const kind = defaultKind === 'sensation' ? 'sensation' : 'daily';
     if (!source) return { cards: [], error: '还没有粘贴内容。' };
 
     if (source.startsWith('[') || source.startsWith('{')) {
       try {
         const data = JSON.parse(source);
         let list = null;
-        if (Array.isArray(data)) list = data;
-        else if (data && Array.isArray(data.cards)) list = data.cards;
+        let sensationList = null;
 
-        if (!list) return { cards: [], error: 'JSON 格式不正确：需要字卡数组。' };
+        if (Array.isArray(data)) {
+          list = data;
+        } else if (data && typeof data === 'object') {
+          if (Array.isArray(data.cards)) list = data.cards;
+          if (Array.isArray(data.sensationCards)) sensationList = data.sensationCards;
+        }
 
-        const parsed = list.map(normalizeCard).filter(Boolean);
+        if (!list && !sensationList) return { cards: [], error: 'JSON 格式不正确：需要字卡数组。' };
+
+        const parsed = []
+          .concat((list || []).map((item) => normalizeCard(item, kind)).filter(Boolean))
+          .concat((sensationList || []).map((item) => normalizeCard(item, 'sensation')).filter(Boolean));
+
         if (!parsed.length) return { cards: [], error: 'JSON 里没有找到有效的字卡。' };
         return { cards: parsed, error: '' };
       } catch (error) {
@@ -1191,7 +1873,8 @@
     }
 
     const parsed = [];
-    let currentTag = '日常';
+    const fallbackTag = kind === 'sensation' ? '体感' : '日常';
+    let currentTag = fallbackTag;
 
     source.split(/\r?\n/).forEach((line) => {
       let value = line.trim();
@@ -1216,7 +1899,8 @@
       parsed.push({
         id: uid(),
         text: value.slice(0, 200),
-        tag: tag.slice(0, 12) || '日常',
+        tag: tag.slice(0, 12) || fallbackTag,
+        kind,
         createdAt: Date.now()
       });
     });
@@ -1228,7 +1912,8 @@
   function openImport() {
     $('#importText').value = '';
     $('#importFile').value = '';
-    $('#importHint').textContent = '支持 .txt 与 .json（本应用导出的 JSON 可直接再导入）。';
+    $('#importHint').textContent = '支持 .txt 与 .json（本应用导出的 JSON 可直接再导入）。纯文本会导入到当前打开的'
+      + (activeKind === 'sensation' ? '体感' : '日常') + '字卡库。';
     $('#importHint').style.color = '';
     const append = $('input[name="importMode"][value="append"]');
     if (append) append.checked = true;
@@ -1239,7 +1924,7 @@
     event.preventDefault();
 
     const hint = $('#importHint');
-    const result = parseImportText($('#importText').value);
+    const result = parseImportText($('#importText').value, activeKind);
 
     if (result.error) {
       hint.textContent = result.error;
@@ -1254,7 +1939,7 @@
     const unique = [];
 
     if (mode === 'append') {
-      cards.forEach((card) => seen.add(dedupeKey(card)));
+      allCards().forEach((card) => seen.add(dedupeKey(card)));
     }
 
     result.cards.forEach((card) => {
@@ -1270,30 +1955,38 @@
       return;
     }
 
+    const importedDaily = unique.filter((card) => card.kind !== 'sensation');
+    const importedSensation = unique.filter((card) => card.kind === 'sensation');
     const skipped = result.cards.length - unique.length;
 
     if (mode === 'replace') {
       $('#importDialog').close();
       askConfirm(
         '替换全部字卡？',
-        '现有 ' + cards.length + ' 张字卡将被替换为导入的 ' + unique.length + ' 张，此操作不可撤销。',
+        '现有 ' + allCards().length + ' 张字卡将被替换为导入的 ' + unique.length + ' 张，此操作不可撤销。',
         '确认替换',
         () => {
-          cards = unique;
+          cards = importedDaily;
+          sensationCards = importedSensation;
           writeJSON(KEYS.cards, cards);
+          writeJSON(KEYS.sensation, sensationCards);
           pruneDrawTags();
           resetBag();
+          resetSensationBag();
           renderLibrary();
           switchView('library');
-          toast('已替换为 ' + cards.length + ' 张字卡');
+          toast('已替换为 ' + unique.length + ' 张字卡');
         }
       );
       return;
     }
 
-    cards = cards.concat(unique);
+    cards = cards.concat(importedDaily);
+    sensationCards = sensationCards.concat(importedSensation);
     writeJSON(KEYS.cards, cards);
+    writeJSON(KEYS.sensation, sensationCards);
     resetBag();
+    resetSensationBag();
     $('#importDialog').close();
     renderLibrary();
     switchView('library');
@@ -1318,17 +2011,19 @@
   function buildExportJSON() {
     return JSON.stringify({
       app: '镜魇 · 字卡传讯',
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
-      cards: cards.map((card) => ({ tag: card.tag, text: card.text }))
+      cards: cards.map((card) => ({ kind: 'daily', tag: card.tag, text: card.text })),
+      sensationCards: sensationCards.map((card) => ({ kind: 'sensation', tag: card.tag, text: card.text }))
     }, null, 2);
   }
 
   function openExport() {
-    $('#exportSummary').textContent = cards.length
-      ? '共 ' + cards.length + ' 张字卡，抽卡池 ' + eligibleCards().length + ' 张，' + getTags().length + ' 个标签。'
+    $('#exportSummary').textContent = allCards().length
+      ? '日常 ' + cards.length + ' 张 · 体感 ' + sensationCards.length + ' 张；抽卡池 '
+        + eligibleCards().length + ' 张；' + getAllTags().length + ' 个标签。'
       : '字卡库现在是空的，先写几张再导出吧。';
-    $('#exportHint').textContent = '导出的 JSON 可以再次导入，也可以分享给同好。';
+    $('#exportHint').textContent = 'JSON 会同时导出日常与体感字卡，可以再次导入，也可以分享给同好；TXT 只导出当前打开的字卡库。';
     $('#exportHint').style.color = '';
     openDialog($('#exportDialog'));
   }
@@ -1357,11 +2052,12 @@
   }
 
   function exportTXT() {
-    const content = cards
+    const source = cardsOf(activeKind);
+    const content = source
       .map((card) => card.tag + ' | ' + card.text.replace(/\r?\n/g, ' '))
       .join('\n');
-    downloadFile('镜魇字卡_' + todayStamp() + '.txt', content, 'text/plain;charset=utf-8');
-    $('#exportHint').textContent = 'TXT 已开始下载。多行字卡会合并为一行，需要完整保留请用 JSON。';
+    downloadFile('镜魇字卡_' + (activeKind === 'sensation' ? '体感_' : '日常_') + todayStamp() + '.txt', content, 'text/plain;charset=utf-8');
+    $('#exportHint').textContent = 'TXT 已开始下载（仅当前字卡库）。多行字卡会合并为一行，需要完整保留请用 JSON。';
   }
 
   async function copyJSON() {
@@ -1482,6 +2178,12 @@
     $('#chatLibraryBtn').addEventListener('click', () => switchView('library'));
     $('#continueBtn').addEventListener('click', continueReply);
 
+    const fontBtn = $('#fontBtn');
+    if (fontBtn) fontBtn.addEventListener('click', cycleFontScale);
+
+    const sensationBtn = $('#sensationBtn');
+    if (sensationBtn) sensationBtn.addEventListener('click', () => showSensation(false));
+
     /* 头像 */
     const avatarBtn = $('#avatarBtn');
     if (avatarBtn) avatarBtn.addEventListener('click', pickAvatar);
@@ -1528,6 +2230,52 @@
     $('#importBtn').addEventListener('click', openImport);
     $('#exportBtn').addEventListener('click', openExport);
 
+    $$('#libKinds .kind-btn').forEach((button) => {
+      button.addEventListener('click', () => setActiveKind(button.dataset.kind));
+    });
+
+    const selectModeBtn = $('#selectModeBtn');
+    if (selectModeBtn) selectModeBtn.addEventListener('click', () => setSelectMode(!selectMode));
+
+    const selectAllBtn = $('#selectAllBtn');
+    if (selectAllBtn) selectAllBtn.addEventListener('click', selectAllVisible);
+
+    const selectAllAllBtn = $('#selectAllAllBtn');
+    if (selectAllAllBtn) selectAllAllBtn.addEventListener('click', selectAllCards);
+
+    const batchMoveBtn = $('#batchMoveBtn');
+    if (batchMoveBtn) batchMoveBtn.addEventListener('click', batchMove);
+
+    const batchDeleteBtn = $('#batchDeleteBtn');
+    if (batchDeleteBtn) batchDeleteBtn.addEventListener('click', batchDelete);
+
+    const batchExitBtn = $('#batchExitBtn');
+    if (batchExitBtn) batchExitBtn.addEventListener('click', () => setSelectMode(false));
+
+    const statusAddBtn = $('#statusAddBtn');
+    if (statusAddBtn) statusAddBtn.addEventListener('click', addStatusFromInput);
+
+    const statusAddInput = $('#statusAddInput');
+    if (statusAddInput) {
+      statusAddInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          addStatusFromInput();
+        }
+      });
+    }
+
+    $$('[data-sensation]').forEach((button) => {
+      button.addEventListener('click', closeSensation);
+    });
+
+    const sensationOverlay = $('#sensationOverlay');
+    if (sensationOverlay) {
+      sensationOverlay.addEventListener('click', (event) => {
+        if (event.target === sensationOverlay) closeSensation();
+      });
+    }
+
     $('#cardForm').addEventListener('submit', saveCard);
     $('#settingsForm').addEventListener('submit', saveSettings);
     $('#importForm').addEventListener('submit', handleImport);
@@ -1568,17 +2316,23 @@
     $('#resetCardsBtn').addEventListener('click', () => {
       askConfirm(
         '清空字卡库？',
-        '现有的 ' + cards.length + ' 张字卡会被全部删除，聊天记录不会受影响。此操作不可撤销。',
+        '日常 ' + cards.length + ' 张、体感 ' + sensationCards.length + ' 张字卡会被全部删除，聊天记录不会受影响。此操作不可撤销。',
         '清空字卡',
         () => {
           const settingsDialog = $('#settingsDialog');
           if (settingsDialog.open) settingsDialog.close();
           cards = [];
+          sensationCards = [];
           settings.drawTags = [];
+          selectMode = false;
+          selectedIds.clear();
           writeJSON(KEYS.cards, cards);
+          writeJSON(KEYS.sensation, sensationCards);
           writeJSON(KEYS.settings, settings);
           resetBag();
+          resetSensationBag();
           renderLibrary();
+          updateCounts();
           updatePoolHint();
           toast('字卡库已清空');
         }
@@ -1614,8 +2368,17 @@
       });
     });
 
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      const overlay = $('#sensationOverlay');
+      if (overlay && !overlay.hidden) closeSensation();
+    });
+
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') updatePoolHint();
+      if (document.visibilityState === 'visible') {
+        updatePoolHint();
+        if (settings.proactive) scheduleProactiveNext(25000 + Math.random() * 40000);
+      }
     });
   }
 
@@ -1699,6 +2462,8 @@
     setupInstall();
     registerOffline();
     writeJSON(KEYS.cards, cards);
+    writeJSON(KEYS.sensation, sensationCards);
+    restartPresenceTimers();
 
     window.setTimeout(() => {
       if (messages.length) scrollToBottom();

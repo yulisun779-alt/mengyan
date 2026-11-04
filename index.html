@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0506" />
   <title>镜魇 · 字卡传讯</title>
-  <meta name="description" content="对着镜子说话，让字卡替你回信。字卡库可自由编辑与导入，所有数据保存在本机。" />
+  <meta name="description" content="对着镜子说话，镜后传来密语。日常字卡与体感字卡可自由编辑与导入，所有数据保存在本机。" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <link rel="manifest" href="manifest.json" />
@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="镜魇" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=14" />
 </head>
 <body>
 
@@ -126,7 +126,18 @@
     <svg class="bat bat-b" viewBox="0 0 120 50" aria-hidden="true">
       <path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/>
     </svg>
+
     <div class="vignette"></div>
+  </div>
+
+  <!-- 半透明花边 -->
+  <div class="lace" aria-hidden="true">
+    <span class="lace-bloom lace-tl"></span>
+    <span class="lace-bloom lace-tr"></span>
+    <span class="lace-bloom lace-bl"></span>
+    <span class="lace-bloom lace-br"></span>
+    <span class="lace-rule lace-top"></span>
+    <span class="lace-rule lace-bottom"></span>
   </div>
 
   <div class="app">
@@ -222,6 +233,8 @@
             </div>
             <div class="chat-actions">
               <button type="button" class="icon-btn install-btn" id="installBtn" title="安装到桌面" aria-label="安装到桌面" hidden>⤓</button>
+              <button type="button" class="icon-btn font-btn" id="fontBtn" title="调整字号" aria-label="调整字号">Aa</button>
+              <button type="button" class="icon-btn" id="sensationBtn" title="接住一道体感" aria-label="接住一道体感">❋</button>
               <button type="button" class="icon-btn" id="continueBtn" title="让梦角继续说" aria-label="让梦角继续说">✧</button>
               <button type="button" class="icon-btn" id="chatLibraryBtn" title="打开字卡库" aria-label="打开字卡库">❖</button>
               <button type="button" class="icon-btn" id="chatSettingsBtn" title="梦角设定" aria-label="梦角设定">⚙</button>
@@ -269,8 +282,18 @@
             <button type="button" class="btn primary" id="newCardBtn">＋ 新建字卡</button>
             <button type="button" class="btn" id="importBtn">导入</button>
             <button type="button" class="btn" id="exportBtn">导出</button>
+            <button type="button" class="btn" id="selectModeBtn">☑ 批量管理</button>
           </div>
         </header>
+
+        <div class="lib-kinds" id="libKinds" role="tablist" aria-label="字卡类型">
+          <button type="button" class="kind-btn active" data-kind="daily" role="tab" aria-selected="true">
+            日常字卡 <span class="kind-count" id="dailyCount">0</span>
+          </button>
+          <button type="button" class="kind-btn" data-kind="sensation" role="tab" aria-selected="false">
+            体感字卡 <span class="kind-count" id="sensationCount">0</span>
+          </button>
+        </div>
 
         <div class="lib-toolbar">
           <div class="tag-filter" id="tagFilter" aria-label="按标签筛选"></div>
@@ -279,7 +302,18 @@
             <input type="search" id="cardSearch" placeholder="搜索字卡内容或标签" aria-label="搜索字卡" />
           </div>
         </div>
-        <p class="lib-note">每行一句心意。支持占位符 <code>{我}</code>（你的昵称）与 <code>{名字}</code>（梦角名字）。</p>
+
+        <div class="batch-bar" id="batchBar" hidden>
+          <button type="button" class="btn small" id="selectAllBtn">全选当前</button>
+          <button type="button" class="btn small" id="selectAllAllBtn">全选全部</button>
+          <span class="batch-count" id="batchCount">已选 0 张</span>
+          <select class="input batch-select" id="batchMoveSelect" aria-label="选择要移动到的标签"></select>
+          <button type="button" class="btn small" id="batchMoveBtn">移动</button>
+          <button type="button" class="btn small danger" id="batchDeleteBtn">删除所选</button>
+          <button type="button" class="btn small" id="batchExitBtn">退出批量</button>
+        </div>
+
+        <p class="lib-note" id="libNote">每行一句心意。支持占位符 <code>{我}</code>（你的昵称）与 <code>{名字}</code>（梦角名字）。</p>
 
         <div class="lib-scroll" id="libScroll">
           <div class="card-grid" id="cardGrid"></div>
@@ -321,6 +355,16 @@
         </div>
 
         <div class="field">
+          <label>状态卡池 <span class="label-hint" id="statusPoolHint">随机出现在名字下方</span></label>
+          <div class="status-pool" id="statusPoolList"></div>
+          <div class="status-add-row">
+            <input class="input" id="statusAddInput" maxlength="20" placeholder="写一个新状态，例如：在镜后等你" />
+            <button type="button" class="btn small" id="statusAddBtn">添加</button>
+          </div>
+          <p class="field-help">当前状态会从卡池里随机抽取，大约每 2–5 分钟换一次。</p>
+        </div>
+
+        <div class="field">
           <label>梦角头像 <span class="label-hint">从相册选一张照片</span></label>
           <div class="avatar-edit">
             <div class="avatar-preview" id="avatarPreview"></div>
@@ -341,6 +385,16 @@
           </div>
         </div>
 
+        <div class="field">
+          <label>字号 <span class="label-hint">聊天与字卡的文字大小</span></label>
+          <div class="segmented" id="fontGroup">
+            <label><input type="radio" name="fontScale" value="0.85" /><span>小</span></label>
+            <label><input type="radio" name="fontScale" value="1" /><span>标准</span></label>
+            <label><input type="radio" name="fontScale" value="1.12" /><span>大</span></label>
+            <label><input type="radio" name="fontScale" value="1.25" /><span>特大</span></label>
+          </div>
+        </div>
+
         <div class="field switch-field">
           <div>
             <label for="setAvoidRepeat">避免连续重复</label>
@@ -348,6 +402,28 @@
           </div>
           <label class="switch">
             <input type="checkbox" id="setAvoidRepeat" />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="field switch-field">
+          <div>
+            <label for="setProactive">主动传讯</label>
+            <p class="field-help">你安静一会儿后，梦角会主动说 1–2 句话，间隔随机。</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="setProactive" />
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="field switch-field">
+          <div>
+            <label for="setSensation">体感弹窗</label>
+            <p class="field-help">梦角偶尔会传来一阵体感，7 秒后自动收起。</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="setSensation" />
             <span class="switch-track"><span class="switch-thumb"></span></span>
           </label>
         </div>
@@ -392,7 +468,7 @@
           <label for="cardTag">标签</label>
           <input class="input" id="cardTag" maxlength="12" list="tagSuggestions" placeholder="例如：低语、渴念、深夜" />
           <datalist id="tagSuggestions"></datalist>
-          <p class="field-help">标签用于分类筛选，也可以限定抽卡池。留空则归入「日常」。</p>
+          <p class="field-help" id="cardTagHelp">标签用于分类筛选，也可以限定抽卡池。留空则归入「日常」。</p>
         </div>
         <div class="field">
           <label>效果预览</label>
@@ -524,11 +600,27 @@
     </form>
   </dialog>
 
+  <!-- 体感弹窗 -->
+  <div class="sensation-overlay" id="sensationOverlay" hidden>
+    <div class="sensation-card" role="dialog" aria-modal="true" aria-labelledby="sensationTitle">
+      <p class="sensation-eyebrow">BODY WHISPER</p>
+      <h3 id="sensationTitle">镜后传来一阵体感</h3>
+      <p class="sensation-text" id="sensationText"></p>
+      <div class="sensation-actions">
+        <button type="button" class="btn small primary" data-sensation="felt">我感觉到了</button>
+        <button type="button" class="btn small" data-sensation="none">没感觉到</button>
+        <button type="button" class="btn small" data-sensation="weak">感觉太弱</button>
+      </div>
+      <div class="sensation-timer" aria-hidden="true"><span id="sensationProgress"></span></div>
+      <p class="sensation-count" id="sensationTimerText">7 秒后收起</p>
+    </div>
+  </div>
+
   <div class="toast-root" id="toastRoot" role="status" aria-live="polite"></div>
 
   <input type="file" id="avatarFile" accept="image/*" hidden />
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=14"></script>
   <script>
     /* 背景红眼睛：生成睫毛 + 随机注视 + 随机眨眼 */
     (function () {
