@@ -1,7 +1,7 @@
 /* ============================================================
    镜中梦魇 · 独立功能模块
    与聊天字卡、体感字卡完全独立
-   含：镜面召唤 + 镜中密语库 + 雷诺曼占卜（水晶球连接）
+   含：镜面召唤 + 镜中密语库 + 雷诺曼占卜（水晶球连接）+ 镜面对话
    ============================================================ */
 
 (() => {
@@ -37,6 +37,18 @@
       '镜面深处传来一声叹息，然后归于沉默。',
       '今天他不想出现。',
       '你触到的只有冰凉的镜面。'
+    ],
+    replies: [
+      '你确定是这样吗？',
+      '你理解得不错。',
+      '……再看仔细一些。',
+      '嗯。我看到的，和你一样。',
+      '牌面不会说谎，但人心会。',
+      '这就是你想要的答案吗？',
+      '别急着下结论。',
+      '你心里其实已经有数了。',
+      '——我想说的，你应该懂了。',
+      '……靠近一点，再看。'
     ]
   };
 
@@ -138,7 +150,7 @@
     } catch (e) { return ''; }
   }
 
-  /* ---------------- 密语数据 ---------------- */
+  /* ---------------- 数据加载 ---------------- */
   function normalizeLine(input) {
     if (typeof input === 'string') {
       const text = clamp(input, 200);
@@ -158,16 +170,18 @@
     const raw = readJSON(KEY, null);
     const src = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
 
-    const cards  = Array.isArray(src.cards)  ? src.cards.map(normalizeLine).filter(Boolean)  : [];
-    const absent = Array.isArray(src.absent) ? src.absent.map(normalizeLine).filter(Boolean) : [];
-    const refuse = Array.isArray(src.refuse) ? src.refuse.map(normalizeLine).filter(Boolean) : [];
+    const cards   = Array.isArray(src.cards)   ? src.cards.map(normalizeLine).filter(Boolean)   : [];
+    const absent  = Array.isArray(src.absent)  ? src.absent.map(normalizeLine).filter(Boolean)  : [];
+    const refuse  = Array.isArray(src.refuse)  ? src.refuse.map(normalizeLine).filter(Boolean)  : [];
+    const replies = Array.isArray(src.replies) ? src.replies.map(normalizeLine).filter(Boolean) : [];
 
     return {
       greeting:    clamp(src.greeting, 60)    || DEFAULT.greeting,
       summonLabel: clamp(src.summonLabel, 12) || DEFAULT.summonLabel,
-      cards:  cards.length  ? cards  : defaultLines(DEFAULT.cards),
-      absent: absent.length ? absent : defaultLines(DEFAULT.absent),
-      refuse: refuse.length ? refuse : defaultLines(DEFAULT.refuse)
+      cards:   cards.length   ? cards   : defaultLines(DEFAULT.cards),
+      absent:  absent.length  ? absent  : defaultLines(DEFAULT.absent),
+      refuse:  refuse.length  ? refuse  : defaultLines(DEFAULT.refuse),
+      replies: replies.length ? replies : defaultLines(DEFAULT.replies)
     };
   }
 
@@ -181,6 +195,7 @@
         ts: Number(r.ts) || Date.now(),
         cardIds: Array.isArray(r.cardIds) ? r.cardIds.map(Number).filter((n) => n >= 1 && n <= 36) : [],
         note: typeof r.note === 'string' ? r.note.slice(0, 800) : '',
+        whisper: typeof r.whisper === 'string' ? r.whisper.slice(0, 120) : '',
         result: r.result === 'success' ? 'success' : 'fail'
       }))
       .filter((r) => r.cardIds.length)
@@ -195,7 +210,7 @@
   let mirror = loadMirror();
   let mirrorDraft = null;
   let mirrorBusy = false;
-  const mirrorBags = { cards: [], absent: [], refuse: [] };
+  const mirrorBags = { cards: [], absent: [], refuse: [], replies: [] };
 
   let oracleCount = 1;
   let oracleCurrent = null;
@@ -234,7 +249,7 @@
     linear-gradient(170deg, #1a090c 0%, #0b0406 100%);
 }
 .mirror-head-actions { display: flex; align-items: center; gap: 8px; }
-.mirror-body { gap: 14px; align-items: center; padding-bottom: 20px; }
+.mirror-body { gap: 12px; align-items: center; padding-bottom: 20px; }
 
 .mirror-greeting {
   max-width: 460px;
@@ -248,7 +263,6 @@
   text-shadow: 0 0 22px rgba(181,111,107,.18);
 }
 
-/* 镜子 + 水晶球同台 */
 .mirror-stage {
   display: flex;
   justify-content: center;
@@ -308,7 +322,6 @@
   pointer-events: none;
 }
 
-/* 眼睛：柔和、有眼白、透明度适中、无睫毛 */
 .mirror-eyes {
   position: absolute; top: 34%; left: 50%; z-index: 5;
   width: 68%; transform: translate(-50%,-50%);
@@ -371,6 +384,12 @@
 .mirror-message.show { opacity: 1; transform: none; }
 .mirror-message[data-tone="absent"] { color: #9e837b; font-style: italic; }
 .mirror-message[data-tone="refuse"] { color: #b98e88; }
+.mirror-message[data-tone="user"] {
+  color: #eccb92;
+  font-size: calc(13.5px * var(--msg-scale, 1));
+  letter-spacing: .08em;
+  font-style: italic;
+}
 
 .mirror-summon {
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
@@ -396,6 +415,57 @@
   font-size: 10.5px; letter-spacing: .08em; text-align: center;
 }
 
+/* ---------- 镜面对话输入框（极简玻璃条） ---------- */
+.mirror-speak {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: min(380px, 100%);
+  margin-top: 4px;
+  padding: 4px 4px 4px 18px;
+  border: 1px solid rgba(181,111,107,.24);
+  border-radius: 999px;
+  background: rgba(20, 8, 10, .55);
+  box-shadow: inset 0 0 20px rgba(0,0,0,.42);
+  transition: border-color .22s, background .22s, box-shadow .22s;
+}
+.mirror-speak:focus-within {
+  border-color: rgba(181,111,107,.55);
+  background: rgba(30, 12, 15, .68);
+  box-shadow: 0 0 0 3px rgba(181,111,107,.08), inset 0 0 20px rgba(0,0,0,.42);
+}
+.mirror-speak-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  outline: none;
+  color: #f0e3dd;
+  font-size: 13px;
+  letter-spacing: .02em;
+}
+.mirror-speak-input::placeholder { color: #7d625e; }
+.mirror-speak-input:disabled { opacity: .55; }
+.mirror-speak-send {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(214,152,138,.28);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #a85e5a, #6a2a2f);
+  color: #1b0709;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .16s, filter .2s, opacity .2s;
+}
+.mirror-speak-send:hover:not(:disabled) { transform: scale(1.06); filter: brightness(1.1); }
+.mirror-speak-send:active:not(:disabled) { transform: scale(.94); }
+.mirror-speak-send:disabled { cursor: default; opacity: .4; }
+
 /* ---------------- 2D 卡通水晶球 ---------------- */
 .mirror-oracle {
   display: flex;
@@ -410,10 +480,7 @@
 }
 .mirror-oracle:hover { transform: translateY(-3px); }
 .mirror-oracle:active { transform: translateY(0) scale(.97); }
-.mirror-oracle:focus-visible {
-  outline: none;
-  filter: drop-shadow(0 0 0 3px rgba(181,111,107,.4));
-}
+.mirror-oracle:focus-visible { outline: none; filter: drop-shadow(0 0 0 3px rgba(181,111,107,.4)); }
 
 .mirror-oracle-svg {
   display: block;
@@ -425,7 +492,6 @@
 .mirror-oracle:hover .mirror-oracle-svg {
   filter: drop-shadow(0 10px 16px rgba(0,0,0,.55)) brightness(1.1);
 }
-
 .mirror-oracle-label {
   color: #c98d86;
   font-family: var(--font-serif, serif);
@@ -488,6 +554,7 @@
   color: #b09993;
   font-size: 13px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: all .18s;
 }
 .oracle-count-btn:hover { border-color: rgba(181,111,107,.5); color: #f2dfd8; }
@@ -510,44 +577,184 @@
   font-weight: 600;
   letter-spacing: .18em;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   box-shadow: 0 14px 34px -16px rgba(181,111,107,.85), inset 0 1px 0 rgba(255,226,216,.24);
   transition: transform .18s, filter .2s, opacity .2s;
 }
 .oracle-draw-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
 .oracle-draw-btn:disabled { cursor: default; opacity: .5; }
 
+/* ---------------- 洗牌动画 ---------------- */
+#oracleShuffle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 34px 20px;
+  overflow: hidden;
+}
+#oracleShuffle[hidden] { display: none !important; }
+
+.shuffle-stage {
+  position: relative;
+  width: clamp(80px, 22vw, 100px);
+  height: clamp(120px, 33vw, 150px);
+}
+.shuffle-deck { position: absolute; inset: 0; }
+.shuffle-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,220,200,.06) 0 8px, transparent 8px 16px),
+    radial-gradient(circle at 50% 40%, #7a1e26, #3a0a10);
+  border: 1px solid rgba(214,152,138,.32);
+  box-shadow: 0 8px 18px rgba(0,0,0,.6), inset 0 0 20px rgba(0,0,0,.35);
+  animation: shuffleCard 1.25s cubic-bezier(.35,.15,.25,1);
+  will-change: transform;
+}
+.shuffle-card::after {
+  content: '✦';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(214,152,138,.38);
+  font-size: 22px;
+  text-shadow: 0 0 18px rgba(214,152,138,.25);
+}
+@keyframes shuffleCard {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  22%  { transform: translate(var(--x1, 30px), var(--y1, -20px)) rotate(var(--r1, 12deg)); }
+  48%  { transform: translate(0, 0) rotate(0deg); }
+  74%  { transform: translate(calc(var(--x1, 30px) * -0.75), calc(var(--y1, -20px) * 0.4)) rotate(calc(var(--r1, 12deg) * -1)); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.shuffle-label {
+  margin: 0;
+  color: #c98d86;
+  font-family: var(--font-serif, serif);
+  font-size: 12px;
+  letter-spacing: .22em;
+  text-indent: .22em;
+  animation: shufflePulse 1.2s ease-in-out infinite;
+}
+@keyframes shufflePulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+/* ---------------- 抽牌 ---------------- */
 .oracle-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
 }
+
 .oracle-card {
   position: relative;
+  height: 220px;
+  animation: cardDealIn .32s ease both;
+}
+@keyframes cardDealIn {
+  from { opacity: 0; transform: translateY(-6px) scale(.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+.oracle-card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: opacity .28s ease, transform .45s cubic-bezier(.35,.15,.25,1);
+  transform-origin: 50% 50%;
+  will-change: opacity, transform;
+}
+
+.oracle-card-back {
+  display: grid;
+  place-items: center;
+  color: rgba(214,152,138,.4);
+  font-size: 28px;
+  text-shadow: 0 0 18px rgba(214,152,138,.3);
+  background:
+    repeating-linear-gradient(45deg, rgba(255,220,200,.06) 0 8px, transparent 8px 16px),
+    radial-gradient(circle at 50% 40%, #7a1e26, #3a0a10);
+  border: 1px solid rgba(214,152,138,.32);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.35), inset 0 0 30px rgba(0,0,0,.4);
+  opacity: 1;
+  transform: scaleY(1);
+  z-index: 2;
+}
+
+.oracle-card-front {
   display: flex;
   flex-direction: column;
   gap: 7px;
   padding: 13px 14px 12px;
   border: 1px solid rgba(198,128,118,.22);
-  border-radius: 12px;
   background:
     radial-gradient(120% 100% at 0% 0%, rgba(96,32,36,.4), transparent 62%),
-    rgba(255,255,255,.02);
+    linear-gradient(180deg, rgba(30,11,14,.9), rgba(16,6,8,.94));
   box-shadow: 0 0 0 1px rgba(0,0,0,.35), inset 0 0 40px rgba(0,0,0,.25);
-  animation: oracleCardIn .45s cubic-bezier(.2,.8,.3,1) both;
+  opacity: 0;
+  transform: scaleY(0.02);
+  z-index: 1;
+  pointer-events: none;
 }
-@keyframes oracleCardIn {
-  from { opacity: 0; transform: translateY(10px) scale(.96); }
-  to { opacity: 1; transform: none; }
+
+.oracle-card.flipped .oracle-card-back {
+  opacity: 0;
+  transform: scaleY(0.02);
 }
+.oracle-card.flipped .oracle-card-front {
+  opacity: 1;
+  transform: scaleY(1);
+  z-index: 3;
+  pointer-events: auto;
+}
+
 .oracle-card-no { color: rgba(185,154,114,.72); font-size: 9px; letter-spacing: .2em; }
 .oracle-card-name { color: #f3e8e2; font-family: var(--font-serif, serif); font-size: 16px; letter-spacing: .1em; }
 .oracle-card-kw { color: #c98d86; font-size: 10.5px; line-height: 1.6; letter-spacing: .03em; }
 .oracle-card-meaning {
+  margin-top: auto;
   padding-top: 7px;
   border-top: 1px dashed rgba(198,128,118,.14);
   color: #d6c2bb;
   font-size: 11.5px;
-  line-height: 1.75;
+  line-height: 1.7;
+}
+
+.oracle-whisper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0 0 14px;
+  padding: 14px 18px;
+  border: 1px solid rgba(181,111,107,.32);
+  border-left: 3px solid rgba(181,111,107,.7);
+  border-radius: 10px;
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(96,32,36,.28), transparent 62%),
+    rgba(255,255,255,.02);
+  animation: whisperIn 1.1s cubic-bezier(.2,.9,.3,1) both;
+}
+@keyframes whisperIn {
+  0%   { opacity: 0; transform: translateY(-6px); filter: blur(3px); letter-spacing: .24em; }
+  60%  { opacity: 1; filter: blur(0); letter-spacing: .05em; }
+  100% { opacity: 1; transform: none; filter: none; letter-spacing: .05em; }
+}
+.oracle-whisper-label {
+  color: rgba(185,154,114,.75);
+  font-size: 9.5px;
+  letter-spacing: .24em;
+}
+.oracle-whisper-text {
+  color: #f3e5de;
+  font-family: var(--font-serif, serif);
+  font-size: calc(14px * var(--msg-scale, 1));
+  line-height: 1.8;
+  letter-spacing: .05em;
+  text-shadow: 0 1px 12px rgba(0,0,0,.6);
 }
 
 .oracle-notebook { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
@@ -584,12 +791,13 @@
   font-weight: 600;
   letter-spacing: .16em;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   box-shadow: 0 14px 34px -16px rgba(181,111,107,.85);
   transition: transform .18s, filter .2s;
 }
 .oracle-feel-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
 .oracle-feel-options { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.oracle-feel-options[hidden] { display: none; }
+.oracle-feel-options[hidden] { display: none !important; }
 .oracle-feel-opt {
   padding: 8px 18px;
   border: 1px solid rgba(198,128,118,.28);
@@ -599,6 +807,7 @@
   font-size: 11.5px;
   letter-spacing: .06em;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: all .18s;
 }
 .oracle-feel-opt:hover { border-color: rgba(181,111,107,.55); background: rgba(181,111,107,.12); }
@@ -660,6 +869,13 @@
   font-size: 11.5px;
   letter-spacing: .06em;
 }
+.oracle-record-whisper {
+  margin-top: 5px;
+  color: #b98e88;
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: .02em;
+}
 .oracle-record-note {
   margin-top: 4px;
   color: #b09993;
@@ -681,29 +897,47 @@
 
 @media (max-width: 760px) {
   .mirror-modal { width: calc(100vw - 16px); }
-  .mirror-body { gap: 11px; padding-inline: 15px; }
+  .mirror-body { gap: 10px; padding-inline: 15px; }
   .mirror-greeting { font-size: calc(13px * var(--msg-scale, 1)); }
   .mirror-stage { gap: 16px; }
   .mirror-stage-frame { width: min(220px, 44vw); }
   .mirror-oracle-svg { width: 66px; }
-  .mirror-oracle-label { font-size: 10.5px; letter-spacing: .22em; }
+  .mirror-oracle-label { font-size: 10.5px; letter-spacing: .22em; text-indent: .22em; }
   .mirror-summon { min-width: 168px; padding: 10px 20px; font-size: 12.5px; }
+  .mirror-speak { width: 100%; max-width: 340px; }
   .mirror-line-list { max-height: 138px; }
+
   .oracle-modal { width: calc(100vw - 16px); }
+  .oracle-modal .modal-body { padding-inline: 15px; gap: 14px; }
   .oracle-cards { grid-template-columns: 1fr; }
+  .oracle-card { height: 200px; }
   .oracle-record-cards { font-size: 11px; }
+  .oracle-whisper { padding: 12px 14px; }
+  .oracle-whisper-text { font-size: calc(13px * var(--msg-scale, 1)); }
 }
+
 @media (max-width: 480px) {
   .mirror-stage { flex-direction: column; gap: 16px; }
   .mirror-stage-frame { width: min(200px, 60vw); }
   .mirror-oracle-svg { width: 60px; }
+  .mirror-speak { padding-left: 14px; }
+  .mirror-speak-input { font-size: 12.5px; }
   .oracle-count-btn { width: 34px; height: 34px; font-size: 12px; }
-  .oracle-draw-btn { min-width: 160px; font-size: 12px; }
+  .oracle-draw-btn { min-width: 160px; font-size: 12px; padding: 10px 18px; }
+  .oracle-card { height: 195px; }
+  .oracle-card-front { padding: 12px 12px 10px; gap: 6px; }
+  .oracle-card-name { font-size: 15px; }
+  .oracle-card-meaning { font-size: 11px; line-height: 1.65; }
+  .oracle-feel-btn { min-width: 140px; font-size: 12px; }
+  .oracle-feel-opt { padding: 7px 14px; font-size: 11px; }
+  .oracle-record { padding: 9px 10px; font-size: 10.5px; }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .mirror-eyes-svg { transition-duration: .001ms; }
   .mirror-deep, .mirror-stage-mist, .mirror-stage-shine, .mirror-summon-glyph,
-  .oracle-card { animation: none; }
+  .shuffle-card, .shuffle-label, .oracle-card, .oracle-whisper { animation: none; }
+  .oracle-card-face { transition-duration: .001ms; }
 }
     `;
     document.head.appendChild(style);
@@ -834,20 +1068,14 @@
 
         <button type="button" class="mirror-oracle" id="mirrorOracleBtn" title="连接水晶球，占卜" aria-label="连接水晶球，打开占卜">
           <svg class="mirror-oracle-svg" viewBox="0 0 80 100" aria-hidden="true">
-            <!-- 底座 -->
             <path d="M14 84 L66 84 L72 94 Q73 97 70 97 L10 97 Q7 97 8 94 Z"
                   fill="#401318" stroke="#160305" stroke-width="2.4" stroke-linejoin="round"/>
-            <!-- 托架 -->
             <path d="M20 72 L60 72 L64 84 L16 84 Z"
                   fill="#6a1f27" stroke="#160305" stroke-width="2.4" stroke-linejoin="round"/>
-            <!-- 球体 -->
             <circle cx="40" cy="40" r="31" fill="#8e2b34" stroke="#160305" stroke-width="2.6"/>
-            <!-- 球内浅色块 -->
             <path d="M40 71 A31 31 0 0 0 71 40 A31 31 0 0 1 40 71 Z" fill="#a83a43" opacity=".55"/>
-            <!-- 主高光 -->
             <ellipse cx="28" cy="27" rx="10" ry="7" transform="rotate(-32 28 27)"
                      fill="#ffe3d8" opacity=".62"/>
-            <!-- 小反光点 -->
             <circle cx="55" cy="52" r="3.4" fill="#ffe3d8" opacity=".32"/>
           </svg>
           <span class="mirror-oracle-label">连接</span>
@@ -858,6 +1086,24 @@
         <span class="mirror-summon-glyph" aria-hidden="true">✦</span>
         <span id="mirrorSummonLabel">召唤咒语</span>
       </button>
+
+      <div class="mirror-speak">
+        <input
+          type="text"
+          class="mirror-speak-input"
+          id="mirrorSpeakInput"
+          maxlength="100"
+          placeholder="对镜子说点什么…"
+          autocomplete="off"
+          aria-label="对镜子说话"
+        />
+        <button type="button" class="mirror-speak-send" id="mirrorSpeakSend" aria-label="发送到镜面">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <path d="M3.4 20.6 21.4 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+
       <p class="mirror-hint" id="mirrorHint">镜面会记住你的呼唤。</p>
     </div>
   </div>
@@ -905,6 +1151,14 @@
           <button type="button" class="btn small" id="mirrorRefuseAddBtn">添加</button>
         </div>
       </div>
+      <div class="field">
+        <label>占卜后他会说 <span class="label-hint" id="mirrorReplyCount">0 条</span></label>
+        <div class="mirror-line-list" id="mirrorReplyList"></div>
+        <div class="mirror-add-row">
+          <input class="input" id="mirrorReplyInput" maxlength="60" placeholder="例如：你确定是这样吗？" />
+          <button type="button" class="btn small" id="mirrorReplyAddBtn">添加</button>
+        </div>
+      </div>
       <p class="field-help">这些内容与聊天字卡、体感字卡完全独立，只用于镜中梦魇。支持占位符 <code>{我}</code> 与 <code>{名字}</code>。</p>
     </div>
     <footer class="modal-foot">
@@ -943,17 +1197,30 @@
         </div>
       </div>
 
-      <div id="oracleResult" hidden>
-        <div class="oracle-cards" id="oracleCards"></div>
-        <div class="oracle-notebook">
-          <label for="oracleNote">感应记录</label>
-          <textarea id="oracleNote" rows="4" placeholder="写下你感应到的画面、触感、声音……"></textarea>
+      <div id="oracleShuffle" hidden>
+        <div class="shuffle-stage">
+          <div class="shuffle-deck" id="shuffleDeck"></div>
         </div>
-        <div class="oracle-feel">
-          <button type="button" class="oracle-feel-btn" id="oracleFeltBtn">我感应到了</button>
-          <div class="oracle-feel-options" id="oracleFeelOptions" hidden>
-            <button type="button" class="oracle-feel-opt ok" data-result="success">✓ 连接成功</button>
-            <button type="button" class="oracle-feel-opt fail" data-result="fail">✕ 连接未成功</button>
+        <p class="shuffle-label">正在洗牌……</p>
+      </div>
+
+      <div id="oracleResult" hidden>
+        <p class="oracle-whisper" id="oracleWhisper" hidden>
+          <span class="oracle-whisper-label">镜面传来……</span>
+          <span class="oracle-whisper-text" id="oracleWhisperText"></span>
+        </p>
+        <div class="oracle-cards" id="oracleCards"></div>
+        <div id="oracleAfter" hidden>
+          <div class="oracle-notebook">
+            <label for="oracleNote">感应记录</label>
+            <textarea id="oracleNote" rows="4" placeholder="写下你感应到的画面、触感、声音……"></textarea>
+          </div>
+          <div class="oracle-feel">
+            <button type="button" class="oracle-feel-btn" id="oracleFeltBtn">我感应到了</button>
+            <div class="oracle-feel-options" id="oracleFeelOptions" hidden>
+              <button type="button" class="oracle-feel-opt ok" data-result="success">✓ 连接成功</button>
+              <button type="button" class="oracle-feel-opt fail" data-result="fail">✕ 连接未成功</button>
+            </div>
           </div>
         </div>
       </div>
@@ -974,7 +1241,7 @@
   }
 
   /* ============================================================
-     3. 镜中梦魇：抽签 / 召唤 / 密语库
+     3. 镜中梦魇：抽签 / 召唤 / 对话 / 密语库
      ============================================================ */
   function drawMirrorLine(kind) {
     const list = mirror[kind];
@@ -1017,8 +1284,13 @@
       message.removeAttribute('data-tone');
     }
 
-    const btn = $('#mirrorSummonBtn');
-    if (btn) btn.disabled = false;
+    const summonBtn = $('#mirrorSummonBtn');
+    if (summonBtn) summonBtn.disabled = false;
+
+    const speakInput = $('#mirrorSpeakInput');
+    if (speakInput) { speakInput.disabled = false; speakInput.value = ''; }
+    const speakSend = $('#mirrorSpeakSend');
+    if (speakSend) speakSend.disabled = false;
 
     const hint = $('#mirrorHint');
     if (hint) hint.textContent = '镜面会记住你的呼唤。';
@@ -1027,14 +1299,53 @@
     if (glass) glass.classList.remove('rippling');
   }
 
-  function reveal(line, tone) {
+  function showMirrorText(text, tone) {
     const message = $('#mirrorMessage');
-    if (!message || !line) return;
-    message.textContent = personalize(line.text);
+    if (!message) return;
+    message.textContent = text;
     message.dataset.tone = tone || 'speak';
     message.classList.remove('show');
     void message.offsetWidth;
     message.classList.add('show');
+  }
+
+  function hideMirrorText() {
+    const message = $('#mirrorMessage');
+    if (!message) return;
+    message.classList.remove('show');
+  }
+
+  function reveal(line, tone) {
+    if (!line) return;
+    showMirrorText(personalize(line.text), tone || 'speak');
+  }
+
+  function openEyes() {
+    const eyes = $('#mirrorEyes');
+    if (eyes) eyes.classList.add('open');
+  }
+
+  function closeEyes() {
+    const eyes = $('#mirrorEyes');
+    if (eyes) eyes.classList.remove('open');
+  }
+
+  function blink() {
+    const eyesSvg = $('#mirrorEyesSvg');
+    if (!eyesSvg) return;
+    eyesSvg.classList.remove('blink');
+    void eyesSvg.offsetWidth;
+    eyesSvg.classList.add('blink');
+  }
+
+  function setMirrorBusy(busy) {
+    mirrorBusy = busy;
+    const summonBtn = $('#mirrorSummonBtn');
+    if (summonBtn) summonBtn.disabled = busy;
+    const input = $('#mirrorSpeakInput');
+    if (input) input.disabled = busy;
+    const send = $('#mirrorSpeakSend');
+    if (send) send.disabled = busy;
   }
 
   async function summon() {
@@ -1046,18 +1357,15 @@
       return;
     }
 
-    mirrorBusy = true;
+    setMirrorBusy(true);
 
-    const btn = $('#mirrorSummonBtn');
     const hint = $('#mirrorHint');
     const glass = $('#mirrorGlass');
-    const eyes = $('#mirrorEyes');
-    const eyesSvg = $('#mirrorEyesSvg');
     const message = $('#mirrorMessage');
 
-    if (btn) btn.disabled = true;
-    if (message) { message.classList.remove('show'); message.textContent = ''; }
-    if (eyes) eyes.classList.remove('open');
+    if (message) { message.classList.remove('show'); message.textContent = ''; message.removeAttribute('data-tone'); }
+    closeEyes();
+    const eyesSvg = $('#mirrorEyesSvg');
     if (eyesSvg) eyesSvg.classList.remove('blink');
     if (hint) hint.textContent = '镜面泛起涟漪……';
     if (glass) glass.classList.add('rippling');
@@ -1074,27 +1382,81 @@
       reveal(drawMirrorLine('absent'), 'absent');
     } else if (!willing) {
       if (hint) hint.textContent = '镜面里亮起一双眼睛，又缓缓合上了。';
-      if (eyes) eyes.classList.add('open');
+      openEyes();
       await sleep(850);
-      if (eyes) eyes.classList.remove('open');
+      closeEyes();
       await sleep(450);
       reveal(drawMirrorLine('refuse'), 'refuse');
     } else {
       if (hint) hint.textContent = '有人在镜子的另一端睁开了眼。';
-      if (eyes) eyes.classList.add('open');
+      openEyes();
       await sleep(1100);
-      if (eyesSvg) {
-        eyesSvg.classList.remove('blink');
-        void eyesSvg.offsetWidth;
-        eyesSvg.classList.add('blink');
-      }
+      blink();
       await sleep(560);
       reveal(drawMirrorLine('cards'), 'speak');
     }
 
-    mirrorBusy = false;
-    if (btn) btn.disabled = false;
+    setMirrorBusy(false);
     if (hint) hint.textContent = '想再听一次，就再叫一次。';
+  }
+
+  async function speakToMirror() {
+    if (mirrorBusy) return;
+
+    const input = $('#mirrorSpeakInput');
+    const text = input ? input.value.trim() : '';
+    if (!text) { if (input) input.focus(); return; }
+
+    setMirrorBusy(true);
+    if (input) input.value = '';
+
+    const hint = $('#mirrorHint');
+    const message = $('#mirrorMessage');
+
+    if (message) { message.classList.remove('show'); message.textContent = ''; message.removeAttribute('data-tone'); }
+    closeEyes();
+    const eyesSvg = $('#mirrorEyesSvg');
+    if (eyesSvg) eyesSvg.classList.remove('blink');
+
+    if (hint) hint.textContent = '你的声音落进镜面……';
+    await sleep(220);
+
+    showMirrorText('「' + text + '」', 'user');
+    await sleep(2400);
+
+    hideMirrorText();
+    await sleep(520);
+
+    const roll = Math.random();
+
+    if (roll < 0.55) {
+      if (hint) hint.textContent = '镜子的另一端，有人在看你。';
+      openEyes();
+      await sleep(1000);
+      blink();
+      await sleep(520);
+
+      const line = drawMirrorLine('cards');
+      if (line) {
+        showMirrorText(personalize(line.text), 'speak');
+      }
+    } else if (roll < 0.8) {
+      if (hint) hint.textContent = '他眨了眨眼，没有说话。';
+      openEyes();
+      await sleep(900);
+      blink();
+      await sleep(650);
+      closeEyes();
+    } else {
+      if (hint) hint.textContent = '另一端，一片沉默。';
+      await sleep(900);
+    }
+
+    setMirrorBusy(false);
+    if (hint) hint.textContent = '想再说什么，就再说一次。';
+    if (input && document.activeElement !== input) {
+      // 不自动重新聚焦，避免手机上键盘反复弹起
+    }
   }
 
   function openMirror() {
@@ -1109,7 +1471,8 @@
       summonLabel: mirror.summonLabel,
       cards: mirror.cards.map((i) => ({ id: i.id, text: i.text })),
       absent: mirror.absent.map((i) => ({ id: i.id, text: i.text })),
-      refuse: mirror.refuse.map((i) => ({ id: i.id, text: i.text }))
+      refuse: mirror.refuse.map((i) => ({ id: i.id, text: i.text })),
+      replies: mirror.replies.map((i) => ({ id: i.id, text: i.text }))
     };
 
     $('#mirrorGreetingInput').value = mirrorDraft.greeting;
@@ -1117,6 +1480,7 @@
     $('#mirrorCardInput').value = '';
     $('#mirrorAbsentInput').value = '';
     $('#mirrorRefuseInput').value = '';
+    $('#mirrorReplyInput').value = '';
 
     renderDraft();
     openDialog($('#mirrorLibraryDialog'));
@@ -1127,8 +1491,11 @@
     renderLines('cards', $('#mirrorCardList'), 200);
     renderLines('absent', $('#mirrorAbsentList'), 60);
     renderLines('refuse', $('#mirrorRefuseList'), 60);
+    renderLines('replies', $('#mirrorReplyList'), 60);
     const count = $('#mirrorCardCount');
     if (count) count.textContent = mirrorDraft.cards.length + ' 张';
+    const replyCount = $('#mirrorReplyCount');
+    if (replyCount) replyCount.textContent = mirrorDraft.replies.length + ' 条';
   }
 
   function renderLines(kind, container, maxLength) {
@@ -1191,22 +1558,25 @@
       .map((i) => ({ id: i.id || uid(), text: clamp(i.text, maxLength) }))
       .filter((i) => i.text);
 
-    const cards  = clean(mirrorDraft.cards, 200);
-    const absent = clean(mirrorDraft.absent, 60);
-    const refuse = clean(mirrorDraft.refuse, 60);
+    const cards   = clean(mirrorDraft.cards, 200);
+    const absent  = clean(mirrorDraft.absent, 60);
+    const refuse  = clean(mirrorDraft.refuse, 60);
+    const replies = clean(mirrorDraft.replies, 60);
 
     mirror = {
-      greeting:    clamp($('#mirrorGreetingInput').value, 60)    || DEFAULT.greeting,
-      summonLabel: clamp($('#mirrorSummonInput').value, 12)      || DEFAULT.summonLabel,
-      cards:  cards.length  ? cards  : defaultLines(DEFAULT.cards),
-      absent: absent.length ? absent : defaultLines(DEFAULT.absent),
-      refuse: refuse.length ? refuse : defaultLines(DEFAULT.refuse)
+      greeting:    clamp($('#mirrorGreetingInput').value, 60) || DEFAULT.greeting,
+      summonLabel: clamp($('#mirrorSummonInput').value, 12)   || DEFAULT.summonLabel,
+      cards:   cards.length   ? cards   : defaultLines(DEFAULT.cards),
+      absent:  absent.length  ? absent  : defaultLines(DEFAULT.absent),
+      refuse:  refuse.length  ? refuse  : defaultLines(DEFAULT.refuse),
+      replies: replies.length ? replies : defaultLines(DEFAULT.replies)
     };
 
     writeJSON(KEY, mirror);
     mirrorBags.cards = [];
     mirrorBags.absent = [];
     mirrorBags.refuse = [];
+    mirrorBags.replies = [];
     mirrorDraft = null;
 
     applyChrome();
@@ -1226,14 +1596,44 @@
     return pool.slice(0, Math.min(count, pool.length));
   }
 
+  function runShuffleAnimation() {
+    const deck = $('#shuffleDeck');
+    if (!deck) return;
+    deck.innerHTML = '';
+
+    const total = 7;
+    for (let i = 0; i < total; i++) {
+      const card = document.createElement('div');
+      card.className = 'shuffle-card';
+      const dir = i % 2 === 0 ? -1 : 1;
+      const x1 = dir * (16 + Math.random() * 34);
+      const y1 = (Math.random() - 0.5) * 50;
+      const r1 = dir * (8 + Math.random() * 16);
+      card.style.setProperty('--x1', x1.toFixed(1) + 'px');
+      card.style.setProperty('--y1', y1.toFixed(1) + 'px');
+      card.style.setProperty('--r1', r1.toFixed(1) + 'deg');
+      card.style.animationDelay = (i * 0.04) + 's';
+      card.style.zIndex = String(total - i);
+      deck.appendChild(card);
+    }
+  }
+
   function renderOracleCards(cards) {
     const container = $('#oracleCards');
     if (!container) return;
     container.innerHTML = '';
+
     cards.forEach((card, i) => {
       const el = document.createElement('div');
       el.className = 'oracle-card';
       el.style.animationDelay = (i * 0.08) + 's';
+
+      const back = document.createElement('div');
+      back.className = 'oracle-card-face oracle-card-back';
+      back.textContent = '✦';
+
+      const front = document.createElement('div');
+      front.className = 'oracle-card-face oracle-card-front';
 
       const no = document.createElement('div');
       no.className = 'oracle-card-no';
@@ -1251,7 +1651,8 @@
       meaning.className = 'oracle-card-meaning';
       meaning.textContent = card.meaning;
 
-      el.append(no, name, kw, meaning);
+      front.append(no, name, kw, meaning);
+      el.append(back, front);
       container.appendChild(el);
     });
   }
@@ -1296,6 +1697,13 @@
 
       el.append(head, cardsEl);
 
+      if (record.whisper) {
+        const w = document.createElement('div');
+        w.className = 'oracle-record-whisper';
+        w.textContent = '· 镜面传来：' + record.whisper;
+        el.appendChild(w);
+      }
+
       if (record.note) {
         const note = document.createElement('div');
         note.className = 'oracle-record-note';
@@ -1317,8 +1725,14 @@
 
     const setup = $('#oracleSetup');
     if (setup) setup.hidden = false;
+    const shuffle = $('#oracleShuffle');
+    if (shuffle) shuffle.hidden = true;
     const result = $('#oracleResult');
     if (result) result.hidden = true;
+    const after = $('#oracleAfter');
+    if (after) after.hidden = true;
+    const whisper = $('#oracleWhisper');
+    if (whisper) whisper.hidden = true;
     const opts = $('#oracleFeelOptions');
     if (opts) opts.hidden = true;
     const note = $('#oracleNote');
@@ -1340,26 +1754,62 @@
     if (oracleBusy) return;
     oracleBusy = true;
 
-    const btn = $('#oracleDrawBtn');
-    if (btn) { btn.disabled = true; btn.textContent = '正在连接……'; }
+    const drawBtn = $('#oracleDrawBtn');
+    if (drawBtn) drawBtn.disabled = true;
 
-    await sleep(1100);
+    const setup = $('#oracleSetup');
+    const shuffle = $('#oracleShuffle');
+    const result = $('#oracleResult');
+    const after = $('#oracleAfter');
+    const whisper = $('#oracleWhisper');
+    const whisperText = $('#oracleWhisperText');
+    const noteEl = $('#oracleNote');
+    const cardsEl = $('#oracleCards');
+    const opts = $('#oracleFeelOptions');
+
+    if (setup) setup.hidden = true;
+    if (result) result.hidden = true;
+    if (after) after.hidden = true;
+    if (whisper) whisper.hidden = true;
+    if (opts) opts.hidden = true;
+    if (noteEl) noteEl.value = '';
+    if (cardsEl) cardsEl.innerHTML = '';
+    if (shuffle) shuffle.hidden = false;
+
+    runShuffleAnimation();
+    await sleep(1450);
 
     const cards = drawLenormand(oracleCount);
-    oracleCurrent = { cards, note: '' };
+    oracleCurrent = { cards, note: '', whisper: '' };
+
+    if (shuffle) shuffle.hidden = true;
+    if (result) result.hidden = false;
 
     renderOracleCards(cards);
 
-    const setup = $('#oracleSetup');
-    if (setup) setup.hidden = true;
-    const result = $('#oracleResult');
-    if (result) result.hidden = false;
-    const opts = $('#oracleFeelOptions');
-    if (opts) opts.hidden = true;
-    const note = $('#oracleNote');
-    if (note) note.value = '';
+    await sleep(400);
 
-    if (btn) { btn.disabled = false; btn.textContent = '连接 · 抽牌'; }
+    const cardEls = $$('#oracleCards .oracle-card');
+    for (let i = 0; i < cardEls.length; i++) {
+      await sleep(i === 0 ? 220 : 460);
+      cardEls[i].classList.add('flipped');
+    }
+
+    await sleep(620);
+
+    const line = drawMirrorLine('replies');
+    if (line) {
+      const text = personalize(line.text);
+      oracleCurrent.whisper = text;
+      if (whisperText) whisperText.textContent = text;
+      if (whisper) whisper.hidden = false;
+    }
+
+    await sleep(600);
+
+    if (after) after.hidden = false;
+
+    if (drawBtn) { drawBtn.disabled = false; drawBtn.textContent = '连接 · 抽牌'; }
     oracleBusy = false;
   }
 
@@ -1380,6 +1830,7 @@
       ts: Date.now(),
       cardIds: oracleCurrent.cards.map((c) => c.id),
       note,
+      whisper: oracleCurrent.whisper || '',
       result: result === 'success' ? 'success' : 'fail'
     };
 
@@ -1393,6 +1844,10 @@
     if (setup) setup.hidden = false;
     const resultPanel = $('#oracleResult');
     if (resultPanel) resultPanel.hidden = true;
+    const after = $('#oracleAfter');
+    if (after) after.hidden = true;
+    const whisperEl = $('#oracleWhisper');
+    if (whisperEl) whisperEl.hidden = true;
     const opts = $('#oracleFeelOptions');
     if (opts) opts.hidden = true;
     if (noteEl) noteEl.value = '';
@@ -1432,11 +1887,21 @@
     $('#mirrorSummonBtn').addEventListener('click', summon);
     $('#mirrorOracleBtn').addEventListener('click', openOracle);
 
+    $('#mirrorSpeakSend').addEventListener('click', speakToMirror);
+    $('#mirrorSpeakInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing) {
+        e.preventDefault();
+        speakToMirror();
+      }
+    });
+
     $('#mirrorCardAddBtn').addEventListener('click', () => addLine('cards', $('#mirrorCardInput'), 200));
     $('#mirrorAbsentAddBtn').addEventListener('click', () => addLine('absent', $('#mirrorAbsentInput'), 60));
     $('#mirrorRefuseAddBtn').addEventListener('click', () => addLine('refuse', $('#mirrorRefuseInput'), 60));
+    $('#mirrorReplyAddBtn').addEventListener('click', () => addLine('replies', $('#mirrorReplyInput'), 60));
 
-    [['mirrorCardInput', 'cards', 200], ['mirrorAbsentInput', 'absent', 60], ['mirrorRefuseInput', 'refuse', 60]]
+    [['mirrorCardInput', 'cards', 200], ['mirrorAbsentInput', 'absent', 60],
+     ['mirrorRefuseInput', 'refuse', 60], ['mirrorReplyInput', 'replies', 60]]
       .forEach(([id, kind, max]) => {
         const el = $('#' + id);
         if (!el) return;
@@ -1451,7 +1916,6 @@
 
     $('#mirrorDialog').addEventListener('close', () => resetMirrorStage());
 
-    /* 占卜 */
     $$('#oracleCountOptions .oracle-count-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         oracleCount = parseInt(btn.dataset.count, 10) || 1;
@@ -1470,7 +1934,6 @@
 
     $('#oracleClearHistory').addEventListener('click', clearOracleHistory);
 
-    /* 通用：data-close + 点击背景关闭 */
     $$('#mirrorInjectRoot [data-close]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const dialog = btn.closest('dialog');
