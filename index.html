@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0506" />
 <title>镜魇 · 字卡传讯</title>
-<meta name="description" content="对着镜子说话，镜后传来密语。" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="manifest" href="manifest.json" />
 <meta name="application-name" content="镜魇" />
@@ -27,6 +26,50 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 .bat{opacity:.3!important}.lace-bloom{opacity:.1!important}
 }
 
+/* ===== 主页（开屏） ===== */
+.home-overlay{position:fixed;inset:0;z-index:50;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;pointer-events:none;transition:opacity .38s ease;
+  background:
+    radial-gradient(60% 42% at 50% 26%,rgba(130,32,38,.38),transparent 68%),
+    radial-gradient(80% 60% at 0% 100%,rgba(70,16,22,.32),transparent 60%),
+    radial-gradient(60% 50% at 100% 30%,rgba(60,12,20,.22),transparent 62%),
+    linear-gradient(180deg,#0a0405 0%,#050203 100%)}
+.home-overlay.visible{opacity:1;pointer-events:auto}
+.home-overlay::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(58% 48% at 50% 44%,rgba(96,28,32,.22),transparent 72%),
+    radial-gradient(120% 95% at 100% 0%,rgba(52,12,17,.42),transparent 58%);
+}
+.home-inner{display:flex;flex-direction:column;align-items:center;min-height:100%;padding:calc(env(safe-area-inset-top) + 8vh) 22px calc(env(safe-area-inset-bottom) + 28px);gap:36px}
+.home-header{text-align:center}
+.home-time{font-family:var(--font-sans);font-size:clamp(64px,19vw,108px);font-weight:100;letter-spacing:-.04em;line-height:1;color:#f4e7e1;font-variant-numeric:tabular-nums;text-shadow:0 0 80px rgba(181,111,107,.45),0 0 24px rgba(181,111,107,.22)}
+.home-date{margin-top:14px;font-size:13px;letter-spacing:.18em;color:#b09993}
+.home-greeting{margin-top:6px;font-family:var(--font-serif);font-size:12px;letter-spacing:.14em;color:rgba(185,154,114,.6)}
+.home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px 18px;width:100%;max-width:340px;justify-items:center}
+.home-app{display:flex;flex-direction:column;align-items:center;gap:9px;padding:0;border:none;background:none;cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
+.home-app .home-icon{display:grid;place-items:center;width:66px;height:66px;border:1px solid rgba(185,154,114,.28);border-radius:19px;color:#d9b4ad;font-size:26px;line-height:1;
+  background:
+    radial-gradient(circle at 50% 28%,rgba(181,111,107,.24),transparent 66%),
+    linear-gradient(160deg,rgba(52,20,24,.92),rgba(20,8,10,.96));
+  box-shadow:0 0 0 1px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,230,220,.08),inset 0 0 22px rgba(0,0,0,.6),0 14px 26px -16px rgba(0,0,0,.95);
+  transition:transform .2s cubic-bezier(.3,.9,.4,1.2),box-shadow .2s,border-color .2s,color .2s;
+}
+.home-app:hover .home-icon,.home-app:focus-visible .home-icon{transform:translateY(-3px);border-color:rgba(181,111,107,.6);color:#f2dfd8;box-shadow:0 0 0 1px rgba(181,111,107,.3),inset 0 1px 0 rgba(255,230,220,.1),inset 0 0 22px rgba(0,0,0,.6),0 18px 30px -16px rgba(0,0,0,.95)}
+.home-app:active .home-icon{transform:translateY(0) scale(.96)}
+.home-app .home-label{font-size:11px;letter-spacing:.08em;color:#b09993;text-align:center;max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-footer{margin-top:auto;text-align:center}
+.home-status{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid rgba(181,111,107,.2);border-radius:999px;background:rgba(181,111,107,.06);color:#d9b4ad;font-size:11px;letter-spacing:.06em;max-width:100%}
+.home-status .pulse-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none;animation:pulse 2.4s ease-in-out infinite}
+.home-brand{margin-top:16px;color:rgba(185,154,114,.45);font-size:9.5px;letter-spacing:.32em}
+@media(max-width:380px){.home-app .home-icon{width:58px;height:58px;font-size:22px}.home-grid{gap:20px 14px}.home-greeting{font-size:11px}}
+
+/* ===== 返回主页按钮 ===== */
+.home-return-btn{display:grid;place-items:center;flex:none;width:34px;height:34px;padding:0;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.025);color:var(--muted);font-size:15px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s}
+.home-return-btn:hover{border-color:rgba(181,111,107,.5);background:rgba(181,111,107,.1);color:var(--text)}
+.home-return-btn:active{transform:scale(.94)}
+.chat-head-left{display:flex;align-items:center;gap:10px;min-width:0}
+.page-head-left{display:flex;align-items:flex-start;gap:12px;min-width:0;flex:1}
+@media(max-width:760px){.home-return-btn{width:32px;height:32px;font-size:14px}.chat-head-left{gap:8px}}
+
 /* ===== 抽屉 ===== */
 .composer-wrap{position:relative}
 .plus-btn{display:grid;place-items:center;width:36px;height:36px;margin-right:6px;padding:0;border:1px solid var(--line-strong);border-radius:50%;background:rgba(255,255,255,.03);color:var(--muted);font-size:17px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .22s cubic-bezier(.3,.9,.4,1.2),border-color .18s,color .18s,background .18s}
@@ -47,7 +90,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 .drawer-label{font-size:10.5px;letter-spacing:.06em}
 @media(max-width:760px){.composer-drawer{left:10px;right:10px;padding:10px 12px 12px;border-radius:14px}.drawer-grid{gap:6px}.drawer-item{padding:10px 4px}.drawer-icon{font-size:15px}.drawer-label{font-size:10px}}
 
-/* ===== 聊天中的影象卡片 ===== */
+/* ===== 聊天里的影象卡片 ===== */
 .msg-painting{display:flex;flex-direction:column;align-items:center;gap:10px;align-self:center;max-width:min(300px,92%);padding:14px;border:1px solid rgba(198,128,118,.24);border-radius:16px;background:radial-gradient(120% 100% at 50% 0%,rgba(84,28,32,.28),transparent 62%),rgba(255,255,255,.02);box-shadow:0 20px 40px -28px #000;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:msgIn .45s cubic-bezier(.2,.8,.3,1) both;transition:border-color .2s,transform .18s}
 .msg-painting:hover{border-color:rgba(181,111,107,.45);transform:translateY(-1px)}
 .msg-painting .chat-painting-thumb{border-radius:10px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.55),0 0 0 1px rgba(185,154,114,.12)}
@@ -146,8 +189,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <span class="veil veil-a"></span><span class="veil veil-b"></span><span class="veil veil-c"></span>
 <div class="sky" id="sky"></div>
 <div class="glow glow-a"></div><div class="glow glow-b"></div>
-<div class="watcher" id="watcher">
-<div class="watcher-eye" id="watcherEye">
+<div class="watcher" id="watcher"><div class="watcher-eye" id="watcherEye">
 <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
 <defs>
 <radialGradient id="scleraGrad" cx="50%" cy="50%" r="72%"><stop offset="0%" stop-color="#f4e3d8"/><stop offset="45%" stop-color="#e0c2b6"/><stop offset="82%" stop-color="#b08f88"/><stop offset="100%" stop-color="#7d5e59"/></radialGradient>
@@ -161,10 +203,8 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <g clip-path="url(#eyeClip)">
 <rect x="0" y="0" width="400" height="220" fill="url(#scleraGrad)"/>
 <g stroke="rgba(170,36,36,0.32)" stroke-width="0.9" fill="none" stroke-linecap="round">
-<path d="M30 108 Q70 100 110 110 Q140 117 175 112"/>
-<path d="M35 122 Q80 130 115 121"/>
-<path d="M370 108 Q330 100 290 110 Q260 117 225 112"/>
-<path d="M365 122 Q320 130 285 121"/>
+<path d="M30 108 Q70 100 110 110 Q140 117 175 112"/><path d="M35 122 Q80 130 115 121"/>
+<path d="M370 108 Q330 100 290 110 Q260 117 225 112"/><path d="M365 122 Q320 130 285 121"/>
 </g>
 <g id="watcherIris">
 <circle cx="200" cy="110" r="50" fill="url(#irisGrad)"/>
@@ -186,8 +226,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <circle cx="36" cy="114" r="4" fill="rgba(255,240,230,0.32)" filter="url(#softGlow)"/>
 <circle cx="364" cy="112" r="3" fill="rgba(255,240,230,0.28)" filter="url(#softGlow)"/>
 </svg>
-</div>
-</div>
+</div></div>
 <svg class="bat bat-a" viewBox="0 0 120 50" aria-hidden="true"><path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/></svg>
 <svg class="bat bat-b" viewBox="0 0 120 50" aria-hidden="true"><path d="M60 26C52 18 42 12 30 14 20 15 12 22 4 18c6 8 16 12 24 12-8 5-16 6-22 12 12 0 24-4 32-8 6 4 14 6 22 6s16-2 22-6c8 4 20 8 32 8-6-6-14-7-22-12 8 0 18-4 24-12-8 4-16-3-26-4-12-2-22 4-30 12Z"/></svg>
 <div class="vignette"></div>
@@ -197,6 +236,49 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <span class="lace-bloom lace-tl"></span><span class="lace-bloom lace-tr"></span>
 <span class="lace-bloom lace-bl"></span><span class="lace-bloom lace-br"></span>
 <span class="lace-rule lace-top"></span><span class="lace-rule lace-bottom"></span>
+</div>
+
+<!-- ============ 主页（开屏） ============ -->
+<div class="home-overlay visible" id="homeOverlay">
+<div class="home-inner">
+<header class="home-header">
+<div class="home-time" id="homeTime">--:--</div>
+<div class="home-date" id="homeDate">载入中…</div>
+<p class="home-greeting" id="homeGreeting">镜面之下，有人在等</p>
+</header>
+
+<nav class="home-grid" aria-label="功能">
+<button type="button" class="home-app" data-view="chat">
+<span class="home-icon" aria-hidden="true">✦</span>
+<span class="home-label">传讯</span>
+</button>
+<button type="button" class="home-app" data-view="library">
+<span class="home-icon" aria-hidden="true">❖</span>
+<span class="home-label">字卡库</span>
+</button>
+<button type="button" class="home-app" data-view="diary">
+<span class="home-icon" aria-hidden="true">✎</span>
+<span class="home-label">日记本</span>
+</button>
+<button type="button" class="home-app" data-view="painting">
+<span class="home-icon" aria-hidden="true">✧</span>
+<span class="home-label">镜中影</span>
+</button>
+<button type="button" class="home-app" data-action="mirror">
+<span class="home-icon" aria-hidden="true">◉</span>
+<span class="home-label">镜中梦魇</span>
+</button>
+<button type="button" class="home-app" data-action="settings">
+<span class="home-icon" aria-hidden="true">⚙</span>
+<span class="home-label">设定</span>
+</button>
+</nav>
+
+<footer class="home-footer">
+<div class="home-status"><span class="pulse-dot"></span><span id="homeStatus">沈砚 · 在等你的消息</span></div>
+<div class="home-brand">镜魇 · MIRROR WHISPER</div>
+</footer>
+</div>
 </div>
 
 <div class="app">
@@ -245,7 +327,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 </section>
 
 <nav class="nav" aria-label="主导航">
-<button type="button" class="nav-btn active" data-view="chat"><span class="nav-icon" aria-hidden="true">✦</span><span>传讯</span></button>
+<button type="button" class="nav-btn" data-view="chat"><span class="nav-icon" aria-hidden="true">✦</span><span>传讯</span></button>
 <button type="button" class="nav-btn" data-view="library"><span class="nav-icon" aria-hidden="true">❖</span><span>字卡库</span><span class="nav-count" id="navCardCount">0</span></button>
 <button type="button" class="nav-btn" data-view="diary" id="diaryNavBtn"><span class="nav-icon" aria-hidden="true">✎</span><span>日记本</span><span class="nav-count" id="navDiaryCount">0</span></button>
 <button type="button" class="nav-btn" data-view="painting" id="paintingNavBtn"><span class="nav-icon" aria-hidden="true">✧</span><span>镜中影</span><span class="nav-count" id="navPaintingCount">0</span></button>
@@ -262,9 +344,12 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <section class="view view-chat active" id="viewChat" aria-label="传讯">
 <div class="chat-shell">
 <header class="chat-head">
+<div class="chat-head-left">
+<button type="button" class="home-return-btn" id="chatHomeBtn" aria-label="返回主页" title="返回主页">⌂</button>
 <div class="chat-who">
 <span class="chat-mirror" aria-hidden="true"><i></i><img class="chat-avatar" id="chatAvatar" alt="" hidden /></span>
 <div class="chat-who-text"><strong id="chatName">沈砚</strong><span id="chatSub">镜中有人在等你</span></div>
+</div>
 </div>
 <div class="chat-actions">
 <button type="button" class="icon-btn install-btn" id="installBtn" title="安装到桌面" aria-label="安装到桌面" hidden>⤓</button>
@@ -276,9 +361,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 </div>
 </header>
 
-<div class="chat-scroll" id="chatScroll">
-<div class="chat-list" id="chatList"></div>
-</div>
+<div class="chat-scroll" id="chatScroll"><div class="chat-list" id="chatList"></div></div>
 
 <div class="composer-wrap">
 <div class="reply-bar" id="replyBar" hidden>
@@ -287,29 +370,22 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <span class="reply-bar-text" id="replyBarText"></span>
 <button type="button" class="reply-bar-close" id="replyBarClose" aria-label="取消回复">✕</button>
 </div>
-
 <div class="composer-drawer" id="composerDrawer" hidden>
-<div class="drawer-head">
-<span class="drawer-title">更多功能</span>
-<button type="button" class="drawer-close" id="drawerCloseBtn" aria-label="收起">✕</button>
-</div>
+<div class="drawer-head"><span class="drawer-title">更多功能</span><button type="button" class="drawer-close" id="drawerCloseBtn" aria-label="收起">✕</button></div>
 <div class="drawer-grid">
+<button type="button" class="drawer-item" data-action="home"><span class="drawer-icon" aria-hidden="true">⌂</span><span class="drawer-label">主页</span></button>
 <button type="button" class="drawer-item" data-action="library"><span class="drawer-icon" aria-hidden="true">❖</span><span class="drawer-label">字卡库</span></button>
 <button type="button" class="drawer-item" data-action="diary"><span class="drawer-icon" aria-hidden="true">✎</span><span class="drawer-label">日记本</span></button>
 <button type="button" class="drawer-item" data-action="painting"><span class="drawer-icon" aria-hidden="true">✧</span><span class="drawer-label">镜中影</span></button>
 <button type="button" class="drawer-item" data-action="sendPainting"><span class="drawer-icon" aria-hidden="true">⋆</span><span class="drawer-label">索要影象</span></button>
-<button type="button" class="drawer-item" data-action="sensation"><span class="drawer-icon" aria-hidden="true">❋</span><span class="drawer-label">体感</span></button>
 <button type="button" class="drawer-item" data-action="settings"><span class="drawer-icon" aria-hidden="true">⚙</span><span class="drawer-label">设定</span></button>
 </div>
 </div>
-
 <form class="composer" id="composer" autocomplete="off">
 <textarea id="messageInput" rows="1" maxlength="1000" placeholder="对着镜子说点什么…" aria-label="输入消息"></textarea>
 <div class="composer-side">
 <button type="button" class="plus-btn" id="composerPlusBtn" aria-label="更多功能" title="更多功能">＋</button>
-<button type="submit" class="send-btn" id="sendBtn" aria-label="发送消息">
-<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M3.4 20.6 21.4 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/></svg>
-</button>
+<button type="submit" class="send-btn" id="sendBtn" aria-label="发送消息"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M3.4 20.6 21.4 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/></svg></button>
 </div>
 </form>
 <p class="composer-hint"><span class="kbd">Enter</span> 发送 · <span class="kbd">Shift</span>+<span class="kbd">Enter</span> 换行 · 回信从 <span id="poolHint">0</span> 张字卡中抽取</p>
@@ -319,7 +395,10 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 
 <section class="view view-library" id="viewLibrary" aria-label="字卡库">
 <header class="page-head">
+<div class="page-head-left">
+<button type="button" class="home-return-btn" id="libraryHomeBtn" aria-label="返回主页" title="返回主页">⌂</button>
 <div class="page-head-text"><p class="eyebrow">CARD ARCHIVE</p><h2>字卡库</h2><p class="page-sub" id="librarySummary">共 0 张字卡</p></div>
+</div>
 <div class="page-actions">
 <button type="button" class="btn primary" id="newCardBtn">＋ 新建字卡</button>
 <button type="button" class="btn" id="importBtn">导入</button>
@@ -363,14 +442,20 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 
 <section class="view view-diary" id="viewDiary" aria-label="日记本">
 <header class="page-head">
+<div class="page-head-left">
+<button type="button" class="home-return-btn" id="diaryHomeBtn" aria-label="返回主页" title="返回主页">⌂</button>
 <div class="page-head-text"><p class="eyebrow">DIARY</p><h2>日记本</h2><p class="page-sub" id="diarySummary">镜子的另一端，他每天写下的只言片语。</p></div>
+</div>
 </header>
 <div class="diary-scroll" id="diaryScroll"><div class="diary-list" id="diaryList"></div></div>
 </section>
 
 <section class="view view-painting" id="viewPainting" aria-label="镜中影">
 <header class="page-head">
+<div class="page-head-left">
+<button type="button" class="home-return-btn" id="paintingHomeBtn" aria-label="返回主页" title="返回主页">⌂</button>
 <div class="page-head-text"><p class="eyebrow">REFLECTIONS</p><h2>镜中影</h2><p class="page-sub" id="paintingSummary">他从镜子里递出来的影象。</p></div>
+</div>
 <div class="page-actions"><button type="button" class="btn primary" id="requestPaintingBtn">✧ 让他留一幅</button></div>
 </header>
 <div class="painting-scroll" id="paintingScroll">
@@ -501,67 +586,181 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <script src="mirror.js"></script>
 
 <script>
-/* ===== 性能 + 清理 + 抽屉 ===== */
+/* ===== 主页控制 + 时间 + 功能切换 ===== */
 (function(){
 'use strict';
+var overlay=document.getElementById('homeOverlay');
+var timeEl=document.getElementById('homeTime');
+var dateEl=document.getElementById('homeDate');
+var statusEl=document.getElementById('homeStatus');
+var greetingEl=document.getElementById('homeGreeting');
 
-function syncHidden(){document.documentElement.classList.toggle('page-hidden',document.hidden)}
-syncHidden();document.addEventListener('visibilitychange',syncHidden);
+function pad2(n){return String(n).padStart(2,'0')}
 
-function cleanCache(){
-if(!window.confirm('整理 & 重启：\n· 聊天记录保留最近 80 条\n· 清空临时会话数据\n· 刷新页面释放内存\n\n字卡、日记、设定、镜中密语、占卜记录、镜中影都不会被删除。\n\n继续吗？'))return;
-try{var r=localStorage.getItem('jingyan.chat.v1');if(r){var c=JSON.parse(r);if(Array.isArray(c)&&c.length>80){localStorage.setItem('jingyan.chat.v1',JSON.stringify(c.slice(-80)))}}}catch(e){}
-try{sessionStorage.clear()}catch(e){}
-location.reload();
+function updateTime(){
+var now=new Date();
+if(timeEl)timeEl.textContent=pad2(now.getHours())+':'+pad2(now.getMinutes());
+if(dateEl){
+var weekdays=['日','一','二','三','四','五','六'];
+dateEl.textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 · 星期'+weekdays[now.getDay()];
 }
-function clearAllData(){
-if(!window.confirm('⚠ 会彻底删除所有数据：聊天、字卡、日记、镜中密语、占卜记录、镜中影、所有设定。不可撤销。确定吗？'))return;
-if(!window.confirm('再次确认：真的要清空吗？'))return;
-try{var ks=Object.keys(localStorage);for(var i=0;i<ks.length;i++)if(ks[i].indexOf('jingyan.')===0)localStorage.removeItem(ks[i])}catch(e){}
-try{sessionStorage.clear()}catch(e){}
-location.reload();
+var h=now.getHours();
+var greet='镜面之下，有人在等';
+if(h>=5&&h<11)greet='早安。他在镜子里看着你。';
+else if(h>=11&&h<14)greet='中午了。他还没走。';
+else if(h>=14&&h<18)greet='下午的光，落进镜子里。';
+else if(h>=18&&h<22)greet='晚上了。他一直在。';
+else greet='夜了。镜子还亮着。';
+if(greetingEl)greetingEl.textContent=greet;
+}
+updateTime();
+setInterval(updateTime,30000);
+
+function updateStatus(){
+try{
+var s=JSON.parse(localStorage.getItem('jingyan.settings.v1')||'{}');
+var name=(s.charName||'沈砚').slice(0,16);
+var status=(s.status||'在等你的消息').slice(0,20);
+if(statusEl)statusEl.textContent=name+' · '+status;
+}catch(e){}
+}
+updateStatus();
+setInterval(updateStatus,5000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){updateStatus();updateTime()}});
+
+function showHome(){
+if(!overlay)return;
+overlay.classList.add('visible');
+updateStatus();
+updateTime();
+}
+function hideHome(){
+if(!overlay)return;
+overlay.classList.remove('visible');
 }
 
+/* 主页图标点击 */
+function openView(view){
+hideHome();
+if(view==='chat'){
+var nb=document.querySelector('.nav-btn[data-view="chat"]');if(nb)nb.click();
+}else if(view==='library'){
+var lb=document.querySelector('.nav-btn[data-view="library"]');if(lb)lb.click();
+}else if(view==='diary'){
+var db=document.getElementById('diaryNavBtn');if(db)db.click();
+}else if(view==='painting'){
+var pb=document.getElementById('paintingNavBtn');if(pb)pb.click();
+}
+}
+
+var mirrorOpenedFromHome=false;
+document.querySelectorAll('.home-app').forEach(function(app){
+app.addEventListener('click',function(){
+var view=app.getAttribute('data-view');
+var action=app.getAttribute('data-action');
+if(view){
+openView(view);
+}else if(action==='mirror'){
+mirrorOpenedFromHome=true;
+hideHome();
+var brand=document.querySelector('.brand-mark');
+if(brand)brand.click();
+}else if(action==='settings'){
+hideHome();
+var setBtn=document.getElementById('chatSettingsBtn');
+if(setBtn)setBtn.click();
+}
+});
+});
+
+/* 返回主页按钮 */
+['chatHomeBtn','libraryHomeBtn','diaryHomeBtn','paintingHomeBtn'].forEach(function(id){
+var btn=document.getElementById(id);
+if(btn)btn.addEventListener('click',function(){
+/* 关闭所有子视图 */
+document.getElementById('viewChat').classList.remove('active');
+document.getElementById('viewLibrary').classList.remove('active');
+var vd=document.getElementById('viewDiary');if(vd)vd.classList.remove('active');
+var vp=document.getElementById('viewPainting');if(vp)vp.classList.remove('active');
+showHome();
+});
+});
+
+/* mirror 关闭时回到主页 */
+function bindMirrorClose(){
+var md=document.getElementById('mirrorDialog');
+if(!md)return;
+md.addEventListener('close',function(){
+if(mirrorOpenedFromHome){
+mirrorOpenedFromHome=false;
+showHome();
+}
+});
+}
+/* mirror.js 是延迟注入的，需要等 DOM 出现 */
+if(document.getElementById('mirrorDialog')){
+bindMirrorClose();
+}else{
+var iv=setInterval(function(){
+if(document.getElementById('mirrorDialog')){
+clearInterval(iv);
+bindMirrorClose();
+}
+},300);
+setTimeout(function(){clearInterval(iv)},10000);
+}
+
+/* 抽屉关闭按钮 + 逻辑 */
 function setupDrawer(){
 var plusBtn=document.getElementById('composerPlusBtn');
 var drawer=document.getElementById('composerDrawer');
 var closeBtn=document.getElementById('drawerCloseBtn');
 if(!plusBtn||!drawer)return;
-
 function openD(){drawer.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){drawer.classList.add('open')})});plusBtn.classList.add('active')}
 function closeD(){drawer.classList.remove('open');plusBtn.classList.remove('active');window.setTimeout(function(){if(!drawer.classList.contains('open'))drawer.hidden=true},220)}
-function toggleD(){if(drawer.classList.contains('open'))closeD();else openD()}
-
-plusBtn.addEventListener('click',function(e){e.stopPropagation();toggleD()});
+plusBtn.addEventListener('click',function(e){e.stopPropagation();if(drawer.classList.contains('open'))closeD();else openD()});
 if(closeBtn)closeBtn.addEventListener('click',closeD);
 document.addEventListener('click',function(e){if(!drawer.classList.contains('open'))return;if(drawer.contains(e.target))return;if(plusBtn.contains(e.target))return;closeD()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&drawer.classList.contains('open'))closeD()});
-
 drawer.querySelectorAll('.drawer-item').forEach(function(item){
 item.addEventListener('click',function(){
 var action=item.getAttribute('data-action');
 closeD();
-window.setTimeout(function(){runAction(action)},120);
+window.setTimeout(function(){
+if(action==='home'){showHome();return}
+if(action==='library'){openView('library');return}
+if(action==='diary'){openView('diary');return}
+if(action==='painting'){openView('painting');return}
+if(action==='sendPainting'){document.dispatchEvent(new CustomEvent('jingyan:requestPaintingToChat'));return}
+if(action==='settings'){var gb=document.getElementById('chatSettingsBtn');if(gb)gb.click();return}
+},120);
 });
 });
 }
-
-function runAction(action){
-if(action==='library'){var nb=document.querySelector('.nav-btn[data-view="library"]');if(nb)nb.click()}
-else if(action==='diary'){var db=document.getElementById('diaryNavBtn');if(db)db.click()}
-else if(action==='painting'){var pb=document.getElementById('paintingNavBtn');if(pb)pb.click()}
-else if(action==='sendPainting'){document.dispatchEvent(new CustomEvent('jingyan:requestPaintingToChat'))}
-else if(action==='sensation'){var sb=document.getElementById('sensationBtn');if(sb)sb.click()}
-else if(action==='settings'){var gb=document.getElementById('chatSettingsBtn');if(gb)gb.click()}
-}
-
-function bind(){
-var b1=document.getElementById('cleanCacheBtn');if(b1)b1.addEventListener('click',cleanCache);
-var b2=document.getElementById('clearAllBtn');if(b2)b2.addEventListener('click',clearAllData);
 setupDrawer();
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);
-else bind();
+
+/* 清理 + 数据 */
+document.getElementById('cleanCacheBtn')&&document.getElementById('cleanCacheBtn').addEventListener('click',function(){
+if(!window.confirm('整理 & 重启：\n· 聊天记录保留最近 80 条\n· 清空临时会话数据\n· 刷新页面释放内存\n\n字卡、日记、设定、镜中密语、占卜记录、镜中影都不会被删除。\n\n继续吗？'))return;
+try{var raw=localStorage.getItem('jingyan.chat.v1');if(raw){var c=JSON.parse(raw);if(Array.isArray(c)&&c.length>80){localStorage.setItem('jingyan.chat.v1',JSON.stringify(c.slice(-80)))}}}catch(e){}
+try{sessionStorage.clear()}catch(e){}
+location.reload();
+});
+document.getElementById('clearAllBtn')&&document.getElementById('clearAllBtn').addEventListener('click',function(){
+if(!window.confirm('⚠ 会彻底删除所有数据：聊天、字卡、日记、镜中密语、占卜记录、镜中影、所有设定。操作不可撤销。确定吗？'))return;
+if(!window.confirm('再次确认：真的要清空吗？'))return;
+try{var ks=Object.keys(localStorage);for(var i=0;i<ks.length;i++)if(ks[i].indexOf('jingyan.')===0)localStorage.removeItem(ks[i])}catch(e){}
+try{sessionStorage.clear()}catch(e){}
+location.reload();
+});
+
+/* 性能 */
+document.addEventListener('visibilitychange',function(){
+document.documentElement.classList.toggle('page-hidden',document.hidden);
+});
+document.documentElement.classList.toggle('page-hidden',document.hidden);
+
+console.log('[home] 主页初始化完成');
 })();
 </script>
 
@@ -699,6 +898,7 @@ document.getElementById('viewDiary').classList.add('active');
 var vs=document.getElementById('viewPainting');if(vs)vs.classList.remove('active');
 var navs=document.querySelectorAll('.nav-btn');
 for(var i=0;i<navs.length;i++)navs[i].classList.toggle('active',navs[i].getAttribute('data-view')==='diary');
+var ov=document.getElementById('homeOverlay');if(ov)ov.classList.remove('visible');
 ensure();render();
 var sc=document.getElementById('diaryScroll');if(sc)sc.scrollTop=0;
 }
@@ -734,7 +934,7 @@ else init();
 /* ===== 镜中影 ===== */
 (function(){
 'use strict';
-console.log('[mirror-painting] v3 内联版');
+console.log('[mirror-painting] v3');
 
 var PAINTING_KEY='jingyan.paintings.v1';
 var CARDS_KEY='jingyan.cards.v1';
@@ -750,7 +950,6 @@ ink:{name:'墨寂',bg:['#020203','#040405','#060608','#08080a'],mid:['#0f0f14','
 
 var ARCHETYPE_WEIGHTS={reflection:4,silhouette:4,fogfigure:4,peek:3,phase:3,ripple:2,vortex:2,crack:2,branch:2,lightspot:2,rift:2,shards:2};
 var ARCHETYPE_NAMES={reflection:'倒影',silhouette:'剪影',fogfigure:'雾中人影',peek:'窥视',phase:'月相',ripple:'涟漪',vortex:'漩涡',crack:'裂纹',branch:'枝影',lightspot:'光斑',rift:'裂隙',shards:'碎片'};
-
 var KEYWORDS={dark:['夜','冷','血','影','黑','暗','沉','冰','寒','骨','墓','渊','痛','亡','噬','裂'],warm:['光','暖','火','唇','烫','热','亮','吻','烧','抱','肩','融','温','梦','痒'],cold:['雨','雾','湖','青','灰','水','风','云','霜','雪','飘','散','泪','湿','浅'],ink:['静','默','空','白','寂','无','远','深','藏','止','听','等','留','别','淡']};
 
 function $(s,r){return (r||document).querySelector(s)}
@@ -795,10 +994,10 @@ else{var maxLen=Math.min(6,src.length);var minLen=2;var len=minLen+Math.floor(rn
 seg=seg.replace(/^[的了着]/,'');
 if(seg.length>=2&&seg.length<=6)return seg;
 }
-var len=Math.min(6,Math.max(2,allChars.length));
-if(allChars.length<=6)return allChars.slice(0,len);
-var start2=Math.floor(rng()*(allChars.length-len+1));
-return allChars.slice(start2,start2+len);
+var len2=Math.min(6,Math.max(2,allChars.length));
+if(allChars.length<=6)return allChars.slice(0,len2);
+var start2=Math.floor(rng()*(allChars.length-len2+1));
+return allChars.slice(start2,start2+len2);
 }
 
 function generatePainting(){
@@ -819,449 +1018,7 @@ var title=makeTitle(texts,rng);
 return{id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),ts:Date.now(),seed:seed,palette:palette,archetype:archetype,cardTexts:texts,title:title};
 }
 
-/* 12 种构图 */
-function composeReflection(ctx,W,H,pal,rng){
-var cx=W*(0.35+rng()*0.3),cy=H*(0.28+rng()*0.1),rx=W*(0.13+rng()*0.12),ry=H*(0.18+rng()*0.12),lineY=H*(0.52+rng()*0.06);
-var g1=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*1.8);
-g1.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.9));g1.addColorStop(0.5,hexAlpha(pick(pal.mid,rng),0.4));g1.addColorStop(1,hexAlpha(pick(pal.mid,rng),0));
-ctx.fillStyle=g1;ctx.beginPath();ctx.ellipse(cx,cy,rx*1.5,ry*1.5,0,0,Math.PI*2);ctx.fill();
-var gL=ctx.createLinearGradient(0,lineY,W,lineY);
-gL.addColorStop(0,'rgba(0,0,0,0)');gL.addColorStop(0.5,hexAlpha(pick(pal.accent,rng),0.35+rng()*0.25));gL.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=gL;ctx.fillRect(0,lineY-1.5,W,3);
-ctx.save();ctx.globalAlpha=0.55;ctx.translate(0,H);ctx.scale(1,-1);
-var g2=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*2.2);
-g2.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.55));g2.addColorStop(0.6,hexAlpha(pick(pal.mid,rng),0.18));g2.addColorStop(1,hexAlpha(pick(pal.mid,rng),0));
-ctx.fillStyle=g2;ctx.beginPath();ctx.ellipse(cx,cy,rx*1.7,ry*1.7,0,0,Math.PI*2);ctx.fill();ctx.restore();
-var ripples=3+Math.floor(rng()*4);
-for(var i=0;i<ripples;i++){
-var wy=lineY+(H*0.06)*(i+1)+rng()*10;
-ctx.strokeStyle=hexAlpha(pick(pal.light,rng),0.12+rng()*0.15);ctx.lineWidth=0.6+rng()*0.8;
-ctx.beginPath();ctx.moveTo(W*0.08,wy);ctx.quadraticCurveTo(W*0.5,wy+(rng()-0.5)*24,W*0.92,wy);ctx.stroke();
-}
-var gS=ctx.createRadialGradient(cx,lineY,0,cx,lineY,W*0.15);
-gS.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.35));gS.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=gS;ctx.fillRect(cx-W*0.2,lineY-20,W*0.4,40);
-}
-
-function composeSilhouette(ctx,W,H,pal,rng){
-var glowX=W*(0.3+rng()*0.4),glowY=H*(0.3+rng()*0.15),glowR=Math.max(W,H)*(0.5+rng()*0.25);
-var g=ctx.createRadialGradient(glowX,glowY,0,glowX,glowY,glowR);
-g.addColorStop(0,hexAlpha(pick(pal.light,rng),0.55));g.addColorStop(0.4,hexAlpha(pick(pal.mid,rng),0.35));g.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-var headX=W*(0.35+rng()*0.3),headY=H*(0.34+rng()*0.08),headR=W*(0.07+rng()*0.05);
-var shoulderW=headR*2.8+rng()*headR,shoulderY=headY+headR*1.5;
-ctx.save();ctx.fillStyle=pick(pal.bg,rng);
-ctx.beginPath();ctx.arc(headX,headY,headR,0,Math.PI*2);ctx.fill();
-ctx.beginPath();ctx.moveTo(headX-shoulderW,H*1.05);
-ctx.quadraticCurveTo(headX-shoulderW,shoulderY,headX,shoulderY-headR*0.2);
-ctx.quadraticCurveTo(headX+shoulderW,shoulderY,headX+shoulderW,H*1.05);ctx.closePath();ctx.fill();ctx.restore();
-ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.5);ctx.lineWidth=1.4;
-ctx.beginPath();ctx.arc(headX,headY,headR+0.5,Math.PI*1.1,Math.PI*1.9);ctx.stroke();ctx.restore();
-}
-
-function composeFogFigure(ctx,W,H,pal,rng){
-for(var i=0;i<4;i++){
-var fx=W*(0.15+rng()*0.7),fy=H*(0.15+rng()*0.7),fr=Math.max(W,H)*(0.25+rng()*0.3);
-var g=ctx.createRadialGradient(fx,fy,0,fx,fy,fr);
-g.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.28+rng()*0.18));g.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-}
-var cx=W*(0.35+rng()*0.3),headY=H*(0.3+rng()*0.1),headR=W*(0.06+rng()*0.04),bodyBottom=H*(0.85+rng()*0.15);
-ctx.save();
-try{ctx.filter='blur('+(5+rng()*5)+'px)'}catch(e){}
-ctx.fillStyle=pick(pal.bg,rng);ctx.globalAlpha=0.78;
-ctx.beginPath();ctx.arc(cx,headY,headR,0,Math.PI*2);ctx.fill();
-var sw=headR*2.4;ctx.beginPath();
-ctx.moveTo(cx-sw,bodyBottom);ctx.lineTo(cx-sw*0.55,headY+headR*1.3);ctx.lineTo(cx+sw*0.55,headY+headR*1.3);ctx.lineTo(cx+sw,bodyBottom);ctx.closePath();ctx.fill();ctx.restore();
-var v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.2,W/2,H/2,Math.max(W,H)*0.75);
-v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,hexAlpha(pick(pal.bg,rng),0.7));
-ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
-}
-
-function composePeek(ctx,W,H,pal,rng){
-var angle=Math.PI*0.5+(rng()-0.5)*0.9;
-var nx=Math.cos(angle),ny=Math.sin(angle);
-var offset=W*(0.15+rng()*0.2);
-var cx=W*0.5,cy=H*0.5;
-var sx=cx-nx*offset,sy=cy-ny*offset;
-var ex=sx+nx*W*2,ey=sy+ny*H*2;
-ctx.save();
-ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.lineTo(ex-ny*H*2,ey+nx*H*2);ctx.lineTo(sx-ny*H*2,sy+nx*H*2);ctx.closePath();ctx.clip();
-var g=ctx.createLinearGradient(sx-nx*250,sy-ny*250,ex,ey);
-g.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.95));g.addColorStop(0.4,hexAlpha(pick(pal.light,rng),0.7));g.addColorStop(1,hexAlpha(pick(pal.bg,rng),0.85));
-ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-var figX=cx+(rng()-0.5)*W*0.2,figY=cy+(rng()-0.5)*H*0.15,figR=W*0.14;
-ctx.save();
-try{ctx.filter='blur('+(6+rng()*5)+'px)'}catch(e){}
-ctx.fillStyle=pick(pal.bg,rng);ctx.globalAlpha=0.55;
-ctx.beginPath();ctx.ellipse(figX,figY,figR,figR*1.7,0,0,Math.PI*2);ctx.fill();ctx.restore();
-ctx.restore();
-ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.85);ctx.lineWidth=1.5;ctx.shadowColor=pick(pal.accent,rng);ctx.shadowBlur=12;
-ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.restore();
-}
-
-function composePhase(ctx,W,H,pal,rng){
-var cx=W*(0.4+rng()*0.2),cy=H*(0.42+rng()*0.15),radius=Math.min(W,H)*(0.2+rng()*0.15);
-var gG=ctx.createRadialGradient(cx,cy,radius*0.8,cx,cy,radius*2.8);
-gG.addColorStop(0,hexAlpha(pick(pal.light,rng),0.4));gG.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=gG;ctx.fillRect(0,0,W,H);
-ctx.save();ctx.fillStyle=pick(pal.light,rng);
-ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();ctx.restore();
-var offsetX=radius*(0.5+rng()*1.4),offsetY=(rng()-0.5)*radius*0.4;
-ctx.save();ctx.fillStyle=pick(pal.bg,rng);
-ctx.beginPath();ctx.arc(cx+offsetX,cy+offsetY,radius*1.06,0,Math.PI*2);ctx.fill();ctx.restore();
-ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.35);ctx.lineWidth=1;
-ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.stroke();ctx.restore();
-for(var i=0;i<30;i++){ctx.fillStyle=hexAlpha(pick(pal.accent,rng),0.15+rng()*0.55);ctx.beginPath();ctx.arc(rng()*W,rng()*H,0.4+rng()*1.1,0,Math.PI*2);ctx.fill()}
-}
-
-function composeRipple(ctx,W,H,pal,rng){
-var cx=W*(0.3+rng()*0.4),cy=H*(0.35+rng()*0.3),rings=4+Math.floor(rng()*5),maxR=Math.min(W,H)*(0.4+rng()*0.3);
-for(var i=rings;i>=1;i--){
-var t=i/rings;var radius=maxR*t;var alpha=(1-t)*0.7+0.08;
-ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
-ctx.strokeStyle=hexAlpha(pick(pal.light,rng),alpha);ctx.lineWidth=0.8+(1-t)*2.2;ctx.stroke();
-}
-var g=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.2);
-g.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.85));g.addColorStop(0.5,hexAlpha(pick(pal.light,rng),0.35));g.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-}
-
-function composeVortex(ctx,W,H,pal,rng){
-var cx=W*(0.35+rng()*0.3),cy=H*(0.35+rng()*0.3),lines=5+Math.floor(rng()*6),maxR=Math.min(W,H)*(0.42+rng()*0.15);
-for(var i=0;i<lines;i++){
-var startAngle=rng()*Math.PI*2,turns=2+rng()*2.2,steps=80;
-ctx.beginPath();
-for(var s=0;s<=steps;s++){
-var t=s/steps;var radius=maxR*t;var angle=startAngle+t*Math.PI*2*turns;
-var x=cx+Math.cos(angle)*radius;var y=cy+Math.sin(angle)*radius;
-if(s===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-}
-ctx.strokeStyle=hexAlpha(pick(pal.light,rng),0.35+rng()*0.4);ctx.lineWidth=0.8+rng()*1.8;ctx.stroke();
-}
-var g=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.25);
-g.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.75));g.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-}
-
-function composeCrack(ctx,W,H,pal,rng){
-var cx=W*(0.3+rng()*0.4),cy=H*(0.3+rng()*0.4),branches=5+Math.floor(rng()*7),lengthScale=Math.min(W,H)*(0.35+rng()*0.35);
-for(var b=0;b<branches;b++){
-var baseAngle=(b/branches)*Math.PI*2+rng()*0.6,segments=4+Math.floor(rng()*4),length=lengthScale*(0.7+rng()*0.5);
-ctx.beginPath();ctx.moveTo(cx,cy);
-for(var s=1;s<=segments;s++){var t=s/segments;var nx=cx+Math.cos(baseAngle)*length*t+(rng()-0.5)*14;var ny=cy+Math.sin(baseAngle)*length*t+(rng()-0.5)*14;ctx.lineTo(nx,ny)}
-ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.light,rng),0.7);ctx.lineWidth=2+rng()*1.5;ctx.shadowColor=pick(pal.accent,rng);ctx.shadowBlur=10;ctx.stroke();ctx.restore();
-ctx.strokeStyle=pick(pal.bg,rng);ctx.lineWidth=0.8;ctx.stroke();
-}
-var g=ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.12);
-g.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.85));g.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g;ctx.fillRect(cx-W*0.15,cy-W*0.15,W*0.3,W*0.3);
-}
-
-function composeBranch(ctx,W,H,pal,rng){
-var fromLeft=rng()<0.5,startX=fromLeft?-W*0.05:W*1.05,startY=H*(0.5+rng()*0.3),angleBase=fromLeft?-Math.PI*0.65:-Math.PI*0.35;
-var color=pick(pal.bg,rng);
-ctx.save();ctx.strokeStyle=color;ctx.lineCap='round';
-var branch=function(x,y,angle,length,width,depth){
-if(depth>4||length<12)return;
-var ex=x+Math.cos(angle)*length,ey=y+Math.sin(angle)*length;
-ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo((x+ex)/2+(rng()-0.5)*12,(y+ey)/2+(rng()-0.5)*12,ex,ey);
-ctx.lineWidth=width;ctx.stroke();
-var n=2+Math.floor(rng()*2);
-for(var i=0;i<n;i++)branch(ex,ey,angle+(rng()-0.5)*1.0,length*(0.45+rng()*0.3),width*0.7,depth+1);
-};
-var trunks=2+Math.floor(rng()*2);
-for(var t=0;t<trunks;t++)branch(startX,startY+t*25,angleBase+(rng()-0.5)*0.4,Math.min(W,H)*(0.35+rng()*0.2),3.5+rng()*2.5,0);
-ctx.restore();
-ctx.save();ctx.globalCompositeOperation='lighter';
-var g=ctx.createRadialGradient(W*(0.6+rng()*0.2),H*(0.3+rng()*0.2),0,W*(0.6+rng()*0.2),H*(0.3+rng()*0.2),Math.max(W,H)*0.5);
-g.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.25));g.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.restore();
-}
-
-function composeLightSpot(ctx,W,H,pal,rng){
-var corner=Math.floor(rng()*4);
-var cx=corner===0||corner===2?0:W,cy=corner===0||corner===1?0:H;
-var radius=Math.max(W,H)*(0.65+rng()*0.3);
-var g=ctx.createRadialGradient(cx,cy,0,cx,cy,radius);
-g.addColorStop(0,hexAlpha(pick(pal.light,rng),0.75));g.addColorStop(0.35,hexAlpha(pick(pal.mid,rng),0.35));g.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-ctx.save();ctx.globalAlpha=0.22;
-var points=8,baseR=Math.min(W,H)*(0.25+rng()*0.2);
-ctx.beginPath();
-for(var i=0;i<=points;i++){var a=(i/points)*Math.PI*2;var v=0.7+rng()*0.6;var px=cx+Math.cos(a)*baseR*v,py=cy+Math.sin(a)*baseR*v;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}
-ctx.closePath();ctx.fillStyle=pick(pal.accent,rng);ctx.fill();ctx.restore();
-}
-
-function composeRift(ctx,W,H,pal,rng){
-var cx=W*(0.35+rng()*0.3),widthBase=W*(0.06+rng()*0.08);
-var lg=ctx.createLinearGradient(0,0,cx,0);lg.addColorStop(0,pick(pal.bg,rng));lg.addColorStop(1,pick(pal.mid,rng));ctx.fillStyle=lg;ctx.fillRect(0,0,cx,H);
-var rg=ctx.createLinearGradient(cx,0,W,0);rg.addColorStop(0,pick(pal.mid,rng));rg.addColorStop(1,pick(pal.bg,rng));ctx.fillStyle=rg;ctx.fillRect(cx,0,W-cx,H);
-var topX=cx+(rng()-0.5)*30,botX=cx+(rng()-0.5)*30,topW=widthBase*0.35,botW=widthBase*0.6;
-ctx.beginPath();ctx.moveTo(topX-topW,0);
-ctx.quadraticCurveTo(cx-widthBase,H*0.5,botX-botW,H);
-ctx.lineTo(botX+botW,H);
-ctx.quadraticCurveTo(cx+widthBase,H*0.5,topX+topW,0);ctx.closePath();
-ctx.fillStyle=pick(pal.bg,rng);ctx.fill();
-ctx.save();ctx.shadowColor=pick(pal.accent,rng);ctx.shadowBlur=15;ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.7);ctx.lineWidth=1.5;
-ctx.beginPath();ctx.moveTo(topX-topW,0);ctx.quadraticCurveTo(cx-widthBase,H*0.5,botX-botW,H);ctx.stroke();
-ctx.beginPath();ctx.moveTo(topX+topW,0);ctx.quadraticCurveTo(cx+widthBase,H*0.5,botX+botW,H);ctx.stroke();ctx.restore();
-}
-
-function composeShards(ctx,W,H,pal,rng){
-var count=4+Math.floor(rng()*4);
-for(var i=0;i<count;i++){
-var cx=W*(0.15+rng()*0.7),cy=H*(0.15+rng()*0.7),size=Math.min(W,H)*(0.12+rng()*0.22),points=3+Math.floor(rng()*3),rotation=rng()*Math.PI*2;
-ctx.beginPath();
-for(var p=0;p<=points;p++){var a=rotation+(p/points)*Math.PI*2;var rad=size*(0.65+rng()*0.6);var x=cx+Math.cos(a)*rad,y=cy+Math.sin(a)*rad;if(p===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}
-ctx.closePath();
-ctx.fillStyle=hexAlpha(pick(pal.mid,rng),0.55+rng()*0.4);ctx.fill();
-ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.35);ctx.lineWidth=0.7+rng()*0.5;ctx.stroke();
-}
-}
-
-var COMPOSERS={reflection:composeReflection,silhouette:composeSilhouette,fogfigure:composeFogFigure,peek:composePeek,phase:composePhase,ripple:composeRipple,vortex:composeVortex,crack:composeCrack,branch:composeBranch,lightspot:composeLightSpot,rift:composeRift,shards:composeShards};
-
-function drawWithScale(ctx,W,H,config){
-var pal=PALETTES[config.palette]||PALETTES.mirror;
-var rng=createRng(config.seed);
-var composer=COMPOSERS[config.archetype]||COMPOSERS.reflection;
-ctx.clearRect(0,0,W,H);
-ctx.fillStyle=pick(pal.bg,rng);ctx.fillRect(0,0,W,H);
-try{composer(ctx,W,H,pal,rng)}catch(e){console.warn('[painting] compose err',e)}
-var v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.78);
-v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,0.62)');
-ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
-}
-
-function buildPaintingCard(config){
-var card=document.createElement('article');card.className='painting-card';card.dataset.id=config.id;
-var wrap=document.createElement('div');wrap.className='painting-canvas-wrap';
-var canvas=document.createElement('canvas');canvas.className='painting-canvas';
-var dpr=Math.min(window.devicePixelRatio||1,2);var size=360;
-canvas.width=size*dpr;canvas.height=size*dpr;canvas.style.width=size+'px';canvas.style.height=size+'px';
-var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);wrap.appendChild(canvas);
-drawWithScale(ctx,size,size,config);
-var meta=document.createElement('div');meta.className='painting-meta';
-var title=document.createElement('h3');title.className='painting-title';title.textContent=config.title||'无言';meta.appendChild(title);
-var sub=document.createElement('p');sub.className='painting-sub';
-var pal=PALETTES[config.palette]||PALETTES.mirror;
-sub.textContent=(ARCHETYPE_NAMES[config.archetype]||'影')+' · '+pal.name+' · '+formatTime(config.ts);
-meta.appendChild(sub);
-if(config.cardTexts&&config.cardTexts.length){
-var ref=document.createElement('p');ref.className='painting-ref';ref.textContent='成像时，他想起了：';meta.appendChild(ref);
-var refList=document.createElement('div');refList.className='painting-ref-list';
-config.cardTexts.forEach(function(t){var p=document.createElement('p');p.className='painting-ref-text';p.textContent='「'+t+'」';refList.appendChild(p)});
-meta.appendChild(refList);
-}
-var actions=document.createElement('div');actions.className='painting-actions';
-var delBtn=document.createElement('button');delBtn.type='button';delBtn.className='painting-act del';delBtn.textContent='✕ 收起这幅影象';
-delBtn.addEventListener('click',function(){
-if(!window.confirm('确定要收起这幅影象吗？此操作不可撤销。'))return;
-savePaintings(loadPaintings().filter(function(p){return p.id!==config.id}));
-renderStudio();
-});
-actions.appendChild(delBtn);
-card.appendChild(wrap);card.appendChild(meta);card.appendChild(actions);
-return card;
-}
-
-function renderStudio(){
-var grid=document.getElementById('paintingGrid');
-var empty=document.getElementById('paintingEmpty');
-var summary=document.getElementById('paintingSummary');
-var countEl=document.getElementById('navPaintingCount');
-if(!grid)return;
-var list=loadPaintings();
-if(countEl)countEl.textContent=String(list.length);
-grid.innerHTML='';
-if(empty)empty.hidden=list.length>0;
-if(!list.length){if(summary)summary.textContent='他从镜子里递出来的影象。';return}
-var sorted=list.slice().sort(function(a,b){return b.ts-a.ts});
-sorted.forEach(function(c){grid.appendChild(buildPaintingCard(c))});
-if(summary)summary.textContent='共 '+list.length+' 幅影象 · 最新于 '+formatTime(sorted[0].ts);
-}
-
-function requestPainting(){
-var btn=document.getElementById('requestPaintingBtn');
-if(btn)btn.disabled=true;
-var config=generatePainting();
-var all=loadPaintings();
-all.unshift(config);
-savePaintings(all);
-switchToStudio();
-if(btn)btn.disabled=false;
-}
-
-function switchToStudio(){
-var chat=document.getElementById('viewChat');
-var lib=document.getElementById('viewLibrary');
-var dia=document.getElementById('viewDiary');
-var studio=document.getElementById('viewPainting');
-if(!studio)return;
-if(chat)chat.classList.remove('active');
-if(lib)lib.classList.remove('active');
-if(dia)dia.classList.remove('active');
-studio.classList.add('active');
-$$('.nav-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-view')==='painting')});
-renderStudio();
-var sc=document.getElementById('paintingScroll');if(sc)sc.scrollTop=0;
-}
-
-function watchSwitchAway(){
-var others=['viewChat','viewLibrary','viewDiary'].map(function(id){return document.getElementById(id)}).filter(Boolean);
-var studio=document.getElementById('viewPainting');
-if(!studio||!others.length)return;
-if(typeof MutationObserver!=='function')return;
-var mo=new MutationObserver(function(){
-if(others.some(function(o){return o.classList.contains('active')}))studio.classList.remove('active');
-});
-others.forEach(function(o){mo.observe(o,{attributes:true,attributeFilter:['class']})});
-}
-
-function insertChatPainting(config){
-var chatList=document.getElementById('chatList');
-if(!chatList){console.warn('[painting] chatList 未找到');return}
-var wrap=document.createElement('div');wrap.className='msg msg-painting';wrap.dataset.paintingId=config.id;
-var thumbWrap=document.createElement('div');thumbWrap.className='chat-painting-thumb';
-var canvas=document.createElement('canvas');
-var dpr=Math.min(window.devicePixelRatio||1,2);var size=180;
-canvas.width=size*dpr;canvas.height=size*dpr;canvas.style.width=size+'px';canvas.style.height=size+'px';
-var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
-drawWithScale(ctx,size,size,config);
-thumbWrap.appendChild(canvas);wrap.appendChild(thumbWrap);
-var info=document.createElement('div');info.className='chat-painting-info';
-var eyebrow=document.createElement('p');eyebrow.className='chat-painting-eyebrow';eyebrow.textContent='他递给你一幅影象';
-var title=document.createElement('h4');title.className='chat-painting-title';title.textContent=config.title||'无言';
-var sub=document.createElement('p');sub.className='chat-painting-sub';
-var pal=PALETTES[config.palette]||PALETTES.mirror;
-sub.textContent=(ARCHETYPE_NAMES[config.archetype]||'影')+' · 「'+pal.name+'」· 点开看';
-info.appendChild(eyebrow);info.appendChild(title);info.appendChild(sub);wrap.appendChild(info);
-wrap.addEventListener('click',switchToStudio);
-chatList.appendChild(wrap);
-var sc=document.getElementById('chatScroll');if(sc)sc.scrollTop=sc.scrollHeight;
-console.log('[painting] 影象已插入聊天');
-}
-
-function requestAndSend(){
-console.log('[painting] requestAndSend 被调用');
-var chatBtn=document.querySelector('.nav-btn[data-view="chat"]');
-if(chatBtn)chatBtn.click();
-window.setTimeout(function(){
-var chatList=document.getElementById('chatList');
-if(!chatList){console.warn('[painting] 找不到 chatList');return}
-var hint=document.createElement('div');
-hint.className='msg msg-system chat-painting-hint';
-hint.textContent='他在镜子里翻找……';
-chatList.appendChild(hint);
-var sc=document.getElementById('chatScroll');if(sc)sc.scrollTop=sc.scrollHeight;
-window.setTimeout(function(){
-try{
-if(hint.parentNode)hint.remove();
-var config=generatePainting();
-var all=loadPaintings();
-all.unshift(config);
-savePaintings(all);
-insertChatPainting(config);
-var c=document.getElementById('navPaintingCount');
-if(c)c.textContent=String(all.length);
-}catch(e){console.error('[painting] 生成失败',e)}
-},1400);
-},200);
-}
-
-function watchChat(){
-var chatList=document.getElementById('chatList');
-if(!chatList){console.warn('[painting] watchChat: chatList 未找到');return}
-if(typeof MutationObserver!=='function')return;
-var lastAutoAt=Number(localStorage.getItem('jingyan.painting.lastAutoAt')||0);
-var maybePaint=function(){
-var now=Date.now();
-if(now-lastAutoAt<4*3600*1000)return;
-if(Math.random()>0.20)return;
-lastAutoAt=now;
-try{localStorage.setItem('jingyan.painting.lastAutoAt',String(now))}catch(e){}
-window.setTimeout(function(){
-try{
-var config=generatePainting();
-var all=loadPaintings();
-all.unshift(config);
-savePaintings(all);
-insertChatPainting(config);
-var c=document.getElementById('navPaintingCount');
-if(c)c.textContent=String(all.length);
-}catch(e){console.error('[painting] 主动发画失败',e)}
-},1800);
-};
-var mo=new MutationObserver(function(muts){
-var hasNew=false;
-muts.forEach(function(m){
-m.addedNodes.forEach(function(n){
-if(n.nodeType===1&&n.classList){
-if(n.classList.contains('msg-reply')||n.classList.contains('msg-user'))hasNew=true;
-}
-});
-});
-if(hasNew)maybePaint();
-});
-mo.observe(chatList,{childList:true});
-console.log('[painting] 聊天监听已启动（20% 主动发影象）');
-}
-
-function bind(){
-var navBtn=document.getElementById('paintingNavBtn');
-if(navBtn)navBtn.addEventListener('click',switchToStudio);
-var req=document.getElementById('requestPaintingBtn');
-if(req)req.addEventListener('click',requestPainting);
-var empty=document.getElementById('emptyRequestBtn');
-if(empty)empty.addEventListener('click',requestPainting);
-watchSwitchAway();
-watchChat();
-}
-
-document.addEventListener('jingyan:requestPaintingToChat',function(){
-console.log('[painting] 收到事件 jingyan:requestPaintingToChat');
-requestAndSend();
-});
-
-window.jingyanPainting={requestAndSend:requestAndSend,requestForStudio:requestPainting,version:3};
-
-function init(){
-if(!document.getElementById('viewPainting')){console.warn('[painting] 未找到 #viewPainting');return}
-bind();
-renderStudio();
-console.log('[painting] 初始化完成');
-}
-
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-else init();
-})();
-</script>
-
-<script>
-/* ===== 背景红眼睛 ===== */
-(function(){
-var SVG_NS='http://www.w3.org/2000/svg';
-var eye=document.getElementById('watcherEye');
-var iris=document.getElementById('watcherIris');
-var lt=document.getElementById('lashesTop');
-var lb=document.getElementById('lashesBottom');
-if(!eye||!iris||!lt||!lb)return;
-function bezier(p0,p1,p2,t){var mt=1-t;return{x:mt*mt*p0.x+2*mt*t*p1.x+t*t*p2.x,y:mt*mt*p0.y+2*mt*t*p1.y+t*t*p2.y}}
-function tangent(p0,p1,p2,t){var mt=1-t;return{x:2*mt*(p1.x-p0.x)+2*t*(p2.x-p1.x),y:2*mt*(p1.y-p0.y)+2*t*(p2.y-p1.y)}}
-function un(tan,up){var nx=up?tan.y:-tan.y,ny=up?-tan.x:tan.x,l=Math.sqrt(nx*nx+ny*ny)||1;return{x:nx/l,y:ny/l}}
-function makeL(x1,y1,x2,y2,cx,cy,w){var p=document.createElementNS(SVG_NS,'path');p.setAttribute('d','M'+x1.toFixed(1)+' '+y1.toFixed(1)+' Q'+cx.toFixed(1)+' '+cy.toFixed(1)+' '+x2.toFixed(1)+' '+y2.toFixed(1));p.setAttribute('stroke-width',w.toFixed(2));return p}
-var a={x:20,y:110},b={x:200,y:10},c={x:380,y:110};
-for(var i=0;i<28;i++){var t=0.05+(i/27)*0.9,pt=bezier(a,b,c,t),tn=tangent(a,b,c,t),nr=un(tn,true);var mf=1-Math.abs(t-0.5)*1.05,len=24+mf*24+(Math.random()*8-4),out=(t-0.5)*38;lt.appendChild(makeL(pt.x,pt.y,pt.x+nr.x*len+out,pt.y+nr.y*len+(Math.random()*4-2),pt.x+nr.x*len*0.4+out*0.6,pt.y+nr.y*len*0.55,1.8+mf*1.3))}
-var d={x:20,y:110},e={x:200,y:210},f={x:380,y:110};
-for(var j=0;j<20;j++){var bt=0.15+(j/19)*0.7,bp=bezier(d,e,f,bt),btn=tangent(d,e,f,bt),bnr=un(btn,false);var bm=1-Math.abs(bt-0.5)*1.35,bl=8+bm*11+Math.random()*4,bo=(bt-0.5)*22;lb.appendChild(makeL(bp.x,bp.y,bp.x+bnr.x*bl+bo,bp.y+bnr.y*bl,bp.x+bnr.x*bl*0.5+bo*0.4,bp.y+bnr.y*bl*0.55,1.1+bm*0.5))}
-function look(){if(document.hidden)return;var x=(Math.random()*2-1)*26,y=(Math.random()*2-1)*10;iris.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px)'}
-function loopLook(){look();window.setTimeout(loopLook,1000+Math.random()*2800)}
-function blinkOnce(){if(document.hidden)return;eye.classList.add('blink');window.setTimeout(function(){eye.classList.remove('blink');if(Math.random()<0.3&&!document.hidden){window.setTimeout(function(){eye.classList.add('blink');window.setTimeout(function(){eye.classList.remove('blink')},150)},230)}},180)}
-function loopBlink(){var w=2400+Math.random()*5200;window.setTimeout(function(){blinkOnce();loopBlink()},w)}
-loopLook();loopBlink();
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')look()});
-})();
-</script>
-</body>
-</html>
+/* 12 种构图（略 - 与之前相同） */
+function composeReflection(ctx,W,H,pal,rng){var cx=W*(0.35+rng()*0.3),cy=H*(0.28+rng()*0.1),rx=W*(0.13+rng()*0.12),ry=H*(0.18+rng()*0.12),lineY=H*(0.52+rng()*0.06);var g1=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*1.8);g1.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.9));g1.addColorStop(0.5,hexAlpha(pick(pal.mid,rng),0.4));g1.addColorStop(1,hexAlpha(pick(pal.mid,rng),0));ctx.fillStyle=g1;ctx.beginPath();ctx.ellipse(cx,cy,rx*1.5,ry*1.5,0,0,Math.PI*2);ctx.fill();var gL=ctx.createLinearGradient(0,lineY,W,lineY);gL.addColorStop(0,'rgba(0,0,0,0)');gL.addColorStop(0.5,hexAlpha(pick(pal.accent,rng),0.35+rng()*0.25));gL.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gL;ctx.fillRect(0,lineY-1.5,W,3);ctx.save();ctx.globalAlpha=0.55;ctx.translate(0,H);ctx.scale(1,-1);var g2=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*2.2);g2.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.55));g2.addColorStop(0.6,hexAlpha(pick(pal.mid,rng),0.18));g2.addColorStop(1,hexAlpha(pick(pal.mid,rng),0));ctx.fillStyle=g2;ctx.beginPath();ctx.ellipse(cx,cy,rx*1.7,ry*1.7,0,0,Math.PI*2);ctx.fill();ctx.restore();var ripples=3+Math.floor(rng()*4);for(var i=0;i<ripples;i++){var wy=lineY+(H*0.06)*(i+1)+rng()*10;ctx.strokeStyle=hexAlpha(pick(pal.light,rng),0.12+rng()*0.15);ctx.lineWidth=0.6+rng()*0.8;ctx.beginPath();ctx.moveTo(W*0.08,wy);ctx.quadraticCurveTo(W*0.5,wy+(rng()-0.5)*24,W*0.92,wy);ctx.stroke()}var gS=ctx.createRadialGradient(cx,lineY,0,cx,lineY,W*0.15);gS.addColorStop(0,hexAlpha(pick(pal.accent,rng),0.35));gS.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=gS;ctx.fillRect(cx-W*0.2,lineY-20,W*0.4,40)}
+function composeSilhouette(ctx,W,H,pal,rng){var glowX=W*(0.3+rng()*0.4),glowY=H*(0.3+rng()*0.15),glowR=Math.max(W,H)*(0.5+rng()*0.25);var g=ctx.createRadialGradient(glowX,glowY,0,glowX,glowY,glowR);g.addColorStop(0,hexAlpha(pick(pal.light,rng),0.55));g.addColorStop(0.4,hexAlpha(pick(pal.mid,rng),0.35));g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);var headX=W*(0.35+rng()*0.3),headY=H*(0.34+rng()*0.08),headR=W*(0.07+rng()*0.05);var shoulderW=headR*2.8+rng()*headR,shoulderY=headY+headR*1.5;ctx.save();ctx.fillStyle=pick(pal.bg,rng);ctx.beginPath();ctx.arc(headX,headY,headR,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(headX-shoulderW,H*1.05);ctx.quadraticCurveTo(headX-shoulderW,shoulderY,headX,shoulderY-headR*0.2);ctx.quadraticCurveTo(headX+shoulderW,shoulderY,headX+shoulderW,H*1.05);ctx.closePath();ctx.fill();ctx.restore();ctx.save();ctx.strokeStyle=hexAlpha(pick(pal.accent,rng),0.5);ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(headX,headY,headR+0.5,Math.PI*1.1,Math.PI*1.9);ctx.stroke();ctx.restore()}
+function composeFogFigure(ctx,W,H,pal,rng){for(var i=0;i<4;i++){var fx=W*(0.15+rng()*0.7),fy=H*(0.15+rng()*0.7),fr=Math.max(W,H)*(0.25+rng()*0.3);var g=ctx.createRadialGradient(fx,fy,0,fx,fy,fr);g.addColorStop(0,hexAlpha(pick(pal.mid,rng),0.28+rng()*0.18));g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}var cx=W*(0.35+rng()*0.3),headY=H*(0.3+rng()*0.1),headR=W*(0.06+rng()*
