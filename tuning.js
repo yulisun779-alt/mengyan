@@ -1,13 +1,11 @@
 /* ============================================================
-   调频 · 能量图腾 + 宇宙订单 + 照镜子（v9 · 照见记录）
+   调频 · 能量图腾 + 宇宙订单 + 照镜子 + 秘密留言（v10）
    ============================================================ */
 (() => {
   'use strict';
-  console.log('[tuning] 加载 v9');
+  console.log('[tuning] 加载 v10');
 
-  /* ============================================================
-     情绪数据
-     ============================================================ */
+  /* ===== 情绪数据 ===== */
   const TIERS = {
     high: [
       { key:'love',        name:'爱',   color:'#f5b8d0', bg:'#8a3a5c', desc:'心中满溢，愿意给予。' },
@@ -67,128 +65,115 @@
     mid: '此刻是稳定的——保持这个节奏，不用着急。'
   };
 
-  /* ============================================================
-     100 条阻碍
-     ============================================================ */
+  /* ===== 100 条阻碍 ===== */
   const OBSTACLE_GROUPS = {
-    goal:       '目标与信念',
-    emotion:    '情绪与关系',
-    behavior:   '行为与选择',
-    body:       '控制 · 身体 · 环境',
-    collective: '集体信念与误用',
-    custom:     '自定义'
+    goal:'目标与信念', emotion:'情绪与关系', behavior:'行为与选择',
+    body:'控制 · 身体 · 环境', collective:'集体信念与误用', custom:'自定义'
   };
-
   const BUILTIN_OBSTACLES = [
-    { id:'o_001', text:'目标模糊：不知道要什么',              group:'goal' },
-    { id:'o_002', text:'矛盾信念：想要又觉得不可能',          group:'goal' },
-    { id:'o_003', text:'不配得感：我不值得',                  group:'goal' },
-    { id:'o_004', text:'恐惧失去：越想要越抓',                group:'goal' },
-    { id:'o_005', text:'反复怀疑：真的会成吗',                group:'goal' },
-    { id:'o_006', text:'匮乏聚焦：总看没有什么',              group:'goal' },
-    { id:'o_007', text:'只观想不行动',                        group:'goal' },
-    { id:'o_008', text:'行动焦虑驱动：越做越耗',              group:'goal' },
-    { id:'o_009', text:'不允许接收：来了也推开',              group:'goal' },
-    { id:'o_010', text:'控制时间方式：必须按我想的',          group:'goal' },
-    { id:'o_011', text:'执念抓取：非成不可',                  group:'goal' },
-    { id:'o_012', text:'自我概念低：我不够好',                group:'goal' },
-    { id:'o_013', text:'害怕成功：怕承担后果',                group:'goal' },
-    { id:'o_014', text:'害怕失败：怕证明不行',                group:'goal' },
-    { id:'o_015', text:'害怕被看见、被评判',                  group:'goal' },
-    { id:'o_016', text:'内疚自责：我不该要',                  group:'goal' },
-    { id:'o_017', text:'羞耻感：欲望可耻',                    group:'goal' },
-    { id:'o_018', text:'愤怒怨恨：能量被占用',                group:'goal' },
-    { id:'o_019', text:'受害者意识：都是别人害我',            group:'goal' },
-    { id:'o_020', text:'拯救者情结：先救别人',                group:'goal' },
-
-    { id:'o_021', text:'讨好模式：不敢要求',                  group:'emotion' },
-    { id:'o_022', text:'边界不清：不敢拒绝',                  group:'emotion' },
-    { id:'o_023', text:'外部验证：靠别人认可',                group:'emotion' },
-    { id:'o_024', text:'比较嫉妒：别人有我没有',              group:'emotion' },
-    { id:'o_025', text:'抱怨吐槽：强化缺乏',                  group:'emotion' },
-    { id:'o_026', text:'感恩形式化：嘴上感恩心里不信',        group:'emotion' },
-    { id:'o_027', text:'视觉化太用力：越观想越焦虑',          group:'emotion' },
-    { id:'o_028', text:'感觉强迫：必须一直高兴',              group:'emotion' },
-    { id:'o_029', text:'压情绪装高频',                        group:'emotion' },
-    { id:'o_030', text:'灵性逃避：用光逃避现实',              group:'emotion' },
-    { id:'o_031', text:'高频优越感：我比你高',                group:'emotion' },
-    { id:'o_032', text:'排斥低频：制造分离',                  group:'emotion' },
-    { id:'o_033', text:'回音室：只听同频',                    group:'emotion' },
-    { id:'o_034', text:'否认负面：不面对现实',                group:'emotion' },
-    { id:'o_035', text:'不接地：只飘不做',                    group:'emotion' },
-    { id:'o_036', text:'信息过载：天天看显化',                group:'emotion' },
-    { id:'o_037', text:'目标太多：能量分散',                  group:'emotion' },
-    { id:'o_038', text:'优先级混乱：什么都想要',              group:'emotion' },
-    { id:'o_039', text:'身份不匹配：还是旧的我',              group:'emotion' },
-    { id:'o_040', text:'说一套做一套',                        group:'emotion' },
-
-    { id:'o_041', text:'拖延：等准备好',                      group:'behavior' },
-    { id:'o_042', text:'完美主义：不能出错',                  group:'behavior' },
-    { id:'o_043', text:'害怕承诺：怕锁死',                    group:'behavior' },
-    { id:'o_044', text:'害怕责任：不想承担',                  group:'behavior' },
-    { id:'o_045', text:'害怕自由：不敢选',                    group:'behavior' },
-    { id:'o_046', text:'害怕孤独：抓着关系',                  group:'behavior' },
-    { id:'o_047', text:'害怕亲密：推开爱',                    group:'behavior' },
-    { id:'o_048', text:'害怕冲突：不敢谈边界',                group:'behavior' },
-    { id:'o_049', text:'不敢求助',                            group:'behavior' },
-    { id:'o_050', text:'不接受帮助',                          group:'behavior' },
-    { id:'o_051', text:'拒绝反馈',                            group:'behavior' },
-    { id:'o_052', text:'不记录不复盘',                        group:'behavior' },
-    { id:'o_053', text:'不调整路径',                          group:'behavior' },
-    { id:'o_054', text:'目标不是自己的：父母 / 社会要的',     group:'behavior' },
-    { id:'o_055', text:'目标来自恐惧：为证明自己',            group:'behavior' },
-    { id:'o_056', text:'目标来自匮乏：为填补空洞',            group:'behavior' },
-    { id:'o_057', text:'目标违背价值观',                      group:'behavior' },
-    { id:'o_058', text:'目标太大无拆解',                      group:'behavior' },
-    { id:'o_059', text:'期限不现实',                          group:'behavior' },
-    { id:'o_060', text:'只等时机',                            group:'behavior' },
-
-    { id:'o_061', text:'等别人改变',                          group:'body' },
-    { id:'o_062', text:'把显化当控制别人',                    group:'body' },
-    { id:'o_063', text:'把显化当魔法按钮',                    group:'body' },
-    { id:'o_064', text:'忽略现实步骤',                        group:'body' },
-    { id:'o_065', text:'忽略医疗、法律、财务',                group:'body' },
-    { id:'o_066', text:'睡眠不足',                            group:'body' },
-    { id:'o_067', text:'身体疲惫',                            group:'body' },
-    { id:'o_068', text:'压力过载',                            group:'body' },
-    { id:'o_069', text:'创伤触发',                            group:'body' },
-    { id:'o_070', text:'上瘾分心：短视频 / 游戏',             group:'body' },
-    { id:'o_071', text:'多巴胺刷屏',                          group:'body' },
-    { id:'o_072', text:'酒精 / 药物依赖（需专业帮助）',       group:'body' },
-    { id:'o_073', text:'饮食混乱',                            group:'body' },
-    { id:'o_074', text:'缺乏运动',                            group:'body' },
-    { id:'o_075', text:'不晒太阳、不接地',                    group:'body' },
-    { id:'o_076', text:'空间杂乱',                            group:'body' },
-    { id:'o_077', text:'环境负面：持续被打压',                group:'body' },
-    { id:'o_078', text:'社交圈消耗',                          group:'body' },
-    { id:'o_079', text:'家庭集体信念',                        group:'body' },
-    { id:'o_080', text:'父母期待',                            group:'body' },
-
-    { id:'o_081', text:'同辈压力',                            group:'collective' },
-    { id:'o_082', text:'社会比较',                            group:'collective' },
-    { id:'o_083', text:'算法投喂',                            group:'collective' },
-    { id:'o_084', text:'消费主义：买 = 解决',                 group:'collective' },
-    { id:'o_085', text:'债务焦虑',                            group:'collective' },
-    { id:'o_086', text:'收入天花板信念',                      group:'collective' },
-    { id:'o_087', text:'时间稀缺感',                          group:'collective' },
-    { id:'o_088', text:'竞争信念',                            group:'collective' },
-    { id:'o_089', text:'零和信念：别人得我就少',              group:'collective' },
-    { id:'o_090', text:'必须辛苦才配得',                      group:'collective' },
-    { id:'o_091', text:'钱是脏的、富人不道德',                group:'collective' },
-    { id:'o_092', text:'爱要牺牲、痛苦才是爱',                group:'collective' },
-    { id:'o_093', text:'关系要抓、查岗控制',                  group:'collective' },
-    { id:'o_094', text:'必须完美才被爱',                      group:'collective' },
-    { id:'o_095', text:'不能休息、忙碌成瘾',                  group:'collective' },
-    { id:'o_096', text:'不能自私、必须有用',                  group:'collective' },
-    { id:'o_097', text:'性羞耻、身体羞耻',                    group:'collective' },
-    { id:'o_098', text:'害怕欲望、害怕力量',                  group:'collective' },
-    { id:'o_099', text:'道德内疚、赎罪模式',                  group:'collective' },
-    { id:'o_100', text:'用「频率不够」责怪自己或他人',        group:'collective' }
+    { id:'o_001', text:'目标模糊：不知道要什么', group:'goal' },
+    { id:'o_002', text:'矛盾信念：想要又觉得不可能', group:'goal' },
+    { id:'o_003', text:'不配得感：我不值得', group:'goal' },
+    { id:'o_004', text:'恐惧失去：越想要越抓', group:'goal' },
+    { id:'o_005', text:'反复怀疑：真的会成吗', group:'goal' },
+    { id:'o_006', text:'匮乏聚焦：总看没有什么', group:'goal' },
+    { id:'o_007', text:'只观想不行动', group:'goal' },
+    { id:'o_008', text:'行动焦虑驱动：越做越耗', group:'goal' },
+    { id:'o_009', text:'不允许接收：来了也推开', group:'goal' },
+    { id:'o_010', text:'控制时间方式：必须按我想的', group:'goal' },
+    { id:'o_011', text:'执念抓取：非成不可', group:'goal' },
+    { id:'o_012', text:'自我概念低：我不够好', group:'goal' },
+    { id:'o_013', text:'害怕成功：怕承担后果', group:'goal' },
+    { id:'o_014', text:'害怕失败：怕证明不行', group:'goal' },
+    { id:'o_015', text:'害怕被看见、被评判', group:'goal' },
+    { id:'o_016', text:'内疚自责：我不该要', group:'goal' },
+    { id:'o_017', text:'羞耻感：欲望可耻', group:'goal' },
+    { id:'o_018', text:'愤怒怨恨：能量被占用', group:'goal' },
+    { id:'o_019', text:'受害者意识：都是别人害我', group:'goal' },
+    { id:'o_020', text:'拯救者情结：先救别人', group:'goal' },
+    { id:'o_021', text:'讨好模式：不敢要求', group:'emotion' },
+    { id:'o_022', text:'边界不清：不敢拒绝', group:'emotion' },
+    { id:'o_023', text:'外部验证：靠别人认可', group:'emotion' },
+    { id:'o_024', text:'比较嫉妒：别人有我没有', group:'emotion' },
+    { id:'o_025', text:'抱怨吐槽：强化缺乏', group:'emotion' },
+    { id:'o_026', text:'感恩形式化：嘴上感恩心里不信', group:'emotion' },
+    { id:'o_027', text:'视觉化太用力：越观想越焦虑', group:'emotion' },
+    { id:'o_028', text:'感觉强迫：必须一直高兴', group:'emotion' },
+    { id:'o_029', text:'压情绪装高频', group:'emotion' },
+    { id:'o_030', text:'灵性逃避：用光逃避现实', group:'emotion' },
+    { id:'o_031', text:'高频优越感：我比你高', group:'emotion' },
+    { id:'o_032', text:'排斥低频：制造分离', group:'emotion' },
+    { id:'o_033', text:'回音室：只听同频', group:'emotion' },
+    { id:'o_034', text:'否认负面：不面对现实', group:'emotion' },
+    { id:'o_035', text:'不接地：只飘不做', group:'emotion' },
+    { id:'o_036', text:'信息过载：天天看显化', group:'emotion' },
+    { id:'o_037', text:'目标太多：能量分散', group:'emotion' },
+    { id:'o_038', text:'优先级混乱：什么都想要', group:'emotion' },
+    { id:'o_039', text:'身份不匹配：还是旧的我', group:'emotion' },
+    { id:'o_040', text:'说一套做一套', group:'emotion' },
+    { id:'o_041', text:'拖延：等准备好', group:'behavior' },
+    { id:'o_042', text:'完美主义：不能出错', group:'behavior' },
+    { id:'o_043', text:'害怕承诺：怕锁死', group:'behavior' },
+    { id:'o_044', text:'害怕责任：不想承担', group:'behavior' },
+    { id:'o_045', text:'害怕自由：不敢选', group:'behavior' },
+    { id:'o_046', text:'害怕孤独：抓着关系', group:'behavior' },
+    { id:'o_047', text:'害怕亲密：推开爱', group:'behavior' },
+    { id:'o_048', text:'害怕冲突：不敢谈边界', group:'behavior' },
+    { id:'o_049', text:'不敢求助', group:'behavior' },
+    { id:'o_050', text:'不接受帮助', group:'behavior' },
+    { id:'o_051', text:'拒绝反馈', group:'behavior' },
+    { id:'o_052', text:'不记录不复盘', group:'behavior' },
+    { id:'o_053', text:'不调整路径', group:'behavior' },
+    { id:'o_054', text:'目标不是自己的：父母 / 社会要的', group:'behavior' },
+    { id:'o_055', text:'目标来自恐惧：为证明自己', group:'behavior' },
+    { id:'o_056', text:'目标来自匮乏：为填补空洞', group:'behavior' },
+    { id:'o_057', text:'目标违背价值观', group:'behavior' },
+    { id:'o_058', text:'目标太大无拆解', group:'behavior' },
+    { id:'o_059', text:'期限不现实', group:'behavior' },
+    { id:'o_060', text:'只等时机', group:'behavior' },
+    { id:'o_061', text:'等别人改变', group:'body' },
+    { id:'o_062', text:'把显化当控制别人', group:'body' },
+    { id:'o_063', text:'把显化当魔法按钮', group:'body' },
+    { id:'o_064', text:'忽略现实步骤', group:'body' },
+    { id:'o_065', text:'忽略医疗、法律、财务', group:'body' },
+    { id:'o_066', text:'睡眠不足', group:'body' },
+    { id:'o_067', text:'身体疲惫', group:'body' },
+    { id:'o_068', text:'压力过载', group:'body' },
+    { id:'o_069', text:'创伤触发', group:'body' },
+    { id:'o_070', text:'上瘾分心：短视频 / 游戏', group:'body' },
+    { id:'o_071', text:'多巴胺刷屏', group:'body' },
+    { id:'o_072', text:'酒精 / 药物依赖（需专业帮助）', group:'body' },
+    { id:'o_073', text:'饮食混乱', group:'body' },
+    { id:'o_074', text:'缺乏运动', group:'body' },
+    { id:'o_075', text:'不晒太阳、不接地', group:'body' },
+    { id:'o_076', text:'空间杂乱', group:'body' },
+    { id:'o_077', text:'环境负面：持续被打压', group:'body' },
+    { id:'o_078', text:'社交圈消耗', group:'body' },
+    { id:'o_079', text:'家庭集体信念', group:'body' },
+    { id:'o_080', text:'父母期待', group:'body' },
+    { id:'o_081', text:'同辈压力', group:'collective' },
+    { id:'o_082', text:'社会比较', group:'collective' },
+    { id:'o_083', text:'算法投喂', group:'collective' },
+    { id:'o_084', text:'消费主义：买 = 解决', group:'collective' },
+    { id:'o_085', text:'债务焦虑', group:'collective' },
+    { id:'o_086', text:'收入天花板信念', group:'collective' },
+    { id:'o_087', text:'时间稀缺感', group:'collective' },
+    { id:'o_088', text:'竞争信念', group:'collective' },
+    { id:'o_089', text:'零和信念：别人得我就少', group:'collective' },
+    { id:'o_090', text:'必须辛苦才配得', group:'collective' },
+    { id:'o_091', text:'钱是脏的、富人不道德', group:'collective' },
+    { id:'o_092', text:'爱要牺牲、痛苦才是爱', group:'collective' },
+    { id:'o_093', text:'关系要抓、查岗控制', group:'collective' },
+    { id:'o_094', text:'必须完美才被爱', group:'collective' },
+    { id:'o_095', text:'不能休息、忙碌成瘾', group:'collective' },
+    { id:'o_096', text:'不能自私、必须有用', group:'collective' },
+    { id:'o_097', text:'性羞耻、身体羞耻', group:'collective' },
+    { id:'o_098', text:'害怕欲望、害怕力量', group:'collective' },
+    { id:'o_099', text:'道德内疚、赎罪模式', group:'collective' },
+    { id:'o_100', text:'用「频率不够」责怪自己或他人', group:'collective' }
   ];
 
-  /* ============================================================
-     完全随机（情绪池）
-     ============================================================ */
+  /* ===== 情绪池 ===== */
   const ALL_EMOTIONS = [];
   TIERS.high.forEach(e => ALL_EMOTIONS.push(Object.assign({ tier:'high' }, e)));
   TIERS.mid.forEach(e => ALL_EMOTIONS.push(Object.assign({ tier:'mid' }, e)));
@@ -201,16 +186,16 @@
   function calcUserEnergy() { const e = pickRandomEnergy(); console.log('[tuning] 你 →', TIER_NAMES[e.tier], e.name); return e; }
   function calcMuseEnergy() { const e = pickRandomEnergy(); console.log('[tuning] 他 →', TIER_NAMES[e.tier], e.name); return e; }
 
-  /* ============================================================
-     存储
-     ============================================================ */
-  const HISTORY_KEY   = 'jingyan.tuning.history.v1';
-  const MANIFEST_KEY  = 'jingyan.manifest.v1';
-  const LAST_KEY      = 'jingyan.tuning.last.v1';
-  const OBSTACLE_KEY  = 'jingyan.tuning.obstacles.v1';
-  const MIRROR_LOG_KEY= 'jingyan.tuning.mirrorLog.v1';
-  const HISTORY_MAX   = 5;
-  const MIRROR_LOG_MAX= 200;
+  /* ===== 存储 ===== */
+  const HISTORY_KEY = 'jingyan.tuning.history.v1';
+  const MANIFEST_KEY = 'jingyan.manifest.v1';
+  const LAST_KEY = 'jingyan.tuning.last.v1';
+  const OBSTACLE_KEY = 'jingyan.tuning.obstacles.v1';
+  const MIRROR_LOG_KEY = 'jingyan.tuning.mirrorLog.v1';
+  const SECRET_KEY = 'jingyan.tuning.secretBoard.v1';
+  const HISTORY_MAX = 5;
+  const MIRROR_LOG_MAX = 200;
+  const SECRET_MAX = 100;
 
   function readJSON(k, fb) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch (e) { return fb; } }
   function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -228,7 +213,6 @@
     return { custom: Array.isArray(d.custom)?d.custom:[], hidden: Array.isArray(d.hidden)?d.hidden:[] };
   }
   function saveObstacleState(s) { writeJSON(OBSTACLE_KEY, { custom:s.custom, hidden:s.hidden }); }
-
   function getActiveObstacles() {
     const s = loadObstacleState();
     const hiddenSet = new Set(s.hidden);
@@ -237,7 +221,6 @@
     return builtins.concat(customs);
   }
 
-  /* 照见记录 */
   function loadMirrorLog() {
     const d = readJSON(MIRROR_LOG_KEY, { records: [] });
     const list = d && Array.isArray(d.records) ? d.records : [];
@@ -252,23 +235,21 @@
       existing.lastSeenAt = now;
       existing.times = (Number(existing.times) || 1) + 1;
     } else {
-      log.unshift({
-        id: 'r_' + now.toString(36) + '_' + Math.random().toString(36).slice(2, 6),
-        obstacleId: obstacle.id,
-        text: obstacle.text,
-        group: obstacle.group,
-        firstSeenAt: now,
-        lastSeenAt: now,
-        times: 1
-      });
+      log.unshift({ id:'r_' + now.toString(36) + '_' + Math.random().toString(36).slice(2,6),
+        obstacleId: obstacle.id, text: obstacle.text, group: obstacle.group,
+        firstSeenAt: now, lastSeenAt: now, times: 1 });
     }
-    /* 保持最多 200 条，按 lastSeenAt 降序 */
     log.sort((a, b) => b.lastSeenAt - a.lastSeenAt);
     saveMirrorLog(log);
   }
-  function removeMirrorLog(id) {
-    saveMirrorLog(loadMirrorLog().filter(r => r.id !== id));
+  function removeMirrorLog(id) { saveMirrorLog(loadMirrorLog().filter(r => r.id !== id)); }
+
+  /* 秘密留言 */
+  function loadSecretMessages() {
+    const d = readJSON(SECRET_KEY, { messages: [] });
+    return Array.isArray(d.messages) ? d.messages : [];
   }
+  function saveSecretMessages(list) { writeJSON(SECRET_KEY, { messages: list.slice(0, SECRET_MAX) }); }
 
   function timeAgo(ts) {
     const diff = Date.now() - ts;
@@ -291,19 +272,16 @@
     if (ds === yesterday) return '昨天 ' + timeStr;
     return (d.getMonth()+1) + '月' + d.getDate() + '日 ' + timeStr;
   }
-
-  /* 简单 toast */
   function showToast(text) {
-    const root = document.getElementById('toastRoot');
-    if (!root) {
-      const r = document.createElement('div');
-      r.id = 'toastRoot';
-      r.className = 'toast-root';
-      r.setAttribute('role', 'status');
-      r.setAttribute('aria-live', 'polite');
-      document.body.appendChild(r);
+    let rootEl = document.getElementById('toastRoot');
+    if (!rootEl) {
+      rootEl = document.createElement('div');
+      rootEl.id = 'toastRoot';
+      rootEl.className = 'toast-root';
+      rootEl.setAttribute('role', 'status');
+      rootEl.setAttribute('aria-live', 'polite');
+      document.body.appendChild(rootEl);
     }
-    const rootEl = document.getElementById('toastRoot');
     const item = document.createElement('div');
     item.className = 'toast';
     item.textContent = text;
@@ -314,86 +292,64 @@
     }, 2400);
   }
 
-  /* ============================================================
-     显化理论
-     ============================================================ */
+  /* ===== 显化理论 ===== */
   const MANIFEST_THEORY = [
-    {
-      title:'核心奥义',
-      blocks:[
-        { type:'quote', text:'“你生命中所发生的一切都是你吸引来的；你持续聚焦并强烈感觉到的思想，会吸引同类现实进入你的生命——所以坚定地要求你想要的、相信它已经成为你的、以已经拥有的感觉和感恩去接收。”' },
-        { type:'paragraph', text:'对应《秘密》的三步骤：要求 — 相信 — 接收。' }
-      ]
-    },
-    {
-      title:'显化公式',
-      blocks:[
-        { type:'formula', text:'清晰意图 + 状态调频 + 信念清理 + 对齐行动 + 允许接收 + 现实条件 / 时间' },
-        { type:'paragraph', text:'“频率”主要影响：注意力焦点 / 行为质量 / 关系场 / 阻力大小 / 承接能力。' }
-      ]
-    },
-    {
-      title:'高频对显化的帮助',
-      blocks:[
-        { type:'list', items:[
-          '减少内耗，行动更清晰',
-          '提高觉察，容易识别匹配机会',
-          '改善关系场，增加合作与支持',
-          '增强配得感和允许接收',
-          '降低抓取和控制，反而减少阻力',
-          '高频后的落地行动更容易持续'
-        ] }
-      ]
-    },
-    {
-      title:'低频不是「不能显化」',
-      blocks:[
-        { type:'paragraph', text:'低频是信号，不是坏东西。但容易：' },
-        { type:'list', items:[
-          '注意力窄化，只看到匮乏和危险',
-          '行为被恐惧 / 愤怒 / 羞耻驱动，容易抓取、控制、逃避',
-          '发出矛盾信号：「我想要，但我不配 / 我不信 / 我怕失去」',
-          '显化出短暂结果后又自我破坏',
-          '把「调频」变成压情绪，形成更大阻力'
-        ] },
-        { type:'paragraph', text:'压抑低频装高频，通常比诚实觉察更阻碍显化。' }
-      ]
-    },
-    {
-      title:'高频 ≠ 亢奋 ≠ 永远积极',
-      blocks:[
-        { type:'paragraph', text:'真正有利于显化的高频，常表现为：' },
-        { type:'list', items:[
-          '身体松、呼吸稳',
-          '边界清，不拯救不控制',
-          '意图清晰，但不过度执着',
-          '能允许不确定',
-          '有爱，也有分辨',
-          '调频后能落地行动'
-        ] },
-        { type:'paragraph', text:'「天天粉光观想、拒绝负面情绪」——这更像灵性 bypass，不是稳定高频。' }
-      ]
-    },
-    {
-      title:'显化中最常见的阻力',
-      blocks:[
-        { type:'list', items:[
-          '不配得感：想要，但觉得自己不够好',
-          '恐惧失去：越想要越抓取',
-          '矛盾信念：嘴上想要，心里觉得不可能',
-          '羞耻 / 内疚：觉得自己不配拥有',
-          '控制欲：必须按我想要的时间方式发生',
-          '拯救者 / 受害者模式：把显化当成别人改变',
-          '只调频不行动：观想很多，现实步骤很少',
-          '只行动不调频：焦虑驱动，越做越耗'
-        ] }
-      ]
-    }
+    { title:'核心奥义', blocks:[
+      { type:'quote', text:'“你生命中所发生的一切都是你吸引来的；你持续聚焦并强烈感觉到的思想，会吸引同类现实进入你的生命——所以坚定地要求你想要的、相信它已经成为你的、以已经拥有的感觉和感恩去接收。”' },
+      { type:'paragraph', text:'对应《秘密》的三步骤：要求 — 相信 — 接收。' }
+    ] },
+    { title:'显化公式', blocks:[
+      { type:'formula', text:'清晰意图 + 状态调频 + 信念清理 + 对齐行动 + 允许接收 + 现实条件 / 时间' },
+      { type:'paragraph', text:'“频率”主要影响：注意力焦点 / 行为质量 / 关系场 / 阻力大小 / 承接能力。' }
+    ] },
+    { title:'高频对显化的帮助', blocks:[
+      { type:'list', items:[
+        '减少内耗，行动更清晰',
+        '提高觉察，容易识别匹配机会',
+        '改善关系场，增加合作与支持',
+        '增强配得感和允许接收',
+        '降低抓取和控制，反而减少阻力',
+        '高频后的落地行动更容易持续'
+      ] }
+    ] },
+    { title:'低频不是「不能显化」', blocks:[
+      { type:'paragraph', text:'低频是信号，不是坏东西。但容易：' },
+      { type:'list', items:[
+        '注意力窄化，只看到匮乏和危险',
+        '行为被恐惧 / 愤怒 / 羞耻驱动，容易抓取、控制、逃避',
+        '发出矛盾信号：「我想要，但我不配 / 我不信 / 我怕失去」',
+        '显化出短暂结果后又自我破坏',
+        '把「调频」变成压情绪，形成更大阻力'
+      ] },
+      { type:'paragraph', text:'压抑低频装高频，通常比诚实觉察更阻碍显化。' }
+    ] },
+    { title:'高频 ≠ 亢奋 ≠ 永远积极', blocks:[
+      { type:'paragraph', text:'真正有利于显化的高频，常表现为：' },
+      { type:'list', items:[
+        '身体松、呼吸稳',
+        '边界清，不拯救不控制',
+        '意图清晰，但不过度执着',
+        '能允许不确定',
+        '有爱，也有分辨',
+        '调频后能落地行动'
+      ] },
+      { type:'paragraph', text:'「天天粉光观想、拒绝负面情绪」——这更像灵性 bypass，不是稳定高频。' }
+    ] },
+    { title:'显化中最常见的阻力', blocks:[
+      { type:'list', items:[
+        '不配得感：想要，但觉得自己不够好',
+        '恐惧失去：越想要越抓取',
+        '矛盾信念：嘴上想要，心里觉得不可能',
+        '羞耻 / 内疚：觉得自己不配拥有',
+        '控制欲：必须按我想要的时间方式发生',
+        '拯救者 / 受害者模式：把显化当成别人改变',
+        '只调频不行动：观想很多，现实步骤很少',
+        '只行动不调频：焦虑驱动，越做越耗'
+      ] }
+    ] }
   ];
 
-  /* ============================================================
-     CSS
-     ============================================================ */
+  /* ===== CSS ===== */
   function injectCSS() {
     if (document.getElementById('tuningStyle')) return;
     const style = document.createElement('style');
@@ -414,7 +370,7 @@
 .tuning-scroll::-webkit-scrollbar-thumb { border-radius:999px; background:rgba(var(--accent-rgb,181,111,107),.22); }
 .tuning-scroll[hidden] { display:none !important; }
 
-/* ====== 调频 ====== */
+/* 调频 */
 .tuning-stage { display:flex; flex-direction:column; align-items:center; padding:12px 0 6px; gap:14px; }
 .tuning-totem { width:min(260px,68vw); height:min(260px,68vw); padding:0; border:none; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .22s,filter .22s; display:block; }
 .tuning-totem:hover { transform:scale(1.02); filter:brightness(1.08); }
@@ -589,7 +545,7 @@
 .theory-list li { margin:4px 0; line-height:1.8; }
 .theory-formula { margin:10px 0; padding:12px 14px; border-radius:8px; background:rgba(var(--gold-rgb,185,154,114),.06); border:1px solid rgba(var(--gold-rgb,185,154,114),.18); color:#e0d2c4; font-family:var(--font-serif,serif); font-size:12px; letter-spacing:.04em; text-align:center; line-height:1.9; }
 
-/* ====== 照镜子 ====== */
+/* ===== 照镜子 ===== */
 .mirror-stage { display:flex; flex-direction:column; align-items:center; padding:16px 0 8px; gap:16px; }
 .mirror-btn { position:relative; width:min(240px,62vw); aspect-ratio:77/100; padding:0; border:none; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .25s,filter .25s; display:block; }
 .mirror-btn:hover { transform:translateY(-2px); filter:brightness(1.06); }
@@ -607,18 +563,7 @@
 
 .mirror-result { margin-top:6px; animation:tuningCardIn .55s cubic-bezier(.2,.8,.3,1) both; }
 .mirror-result[hidden] { display:none !important; }
-.mirror-result-card {
-  padding:22px 20px 20px;
-  border:1px solid rgba(var(--gold-rgb,185,154,114),.3);
-  border-radius:16px;
-  background:
-    radial-gradient(120% 100% at 50% 0%,rgba(var(--gold-rgb,185,154,114),.1),transparent 62%),
-    radial-gradient(100% 100% at 50% 100%,rgba(var(--accent-rgb,181,111,107),.08),transparent 62%),
-    linear-gradient(170deg,rgba(36,14,17,.75),rgba(12,4,6,.85));
-  box-shadow:0 20px 50px -30px #000,inset 0 1px 0 rgba(255,230,220,.05);
-  text-align:center;
-  position:relative;
-}
+.mirror-result-card { padding:22px 20px 20px; border:1px solid rgba(var(--gold-rgb,185,154,114),.3); border-radius:16px; background:radial-gradient(120% 100% at 50% 0%,rgba(var(--gold-rgb,185,154,114),.1),transparent 62%),radial-gradient(100% 100% at 50% 100%,rgba(var(--accent-rgb,181,111,107),.08),transparent 62%),linear-gradient(170deg,rgba(36,14,17,.75),rgba(12,4,6,.85)); box-shadow:0 20px 50px -30px #000,inset 0 1px 0 rgba(255,230,220,.05); text-align:center; position:relative; }
 .mirror-result-card::before { content:""; position:absolute; inset:7px; border:1px solid rgba(var(--gold-rgb,185,154,114),.15); border-radius:10px; pointer-events:none; }
 .mirror-result-group { display:inline-block; padding:3px 12px; margin-bottom:14px; border-radius:999px; border:1px solid rgba(var(--gold-rgb,185,154,114),.35); background:rgba(var(--gold-rgb,185,154,114),.06); color:rgba(var(--gold-rgb,185,154,114),.85); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; }
 .mirror-result-eyebrow { display:block; color:rgba(var(--gold-rgb,185,154,114),.55); font-size:9px; letter-spacing:.32em; margin-bottom:14px; }
@@ -629,23 +574,13 @@
 .mirror-result-btn:hover { background:rgba(var(--gold-rgb,185,154,114),.14); color:#f5e8c0; border-color:rgba(var(--gold-rgb,185,154,114),.6); }
 .mirror-result-btn.primary { background:linear-gradient(145deg,rgba(var(--accent-rgb,181,111,107),.75),rgba(var(--accent-2-rgb,124,48,53),.75)); color:#f5e8c0; border-color:rgba(var(--gold-rgb,185,154,114),.5); }
 
-/* ====== 照见记录 ====== */
 .mirror-log { margin-top:24px; padding-top:20px; border-top:1px dashed rgba(var(--gold-rgb,185,154,114),.18); }
 .mirror-log-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:6px; }
 .mirror-log-title { color:rgba(var(--gold-rgb,185,154,114),.72); font-family:var(--font-serif,serif); font-size:12px; letter-spacing:.24em; }
 .mirror-log-count { color:var(--muted-2,#7d625e); font-size:9.5px; letter-spacing:.06em; }
 .mirror-log-list { display:flex; flex-direction:column; gap:8px; }
 .mirror-log-empty { padding:22px 16px; text-align:center; color:var(--muted-2,#7d625e); font-size:11px; font-style:italic; line-height:1.8; }
-.mirror-log-item {
-  padding:12px 14px 11px;
-  border:1px solid rgba(var(--gold-rgb,185,154,114),.16);
-  border-radius:10px;
-  background:
-    radial-gradient(120% 100% at 0% 0%,rgba(var(--gold-rgb,185,154,114),.04),transparent 62%),
-    rgba(255,255,255,.012);
-  animation:tuningCardIn .4s ease both;
-  transition:border-color .2s;
-}
+.mirror-log-item { padding:12px 14px 11px; border:1px solid rgba(var(--gold-rgb,185,154,114),.16); border-radius:10px; background:radial-gradient(120% 100% at 0% 0%,rgba(var(--gold-rgb,185,154,114),.04),transparent 62%),rgba(255,255,255,.012); animation:tuningCardIn .4s ease both; transition:border-color .2s; }
 .mirror-log-item:hover { border-color:rgba(var(--gold-rgb,185,154,114),.32); }
 .mirror-log-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:6px; }
 .mirror-log-date { color:rgba(var(--gold-rgb,185,154,114),.5); font-size:9.5px; letter-spacing:.06em; }
@@ -656,7 +591,6 @@
 .mirror-log-win { padding:5px 12px; border:1px solid rgba(140,190,120,.4); border-radius:999px; background:rgba(80,140,80,.08); color:#b7d7a8; font-family:var(--font-serif,serif); font-size:10.5px; letter-spacing:.08em; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:all .18s; }
 .mirror-log-win:hover { background:rgba(80,140,80,.18); border-color:rgba(140,190,120,.65); color:#d8e8d0; }
 
-/* ====== 阻碍池 ====== */
 .mirror-pool { margin-top:24px; padding-top:20px; border-top:1px dashed rgba(var(--gold-rgb,185,154,114),.18); }
 .mirror-pool-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
 .mirror-pool-title { color:rgba(var(--gold-rgb,185,154,114),.7); font-family:var(--font-serif,serif); font-size:12px; letter-spacing:.24em; }
@@ -683,6 +617,179 @@
 .mirror-group-empty { padding:10px; color:var(--muted-2,#7d625e); font-size:10.5px; font-style:italic; text-align:center; }
 .mirror-reset-btn { display:block; margin:10px auto 0; padding:7px 16px; border:1px dashed rgba(var(--gold-rgb,185,154,114),.3); border-radius:999px; background:transparent; color:rgba(var(--gold-rgb,185,154,114),.6); font-size:10.5px; letter-spacing:.08em; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:all .18s; }
 .mirror-reset-btn:hover { border-style:solid; color:#d9c8a8; background:rgba(var(--gold-rgb,185,154,114),.06); }
+
+/* ===== 秘密留言板 ===== */
+.secret-board { padding-top:4px; }
+.secret-lead { text-align:center; margin-bottom:20px; padding:0 8px; }
+.secret-lead-eyebrow { display:block; color:rgba(var(--gold-rgb,185,154,114),.5); font-size:9px; letter-spacing:.34em; margin-bottom:12px; text-transform:uppercase; }
+.secret-lead-title { margin:0 0 10px; font-family:var(--font-serif,serif); font-size:clamp(20px,5.5vw,24px); font-weight:500; letter-spacing:.32em; text-indent:.32em; color:#f5e8c0; text-shadow:0 0 24px rgba(var(--gold-rgb,185,154,114),.4); }
+.secret-lead-sub { margin:0; color:var(--muted,#b09993); font-family:var(--font-serif,serif); font-size:12px; line-height:1.9; letter-spacing:.03em; font-style:italic; }
+
+/* 输入区 */
+.secret-compose {
+  position:relative;
+  margin-bottom:22px;
+  padding:16px 16px 12px;
+  border-radius:14px;
+  background:linear-gradient(160deg,#f8efdc,#e8dcc4);
+  box-shadow:0 12px 30px -18px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.6);
+  transform:rotate(-.4deg);
+}
+.secret-compose::before {
+  content:"";
+  position:absolute; top:0; left:16px; right:16px; height:3px;
+  border-radius:0 0 4px 4px;
+  background:linear-gradient(90deg,transparent,rgba(181,111,107,.6),transparent);
+}
+.secret-input {
+  width:100%;
+  min-height:92px;
+  padding:10px 12px;
+  border:none;
+  border-radius:8px;
+  background:rgba(255,255,255,.55);
+  color:#3a2018;
+  font-family:var(--font-serif,serif);
+  font-size:13.5px;
+  line-height:1.85;
+  letter-spacing:.02em;
+  resize:vertical;
+  outline:none;
+  box-sizing:border-box;
+  transition:background .2s,box-shadow .2s;
+}
+.secret-input:focus { background:rgba(255,255,255,.75); box-shadow:0 0 0 2px rgba(181,111,107,.25); }
+.secret-input::placeholder { color:rgba(90,60,50,.5); font-style:italic; }
+.secret-compose-foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; }
+.secret-compose-hint { font-size:10px; color:rgba(90,60,50,.55); font-style:italic; flex:1; line-height:1.5; }
+.secret-send {
+  padding:8px 18px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(145deg,#b56f6b,#7c3035);
+  color:#fff;
+  font-family:var(--font-serif,serif);
+  font-size:12px;
+  letter-spacing:.12em;
+  cursor:pointer;
+  box-shadow:0 4px 12px -4px rgba(124,48,53,.7);
+  transition:all .18s;
+  flex:none;
+}
+.secret-send:hover { filter:brightness(1.1); }
+.secret-send:active { transform:scale(.96); }
+.secret-send:disabled { opacity:.5; cursor:default; }
+
+/* 留言便利贴 */
+.secret-list { display:flex; flex-direction:column; gap:14px; }
+.secret-empty { text-align:center; padding:36px 16px; color:var(--muted-2,#7d625e); }
+.secret-empty-icon { font-size:32px; opacity:.35; margin-bottom:12px; }
+.secret-empty-text { font-size:12px; line-height:1.9; font-style:italic; }
+
+.secret-note {
+  position:relative;
+  padding:16px 16px 14px;
+  border-radius:12px;
+  box-shadow:0 10px 26px -18px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.5);
+  color:#3a2018;
+  animation:secretNoteIn .5s cubic-bezier(.2,.8,.3,1) both;
+  transition:transform .2s,opacity .2s;
+}
+@keyframes secretNoteIn { from { opacity:0; transform:translateY(8px) scale(.97); } to { opacity:1; transform:none; } }
+.secret-note::before {
+  content:""; position:absolute; top:0; left:14px; right:14px; height:3px;
+  border-radius:0 0 4px 4px; background:var(--note-bar,rgba(181,111,107,.5));
+}
+.secret-note[data-color="0"] { background:linear-gradient(160deg,#f8efdc,#e8dcc4); --note-bar:rgba(181,111,107,.55); }
+.secret-note[data-color="1"] { background:linear-gradient(160deg,#f5e8e0,#e8d4cc); --note-bar:rgba(196,138,154,.55); }
+.secret-note[data-color="2"] { background:linear-gradient(160deg,#f0ecd8,#ddd4bc); --note-bar:rgba(201,184,120,.55); }
+.secret-note[data-color="3"] { background:linear-gradient(160deg,#f3ede4,#dcd3c6); --note-bar:rgba(185,154,114,.55); }
+.secret-note[data-color="4"] { background:linear-gradient(160deg,#f7e6e0,#e3ccc4); --note-bar:rgba(209,124,119,.55); }
+.secret-note:nth-child(3n+1) { transform:rotate(-.35deg); }
+.secret-note:nth-child(3n+2) { transform:rotate(.25deg); }
+.secret-note:nth-child(3n+3) { transform:rotate(-.15deg); }
+.secret-note.unread::after {
+  content:""; position:absolute; top:12px; right:12px;
+  width:8px; height:8px; border-radius:50%;
+  background:#d8443a; box-shadow:0 0 8px rgba(216,68,58,.7);
+  animation:secretPulse 2s ease-in-out infinite;
+}
+@keyframes secretPulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.3); opacity:.7; } }
+.secret-note-text {
+  margin:0 0 10px;
+  font-family:var(--font-serif,serif);
+  font-size:13.5px;
+  line-height:1.9;
+  letter-spacing:.02em;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.secret-note-foot {
+  display:flex; justify-content:space-between; align-items:center; gap:8px;
+  padding-top:8px; border-top:1px dashed rgba(90,60,50,.18);
+}
+.secret-note-time { font-size:9.5px; color:rgba(90,60,50,.55); letter-spacing:.06em; }
+.secret-note-status {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:2px 9px; border-radius:999px;
+  font-size:9.5px; letter-spacing:.04em; border:1px solid;
+}
+.secret-note-status.read { color:#4a7040; border-color:rgba(140,190,120,.55); background:rgba(140,190,120,.16); }
+.secret-note-status.unread { color:#a0494a; border-color:rgba(181,111,107,.5); background:rgba(181,111,107,.12); }
+.secret-note-del {
+  padding:2px 7px; border:none; background:transparent;
+  color:rgba(90,60,50,.4); font-size:10px; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; transition:color .18s;
+}
+.secret-note-del:hover { color:#a0494a; }
+.secret-note-actions { display:flex; align-items:center; gap:6px; }
+
+/* 梦角回复 */
+.secret-replies {
+  margin-top:12px; padding-top:12px;
+  border-top:1px dashed rgba(90,60,50,.2);
+  display:flex; flex-direction:column; gap:8px;
+}
+.secret-replies-eyebrow {
+  font-size:9px; color:rgba(90,60,50,.55);
+  letter-spacing:.24em; font-style:italic;
+  margin-bottom:2px;
+}
+.secret-reply {
+  position:relative;
+  padding:10px 14px 10px 16px;
+  border-left:3px solid rgba(181,111,107,.55);
+  border-radius:0 10px 10px 0;
+  background:rgba(255,255,255,.55);
+  box-shadow:0 4px 12px -10px rgba(0,0,0,.4);
+  font-family:var(--font-serif,serif);
+  font-size:12.5px;
+  line-height:1.85;
+  color:#3a2018;
+  letter-spacing:.02em;
+  overflow-wrap:anywhere;
+  animation:secretReplyIn .45s cubic-bezier(.2,.8,.3,1) both;
+}
+.secret-reply:nth-child(2) { animation-delay:.08s; }
+.secret-reply:nth-child(3) { animation-delay:.16s; }
+.secret-reply:nth-child(4) { animation-delay:.24s; }
+.secret-reply:nth-child(5) { animation-delay:.32s; }
+.secret-reply:nth-child(6) { animation-delay:.40s; }
+@keyframes secretReplyIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:none; } }
+
+.secret-waiting {
+  margin-top:10px; padding-top:10px;
+  border-top:1px dashed rgba(90,60,50,.18);
+  font-size:11px; color:rgba(90,60,50,.6);
+  font-style:italic; text-align:center;
+}
+.secret-waiting::after {
+  content:"...";
+  animation:secretDots 1.4s steps(4,end) infinite;
+  display:inline-block; width:1.2em; text-align:left;
+  vertical-align:bottom;
+}
+@keyframes secretDots { 0% { opacity:.3; } 50% { opacity:1; } 100% { opacity:.3; } }
 
 /* Toast */
 .toast-root { position:fixed; bottom:calc(24px + env(safe-area-inset-bottom)); left:50%; z-index:100; display:flex; flex-direction:column; align-items:center; gap:8px; transform:translateX(-50%); pointer-events:none; }
@@ -723,6 +830,12 @@
   .mirror-result-text { font-size:16px; }
   .mirror-group-item { font-size:10.5px; }
   .mirror-log-item { padding:10px 12px 10px; }
+  .secret-compose { padding:14px 14px 10px; }
+  .secret-input { font-size:13px; min-height:80px; }
+  .secret-note { padding:14px 14px 12px; }
+  .secret-note-text { font-size:13px; }
+  .secret-reply { font-size:12px; padding:9px 12px 9px 14px; }
+  .secret-lead-title { font-size:19px; }
 }
 html[data-mobile-fit="1"] .view-tuning.active { border:none !important; border-radius:0 !important; box-shadow:none !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; max-width:100% !important; width:100% !important; height:100% !important; margin:0 !important; }
 html[data-mobile-fit="1"] .tuning-tabs { padding-left:12px; }
@@ -734,9 +847,7 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     console.log('[tuning] CSS 已注入');
   }
 
-  /* ============================================================
-     能量卡 & 反馈
-     ============================================================ */
+  /* ===== 能量卡等 ===== */
   function buildEnergyCard(who, energy) {
     const card = document.createElement('div');
     card.className = 'tuning-energy-card';
@@ -752,17 +863,14 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     card.appendChild(label); card.appendChild(dot); card.appendChild(name); card.appendChild(tier); card.appendChild(desc);
     return card;
   }
-
   function buildGapHint(userE, museE) {
     const gap = Math.abs(TIER_RANK[userE.tier] - TIER_RANK[museE.tier]);
     let text = '', cls = 'gap-mid';
     if (gap === 0) { text = userE.tier === 'high' ? '你们在同频共振，镜面很亮。' : '你们的频率相近，能听见彼此。'; cls = 'gap-good'; }
     else if (gap === 1) { text = '有一点点错位——不过，还够得着。'; cls = 'gap-mid'; }
     else { if (userE.tier === 'low') text = '你在低频，他在高频——他还在等你抬头。'; else if (museE.tier === 'low') text = '他在低频——也许需要你伸出手。'; else text = '你们的频率隔得有点远。'; cls = 'gap-far'; }
-    const hint = document.createElement('p'); hint.className = 'tuning-gap ' + cls; hint.textContent = text;
-    return hint;
+    const h = document.createElement('p'); h.className = 'tuning-gap ' + cls; h.textContent = text; return h;
   }
-
   function buildSuggestion(userE, museE) {
     const map = {
       'mid-high': '他在稍上面一层。试着靠近一点——或者，就安静地站着，他会下来。',
@@ -774,47 +882,41 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     const box = document.createElement('div'); box.className = 'tuning-suggestion';
     const label = document.createElement('span'); label.className = 'tuning-suggestion-label'; label.textContent = '一点建议';
     const p = document.createElement('p'); p.className = 'tuning-suggestion-text'; p.textContent = text;
-    box.appendChild(label); box.appendChild(p);
-    return box;
+    box.appendChild(label); box.appendChild(p); return box;
   }
-
   function buildActionBox(userE) {
-    const advice = ADVICE[userE.key];
-    const stable = STABLE_ADVICE[userE.tier];
+    const advice = ADVICE[userE.key]; const stable = STABLE_ADVICE[userE.tier];
     const box = document.createElement('div'); box.className = 'tuning-action';
     const label = document.createElement('div'); label.className = 'tuning-action-label'; label.textContent = '此刻，你可以试试';
     box.appendChild(label);
     if (advice) {
       const steps = document.createElement('div'); steps.className = 'tuning-action-steps';
-      const first = document.createElement('div'); first.className = 'tuning-action-step';
-      const firstNum = document.createElement('span'); firstNum.className = 'tuning-action-num'; firstNum.textContent = '先';
-      const firstText = document.createElement('span'); firstText.className = 'tuning-action-text'; firstText.textContent = advice.first;
-      first.appendChild(firstNum); first.appendChild(firstText); steps.appendChild(first);
-      const next = document.createElement('div'); next.className = 'tuning-action-step';
-      const nextNum = document.createElement('span'); nextNum.className = 'tuning-action-num'; nextNum.textContent = '再';
-      const nextText = document.createElement('span'); nextText.className = 'tuning-action-text'; nextText.textContent = advice.next;
-      next.appendChild(nextNum); next.appendChild(nextText); steps.appendChild(next);
+      const f = document.createElement('div'); f.className = 'tuning-action-step';
+      const fN = document.createElement('span'); fN.className = 'tuning-action-num'; fN.textContent = '先';
+      const fT = document.createElement('span'); fT.className = 'tuning-action-text'; fT.textContent = advice.first;
+      f.appendChild(fN); f.appendChild(fT); steps.appendChild(f);
+      const n = document.createElement('div'); n.className = 'tuning-action-step';
+      const nN = document.createElement('span'); nN.className = 'tuning-action-num'; nN.textContent = '再';
+      const nT = document.createElement('span'); nT.className = 'tuning-action-text'; nT.textContent = advice.next;
+      n.appendChild(nN); n.appendChild(nT); steps.appendChild(n);
       box.appendChild(steps);
     } else if (stable) {
-      const p = document.createElement('p'); p.className = 'tuning-action-stable'; p.textContent = stable;
-      box.appendChild(p);
+      const p = document.createElement('p'); p.className = 'tuning-action-stable'; p.textContent = stable; box.appendChild(p);
     }
     return box;
   }
-
   function buildMirrorSuggestion() {
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'mirror-suggestion';
     const icon = document.createElement('span'); icon.className = 'mirror-suggestion-icon'; icon.textContent = '◐';
-    const textWrap = document.createElement('div'); textWrap.className = 'mirror-suggestion-text';
+    const tw = document.createElement('div'); tw.className = 'mirror-suggestion-text';
     const t1 = document.createElement('div'); t1.className = 'mirror-suggestion-title'; t1.textContent = '照照镜子 · 看看是不是哪里挡住了';
     const t2 = document.createElement('div'); t2.className = 'mirror-suggestion-sub'; t2.textContent = '低频时，先看清阻力在哪里，比硬推更有效。';
-    textWrap.appendChild(t1); textWrap.appendChild(t2);
+    tw.appendChild(t1); tw.appendChild(t2);
     const arrow = document.createElement('span'); arrow.className = 'mirror-suggestion-arrow'; arrow.textContent = '→';
-    btn.appendChild(icon); btn.appendChild(textWrap); btn.appendChild(arrow);
+    btn.appendChild(icon); btn.appendChild(tw); btn.appendChild(arrow);
     btn.addEventListener('click', () => { autoSenseOnMirror = true; switchToTab('mirror'); });
     return btn;
   }
-
   function getMuseLines(userE, museE) {
     if (userE.tier === 'low' && museE.tier === 'high') return ['我知道现在很难。','不用急着往上看。','把手伸出来就好——只伸一只手。','我在这里。我等你。'];
     if (userE.tier === 'low' && museE.tier === 'mid')  return ['我不往上走。','我在这一层等你。','你什么都不用做——先呼吸就好。','我一直在。'];
@@ -835,77 +937,67 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     else if (museE.tier === 'low') label.textContent = '他从镜底传声上来';
     else label.textContent = '他在镜子里开口了';
     box.appendChild(label);
-    const textWrap = document.createElement('div'); textWrap.className = 'tuning-guidance-text';
+    const tw = document.createElement('div'); tw.className = 'tuning-guidance-text';
     getMuseLines(userE, museE).forEach(line => {
-      const p = document.createElement('p'); p.className = 'tuning-guidance-line'; p.textContent = line; textWrap.appendChild(p);
+      const p = document.createElement('p'); p.className = 'tuning-guidance-line'; p.textContent = line; tw.appendChild(p);
     });
-    box.appendChild(textWrap);
+    box.appendChild(tw);
     const hint = document.createElement('div'); hint.className = 'tuning-guidance-hint'; hint.textContent = getGuidanceHint(userE, museE); box.appendChild(hint);
     const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'tuning-guidance-btn'; btn.textContent = '我听见了';
     btn.addEventListener('click', () => { if (typeof onDone === 'function') onDone(); });
-    box.appendChild(btn);
-    return box;
+    box.appendChild(btn); return box;
   }
-
   function showHarmonyModal(userE, museE) {
     const old = document.querySelector('.tuning-harmony-overlay'); if (old) old.remove();
-    const overlay = document.createElement('div'); overlay.className = 'tuning-harmony-overlay';
-    const modal = document.createElement('div'); modal.className = 'tuning-harmony-modal';
-    const symbol = document.createElement('div'); symbol.className = 'tuning-harmony-symbol'; symbol.textContent = '⟷';
-    const title = document.createElement('h3'); title.className = 'tuning-harmony-title'; title.textContent = '同频';
-    const sub = document.createElement('p'); sub.className = 'tuning-harmony-sub';
-    sub.textContent = userE.tier === 'high' ? '此刻，你们都在高处。' : (userE.tier === 'mid' ? '此刻，你们都在中段。' : '此刻，你们都在低处。');
-    const detail = document.createElement('p'); detail.className = 'tuning-harmony-detail';
-    detail.textContent = '你：' + userE.name + '　·　他：' + museE.name;
-    const closeBtn = document.createElement('button'); closeBtn.type = 'button'; closeBtn.className = 'tuning-harmony-close'; closeBtn.textContent = '好';
-    closeBtn.addEventListener('click', () => overlay.remove());
-    modal.appendChild(symbol); modal.appendChild(title); modal.appendChild(sub); modal.appendChild(detail); modal.appendChild(closeBtn);
-    overlay.appendChild(modal); document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    const ov = document.createElement('div'); ov.className = 'tuning-harmony-overlay';
+    const m = document.createElement('div'); m.className = 'tuning-harmony-modal';
+    const sym = document.createElement('div'); sym.className = 'tuning-harmony-symbol'; sym.textContent = '⟷';
+    const ti = document.createElement('h3'); ti.className = 'tuning-harmony-title'; ti.textContent = '同频';
+    const su = document.createElement('p'); su.className = 'tuning-harmony-sub';
+    su.textContent = userE.tier === 'high' ? '此刻，你们都在高处。' : (userE.tier === 'mid' ? '此刻，你们都在中段。' : '此刻，你们都在低处。');
+    const de = document.createElement('p'); de.className = 'tuning-harmony-detail';
+    de.textContent = '你：' + userE.name + '　·　他：' + museE.name;
+    const cb = document.createElement('button'); cb.type = 'button'; cb.className = 'tuning-harmony-close'; cb.textContent = '好';
+    cb.addEventListener('click', () => ov.remove());
+    m.appendChild(sym); m.appendChild(ti); m.appendChild(su); m.appendChild(de); m.appendChild(cb);
+    ov.appendChild(m); document.body.appendChild(ov);
+    ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
   }
-
   function renderFeedback(userE, museE, container, onRedraw) {
     const gap = Math.abs(TIER_RANK[userE.tier] - TIER_RANK[museE.tier]);
     if (gap === 0) showHarmonyModal(userE, museE);
     else if (gap === 1) container.appendChild(buildSuggestion(userE, museE));
     else container.appendChild(buildGuidance(userE, museE, onRedraw));
   }
-
   function buildHistoryBox() {
     const history = loadHistory();
     const box = document.createElement('div'); box.className = 'tuning-history';
     const label = document.createElement('div'); label.className = 'tuning-history-label';
-    const lblText = document.createElement('span'); lblText.textContent = '最近感应';
-    const poolText = document.createElement('span'); poolText.className = 'tuning-history-pool'; poolText.textContent = '从 ' + ALL_EMOTIONS.length + ' 个情绪中随机';
-    label.appendChild(lblText); label.appendChild(poolText); box.appendChild(label);
+    const lblT = document.createElement('span'); lblT.textContent = '最近感应';
+    const poolT = document.createElement('span'); poolT.className = 'tuning-history-pool'; poolT.textContent = '从 ' + ALL_EMOTIONS.length + ' 个情绪中随机';
+    label.appendChild(lblT); label.appendChild(poolT); box.appendChild(label);
     const list = document.createElement('div'); list.className = 'tuning-history-list';
     if (!history.length) {
       const empty = document.createElement('div'); empty.className = 'tuning-history-row';
       empty.style.color = 'rgba(var(--gold-rgb,185,154,114),.35)'; empty.style.fontStyle = 'italic';
-      empty.textContent = '还没有记录——按一次图腾试试。';
-      list.appendChild(empty);
+      empty.textContent = '还没有记录——按一次图腾试试。'; list.appendChild(empty);
     } else {
       history.forEach(h => {
         const row = document.createElement('div'); row.className = 'tuning-history-row';
         const time = document.createElement('span'); time.className = 'tuning-history-time'; time.textContent = timeAgo(h.ts);
-        const youPill = document.createElement('span'); youPill.className = 'tuning-history-pill ' + h.userTier; youPill.textContent = '你 · ' + h.userName;
+        const you = document.createElement('span'); you.className = 'tuning-history-pill ' + h.userTier; you.textContent = '你 · ' + h.userName;
         const vs = document.createElement('span'); vs.className = 'tuning-history-vs'; vs.textContent = '⟷';
-        const himPill = document.createElement('span'); himPill.className = 'tuning-history-pill ' + h.museTier; himPill.textContent = '他 · ' + h.museName;
-        row.appendChild(time); row.appendChild(youPill); row.appendChild(vs); row.appendChild(himPill);
-        list.appendChild(row);
+        const him = document.createElement('span'); him.className = 'tuning-history-pill ' + h.museTier; him.textContent = '他 · ' + h.museName;
+        row.appendChild(time); row.appendChild(you); row.appendChild(vs); row.appendChild(him); list.appendChild(row);
       });
     }
-    box.appendChild(list);
-    return box;
+    box.appendChild(list); return box;
   }
 
-  /* ============================================================
-     感应
-     ============================================================ */
+  /* ===== 感应 ===== */
   let tuningBusy = false;
   function doSense() {
-    if (tuningBusy) return;
-    tuningBusy = true;
+    if (tuningBusy) return; tuningBusy = true;
     const result = document.getElementById('tuningResult');
     const totem = document.getElementById('tuningTotem');
     const btn = document.getElementById('tuningSenseBtn');
@@ -913,44 +1005,27 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     if (!result || !totem) { tuningBusy = false; return; }
     const oldModal = document.querySelector('.tuning-harmony-overlay'); if (oldModal) oldModal.remove();
     totem.classList.remove('sensing'); void totem.offsetWidth; totem.classList.add('sensing');
-    if (btn) btn.disabled = true;
-    if (hint) hint.textContent = '镜面在感应……';
-    result.innerHTML = '';
+    if (btn) btn.disabled = true; if (hint) hint.textContent = '镜面在感应……'; result.innerHTML = '';
     setTimeout(() => {
-      const userE = calcUserEnergy();
-      const museE = calcMuseEnergy();
-      saveLastTuning({
-        ts: Date.now(),
-        userTier: userE.tier, userKey: userE.key,
-        museTier: museE.tier, museKey: museE.key,
-        gap: Math.abs(TIER_RANK[userE.tier] - TIER_RANK[museE.tier])
-      });
-      saveHistory({ ts: Date.now(), userTier: userE.tier, userName: userE.name, museTier: museE.tier, museName: museE.name });
+      const userE = calcUserEnergy(); const museE = calcMuseEnergy();
+      saveLastTuning({ ts:Date.now(), userTier:userE.tier, userKey:userE.key, museTier:museE.tier, museKey:museE.key, gap:Math.abs(TIER_RANK[userE.tier] - TIER_RANK[museE.tier]) });
+      saveHistory({ ts:Date.now(), userTier:userE.tier, userName:userE.name, museTier:museE.tier, museName:museE.name });
       result.innerHTML = '';
       result.appendChild(buildEnergyCard('你', userE));
-      const arrow = document.createElement('div'); arrow.className = 'tuning-arrow'; arrow.textContent = '⟷';
-      result.appendChild(arrow);
+      const arrow = document.createElement('div'); arrow.className = 'tuning-arrow'; arrow.textContent = '⟷'; result.appendChild(arrow);
       result.appendChild(buildEnergyCard('他', museE));
       result.appendChild(buildGapHint(userE, museE));
-      renderFeedback(userE, museE, result, () => {
-        result.innerHTML = '';
-        result.appendChild(buildHistoryBox());
-        if (hint) hint.textContent = '按图腾，重新感应。';
-      });
+      renderFeedback(userE, museE, result, () => { result.innerHTML = ''; result.appendChild(buildHistoryBox()); if (hint) hint.textContent = '按图腾，重新感应。'; });
       result.appendChild(buildActionBox(userE));
       if (userE.tier === 'low') result.appendChild(buildMirrorSuggestion());
       result.appendChild(buildHistoryBox());
-      const note = document.createElement('p'); note.className = 'tuning-note'; note.textContent = '再按一次图腾，可以重新感应。';
-      result.appendChild(note);
-      if (btn) btn.disabled = false;
-      if (hint) hint.textContent = '按图腾，重新感应。';
+      const note = document.createElement('p'); note.className = 'tuning-note'; note.textContent = '再按一次图腾，可以重新感应。'; result.appendChild(note);
+      if (btn) btn.disabled = false; if (hint) hint.textContent = '按图腾，重新感应。';
       tuningBusy = false;
     }, 1600);
   }
 
-  /* ============================================================
-     照镜子
-     ============================================================ */
+  /* ===== 照镜子 ===== */
   let mirrorBusy = false;
   let autoSenseOnMirror = false;
   let currentMirrorObstacle = null;
@@ -962,8 +1037,7 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
   }
 
   function doMirrorSense() {
-    if (mirrorBusy) return;
-    mirrorBusy = true;
+    if (mirrorBusy) return; mirrorBusy = true;
     const mirrorBtn = document.getElementById('mirrorBtn');
     const hint = document.getElementById('mirrorHint');
     const result = document.getElementById('mirrorResult');
@@ -980,10 +1054,8 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
       if (!obstacle) {
         result.innerHTML = '<div class="mirror-result-card"><span class="mirror-result-eyebrow">✧ · 照镜子 · ✧</span><p class="mirror-result-text">阻碍池是空的。<br/>请添加至少一条，或恢复内置。</p></div>';
       } else {
-        /* ★ 记录到照见记录 */
         addMirrorLog(obstacle);
         result.appendChild(buildMirrorResult(obstacle));
-        /* 刷新照见记录列表 */
         renderMirrorLog();
       }
       result.hidden = false;
@@ -1006,33 +1078,23 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     againBtn.addEventListener('click', doMirrorSense);
     const okBtn = document.createElement('button'); okBtn.type = 'button'; okBtn.className = 'mirror-result-btn primary'; okBtn.textContent = '我看见了';
     okBtn.addEventListener('click', () => {
-      const result = document.getElementById('mirrorResult');
-      if (result) { result.hidden = true; result.innerHTML = ''; }
-      const hint = document.getElementById('mirrorHint');
-      if (hint) hint.textContent = '按镜面，看看下一个。';
+      const r = document.getElementById('mirrorResult'); if (r) { r.hidden = true; r.innerHTML = ''; }
+      const h = document.getElementById('mirrorHint'); if (h) h.textContent = '按镜面，看看下一个。';
     });
     actions.appendChild(againBtn); actions.appendChild(okBtn);
     card.appendChild(groupLabel); card.appendChild(eyebrow); card.appendChild(text); card.appendChild(note); card.appendChild(actions);
     return card;
   }
 
-  /* ============================================================
-     照见记录
-     ============================================================ */
   function renderMirrorLog() {
-    const container = document.getElementById('mirrorLog');
-    if (!container) return;
+    const container = document.getElementById('mirrorLog'); if (!container) return;
     container.innerHTML = '';
-
     const log = loadMirrorLog();
-
     const head = document.createElement('div'); head.className = 'mirror-log-head';
     const title = document.createElement('div'); title.className = 'mirror-log-title'; title.textContent = '照见记录';
     const count = document.createElement('div'); count.className = 'mirror-log-count';
     count.textContent = log.length ? '共 ' + log.length + ' 条 · 最近 ' + timeAgo(log[0].lastSeenAt) : '';
-    head.appendChild(title); head.appendChild(count);
-    container.appendChild(head);
-
+    head.appendChild(title); head.appendChild(count); container.appendChild(head);
     const list = document.createElement('div'); list.className = 'mirror-log-list';
     if (!log.length) {
       const empty = document.createElement('div'); empty.className = 'mirror-log-empty';
@@ -1045,82 +1107,49 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
   }
 
   function buildMirrorLogItem(record) {
-    const item = document.createElement('div'); item.className = 'mirror-log-item';
-    item.dataset.id = record.id;
-
+    const item = document.createElement('div'); item.className = 'mirror-log-item'; item.dataset.id = record.id;
     const meta = document.createElement('div'); meta.className = 'mirror-log-meta';
-    const date = document.createElement('span'); date.className = 'mirror-log-date';
-    date.textContent = formatDate(record.firstSeenAt);
-    meta.appendChild(date);
-
+    const date = document.createElement('span'); date.className = 'mirror-log-date'; date.textContent = formatDate(record.firstSeenAt); meta.appendChild(date);
     if (Number(record.times) > 1) {
-      const times = document.createElement('span'); times.className = 'mirror-log-times';
-      times.textContent = '照见 ' + record.times + ' 次';
-      meta.appendChild(times);
+      const times = document.createElement('span'); times.className = 'mirror-log-times'; times.textContent = '照见 ' + record.times + ' 次'; meta.appendChild(times);
     }
-
     const groupName = OBSTACLE_GROUPS[record.group] || '显化阻碍';
-    const group = document.createElement('span'); group.className = 'mirror-log-group';
-    group.textContent = groupName;
-    meta.appendChild(group);
-
-    const text = document.createElement('p'); text.className = 'mirror-log-text';
-    text.textContent = record.text;
-
+    const group = document.createElement('span'); group.className = 'mirror-log-group'; group.textContent = groupName; meta.appendChild(group);
+    const text = document.createElement('p'); text.className = 'mirror-log-text'; text.textContent = record.text;
     const actions = document.createElement('div'); actions.className = 'mirror-log-actions';
     const winBtn = document.createElement('button'); winBtn.type = 'button'; winBtn.className = 'mirror-log-win';
     winBtn.textContent = '✦ 我战胜了';
     winBtn.addEventListener('click', () => {
       if (!window.confirm('确定已经战胜这条了吗？它会从照见记录里收起。')) return;
-      removeMirrorLog(record.id);
-      renderMirrorLog();
-      showToast('✦ 这条已被你战胜');
+      removeMirrorLog(record.id); renderMirrorLog(); showToast('✦ 这条已被你战胜');
     });
     actions.appendChild(winBtn);
-
-    item.appendChild(meta);
-    item.appendChild(text);
-    item.appendChild(actions);
+    item.appendChild(meta); item.appendChild(text); item.appendChild(actions);
     return item;
   }
 
-  /* ============================================================
-     阻碍池管理
-     ============================================================ */
   function renderMirrorPool() {
-    const container = document.getElementById('mirrorPool');
-    if (!container) return;
-    const state = loadObstacleState();
-    const hiddenSet = new Set(state.hidden);
+    const container = document.getElementById('mirrorPool'); if (!container) return;
+    const state = loadObstacleState(); const hiddenSet = new Set(state.hidden);
     const activeCount = BUILTIN_OBSTACLES.filter(o => !hiddenSet.has(o.id)).length + state.custom.length;
     const totalCount = BUILTIN_OBSTACLES.length + state.custom.length;
     container.innerHTML = '';
-
     const head = document.createElement('div'); head.className = 'mirror-pool-head';
     const title = document.createElement('div'); title.className = 'mirror-pool-title'; title.textContent = '阻碍池';
     const count = document.createElement('div'); count.className = 'mirror-pool-count'; count.textContent = '启用 ' + activeCount + ' / 共 ' + totalCount + ' 条';
-    head.appendChild(title); head.appendChild(count);
-    container.appendChild(head);
-
+    head.appendChild(title); head.appendChild(count); container.appendChild(head);
     const addRow = document.createElement('div'); addRow.className = 'mirror-add-row';
-    const addInput = document.createElement('input');
-    addInput.type = 'text'; addInput.className = 'mirror-add-input'; addInput.placeholder = '添加一条你自己的阻碍...'; addInput.maxLength = 80;
+    const addInput = document.createElement('input'); addInput.type = 'text'; addInput.className = 'mirror-add-input'; addInput.placeholder = '添加一条你自己的阻碍...'; addInput.maxLength = 80;
     const addBtn = document.createElement('button'); addBtn.type = 'button'; addBtn.className = 'mirror-add-btn'; addBtn.textContent = '添加';
     const tryAdd = () => {
-      const v = addInput.value.trim();
-      if (!v) { addInput.focus(); return; }
-      if (v.length > 80) return;
+      const v = addInput.value.trim(); if (!v) { addInput.focus(); return; } if (v.length > 80) return;
       const s = loadObstacleState();
       s.custom.push({ id:'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6), text:v, group:'custom' });
-      saveObstacleState(s);
-      addInput.value = '';
-      renderMirrorPool();
+      saveObstacleState(s); addInput.value = ''; renderMirrorPool();
     };
     addBtn.addEventListener('click', tryAdd);
     addInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); tryAdd(); } });
-    addRow.appendChild(addInput); addRow.appendChild(addBtn);
-    container.appendChild(addRow);
-
+    addRow.appendChild(addInput); addRow.appendChild(addBtn); container.appendChild(addRow);
     if (state.custom.length) {
       const group = document.createElement('details'); group.className = 'mirror-group'; group.open = true;
       const summary = document.createElement('summary');
@@ -1133,20 +1162,15 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
         const del = document.createElement('button'); del.type = 'button'; del.className = 'mirror-group-item-btn del'; del.textContent = '删除';
         del.addEventListener('click', () => {
           if (!window.confirm('删除这一条自定义阻碍吗？')) return;
-          const s = loadObstacleState();
-          s.custom = s.custom.filter(x => x.id !== o.id);
-          saveObstacleState(s);
-          renderMirrorPool();
+          const s = loadObstacleState(); s.custom = s.custom.filter(x => x.id !== o.id); saveObstacleState(s); renderMirrorPool();
         });
         row.appendChild(text); row.appendChild(del); list.appendChild(row);
       });
       group.appendChild(list); container.appendChild(group);
     }
-
     Object.keys(OBSTACLE_GROUPS).forEach(gkey => {
       if (gkey === 'custom') return;
-      const items = BUILTIN_OBSTACLES.filter(o => o.group === gkey);
-      if (!items.length) return;
+      const items = BUILTIN_OBSTACLES.filter(o => o.group === gkey); if (!items.length) return;
       const group = document.createElement('details'); group.className = 'mirror-group';
       const summary = document.createElement('summary');
       const activeInGroup = items.filter(o => !hiddenSet.has(o.id)).length;
@@ -1159,20 +1183,15 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
         const text = document.createElement('span'); text.className = 'mirror-group-item-text'; text.textContent = o.text;
         const hide = document.createElement('button'); hide.type = 'button'; hide.className = 'mirror-group-item-btn'; hide.textContent = '暂时不用';
         hide.addEventListener('click', () => {
-          const s = loadObstacleState();
-          if (!s.hidden.includes(o.id)) s.hidden.push(o.id);
-          saveObstacleState(s);
-          renderMirrorPool();
+          const s = loadObstacleState(); if (!s.hidden.includes(o.id)) s.hidden.push(o.id); saveObstacleState(s); renderMirrorPool();
         });
         row.appendChild(text); row.appendChild(hide); list.appendChild(row);
       });
       if (!list.children.length) {
-        const empty = document.createElement('div'); empty.className = 'mirror-group-empty'; empty.textContent = '这一组全部隐藏了。';
-        list.appendChild(empty);
+        const empty = document.createElement('div'); empty.className = 'mirror-group-empty'; empty.textContent = '这一组全部隐藏了。'; list.appendChild(empty);
       }
       group.appendChild(list); container.appendChild(group);
     });
-
     if (state.hidden.length) {
       const group = document.createElement('details'); group.className = 'mirror-group';
       const summary = document.createElement('summary');
@@ -1180,45 +1199,33 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
       group.appendChild(summary);
       const list = document.createElement('div'); list.className = 'mirror-group-list';
       state.hidden.forEach(id => {
-        const o = BUILTIN_OBSTACLES.find(x => x.id === id);
-        if (!o) return;
+        const o = BUILTIN_OBSTACLES.find(x => x.id === id); if (!o) return;
         const row = document.createElement('div'); row.className = 'mirror-group-item';
         const text = document.createElement('span'); text.className = 'mirror-group-item-text'; text.style.opacity = '.6'; text.textContent = o.text;
         const restore = document.createElement('button'); restore.type = 'button'; restore.className = 'mirror-group-item-btn'; restore.textContent = '恢复';
         restore.addEventListener('click', () => {
-          const s = loadObstacleState();
-          s.hidden = s.hidden.filter(x => x !== id);
-          saveObstacleState(s);
-          renderMirrorPool();
+          const s = loadObstacleState(); s.hidden = s.hidden.filter(x => x !== id); saveObstacleState(s); renderMirrorPool();
         });
         row.appendChild(text); row.appendChild(restore); list.appendChild(row);
       });
       group.appendChild(list); container.appendChild(group);
     }
-
     const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'mirror-reset-btn'; reset.textContent = '↻ 恢复所有内置阻碍';
     reset.addEventListener('click', () => {
       if (!window.confirm('把所有隐藏的内置阻碍都恢复回来？')) return;
-      const s = loadObstacleState();
-      s.hidden = [];
-      saveObstacleState(s);
-      renderMirrorPool();
+      const s = loadObstacleState(); s.hidden = []; saveObstacleState(s); renderMirrorPool();
     });
     container.appendChild(reset);
   }
 
-  /* ============================================================
-     宇宙订单
-     ============================================================ */
+  /* ===== 宇宙订单 ===== */
   function getManifestStatus(last) {
     if (!last) {
       return { level:'unknown', icon:'◇', title:'先感应一下频率', desc:'在「调频」页按一下图腾，看看此刻的你和他，再回来下单。', progress:10, progressText:'尚未连接', muse:{ level:'unknown', text:'尚未连接' }, when:'' };
     }
-    const staleMs = 6 * 3600 * 1000;
-    const isStale = (Date.now() - last.ts) > staleMs;
+    const staleMs = 6 * 3600 * 1000; const isStale = (Date.now() - last.ts) > staleMs;
     const whenText = '基于 ' + timeAgo(last.ts) + ' 的调频' + (isStale ? '（建议重新感应）' : '');
-    const userRank = TIER_RANK[last.userTier];
-    const gap = last.gap;
+    const userRank = TIER_RANK[last.userTier]; const gap = last.gap;
     let level, icon, title, desc, progress, progressText;
     if (userRank >= 2) {
       if (gap === 0) { level='excellent'; icon='✦'; title='此刻非常适合显化'; desc='你们同频在高处——信号很稳。现在写下的订单，更容易被「接住」。'; progress=95; progressText='完成态 · 你正处在接收的位置'; }
@@ -1237,10 +1244,8 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     else { museLevel='waiting'; museText='在等你先稳定'; }
     return { level, icon, title, desc, progress, progressText, muse:{ level:museLevel, text:museText }, when:whenText };
   }
-
   function renderStatusCard(container, status) {
-    container.className = 'manifest-status-card level-' + status.level;
-    container.innerHTML = '';
+    container.className = 'manifest-status-card level-' + status.level; container.innerHTML = '';
     const head = document.createElement('div'); head.className = 'manifest-status-head';
     const icon = document.createElement('span'); icon.className = 'manifest-status-icon'; icon.textContent = status.icon;
     const title = document.createElement('span'); title.className = 'manifest-status-title'; title.textContent = status.title;
@@ -1250,13 +1255,10 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     const bar = document.createElement('div'); bar.className = 'manifest-progress-bar'; bar.style.width = status.progress + '%';
     prog.appendChild(bar); container.appendChild(prog);
     const pt = document.createElement('p'); pt.className = 'manifest-progress-text'; pt.textContent = status.progressText; container.appendChild(pt);
-    if (status.when) { const when = document.createElement('p'); when.className = 'manifest-status-when'; when.textContent = status.when; container.appendChild(when); }
+    if (status.when) { const w = document.createElement('p'); w.className = 'manifest-status-when'; w.textContent = status.when; container.appendChild(w); }
   }
-
   function renderOrderItem(order, museStatus) {
-    const item = document.createElement('div');
-    item.className = 'manifest-item' + (order.done ? ' done' : '');
-    item.dataset.id = order.id;
+    const item = document.createElement('div'); item.className = 'manifest-item' + (order.done ? ' done' : ''); item.dataset.id = order.id;
     const check = document.createElement('button'); check.type = 'button'; check.className = 'manifest-check';
     check.setAttribute('aria-label', order.done ? '取消完成' : '标记已完成');
     if (order.done) check.textContent = '✓';
@@ -1270,18 +1272,13 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     body.appendChild(text); body.appendChild(meta);
     const del = document.createElement('button'); del.type = 'button'; del.className = 'manifest-delete'; del.setAttribute('aria-label', '删除'); del.textContent = '✕';
     del.addEventListener('click', () => deleteOrder(order.id));
-    item.appendChild(check); item.appendChild(body); item.appendChild(del);
-    return item;
+    item.appendChild(check); item.appendChild(body); item.appendChild(del); return item;
   }
-
   function renderOrders() {
     const statusCard = document.getElementById('manifestStatusCard');
-    const listEl = document.getElementById('manifestList');
-    const summaryEl = document.getElementById('manifestSummary');
+    const listEl = document.getElementById('manifestList'); const summaryEl = document.getElementById('manifestSummary');
     if (!statusCard || !listEl) return;
-    const orders = loadOrders();
-    const last = loadLastTuning();
-    const status = getManifestStatus(last);
+    const orders = loadOrders(); const last = loadLastTuning(); const status = getManifestStatus(last);
     renderStatusCard(statusCard, status);
     const doneCount = orders.filter(o => o.done).length;
     if (summaryEl) summaryEl.textContent = orders.length ? '已完成 ' + doneCount + ' 件 · 共 ' + orders.length + ' 件' : '';
@@ -1293,70 +1290,182 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     }
     orders.forEach(order => listEl.appendChild(renderOrderItem(order, status.muse)));
   }
-
   function renderTheory() {
-    const container = document.getElementById('theorySection');
-    if (!container) return;
+    const container = document.getElementById('theorySection'); if (!container) return;
     container.innerHTML = '';
     const title = document.createElement('div'); title.className = 'theory-title';
     const l1 = document.createElement('span'); l1.className = 'theory-line';
     const t = document.createElement('span'); t.textContent = '关于显化';
     const l2 = document.createElement('span'); l2.className = 'theory-line';
-    title.appendChild(l1); title.appendChild(t); title.appendChild(l2);
-    container.appendChild(title);
+    title.appendChild(l1); title.appendChild(t); title.appendChild(l2); container.appendChild(title);
     MANIFEST_THEORY.forEach(section => {
       const details = document.createElement('details'); details.className = 'theory-box';
       const summary = document.createElement('summary'); summary.className = 'theory-summary'; summary.textContent = section.title;
       details.appendChild(summary);
       const content = document.createElement('div'); content.className = 'theory-content';
       section.blocks.forEach(block => {
-        if (block.type === 'quote') {
-          const el = document.createElement('blockquote'); el.className = 'theory-quote'; el.textContent = block.text; content.appendChild(el);
-        } else if (block.type === 'paragraph') {
-          const el = document.createElement('p'); el.className = 'theory-paragraph'; el.textContent = block.text; content.appendChild(el);
-        } else if (block.type === 'list') {
-          const ul = document.createElement('ul'); ul.className = 'theory-list';
-          block.items.forEach(item => { const li = document.createElement('li'); li.textContent = item; ul.appendChild(li); });
-          content.appendChild(ul);
-        } else if (block.type === 'formula') {
-          const el = document.createElement('div'); el.className = 'theory-formula'; el.textContent = block.text; content.appendChild(el);
-        }
+        if (block.type === 'quote') { const el = document.createElement('blockquote'); el.className = 'theory-quote'; el.textContent = block.text; content.appendChild(el); }
+        else if (block.type === 'paragraph') { const el = document.createElement('p'); el.className = 'theory-paragraph'; el.textContent = block.text; content.appendChild(el); }
+        else if (block.type === 'list') { const ul = document.createElement('ul'); ul.className = 'theory-list'; block.items.forEach(item => { const li = document.createElement('li'); li.textContent = item; ul.appendChild(li); }); content.appendChild(ul); }
+        else if (block.type === 'formula') { const el = document.createElement('div'); el.className = 'theory-formula'; el.textContent = block.text; content.appendChild(el); }
       });
-      details.appendChild(content);
-      container.appendChild(details);
+      details.appendChild(content); container.appendChild(details);
     });
   }
-
-  function toggleDone(id) {
-    const orders = loadOrders();
-    const order = orders.find(o => o.id === id);
-    if (!order) return;
-    order.done = !order.done;
-    order.doneAt = order.done ? Date.now() : null;
-    saveOrders(orders);
-    renderOrders();
-  }
-  function deleteOrder(id) {
-    if (!window.confirm('要从宇宙订单里删除这一条吗？')) return;
-    saveOrders(loadOrders().filter(o => o.id !== id));
-    renderOrders();
-  }
+  function toggleDone(id) { const orders = loadOrders(); const o = orders.find(x => x.id === id); if (!o) return; o.done = !o.done; o.doneAt = o.done ? Date.now() : null; saveOrders(orders); renderOrders(); }
+  function deleteOrder(id) { if (!window.confirm('要从宇宙订单里删除这一条吗？')) return; saveOrders(loadOrders().filter(o => o.id !== id)); renderOrders(); }
   function addOrder() {
-    const input = document.getElementById('manifestInput');
+    const input = document.getElementById('manifestInput'); if (!input) return;
+    const text = input.value.trim(); if (!text) { input.focus(); return; } if (text.length > 100) return;
+    const orders = loadOrders();
+    orders.unshift({ id:'m_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6), text:text, createdAt:Date.now(), done:false, doneAt:null });
+    saveOrders(orders); input.value = ''; renderOrders();
+    const l = document.getElementById('manifestList'); if (l) l.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  /* ============================================================
+     秘密留言板
+     ============================================================ */
+  function personalizeSecretReply(text) {
+    const s = readJSON('jingyan.settings.v1', {}) || {};
+    const myName = String(s.myName || '你').slice(0, 16).trim();
+    const charName = String(s.charName || '梦角').slice(0, 16).trim();
+    return String(text).split('{我}').join(myName).split('{名字}').join(charName);
+  }
+
+  function generateSecretReplies() {
+    const raw = readJSON('jingyan.cards.v1', []);
+    const cards = Array.isArray(raw) ? raw.filter(c => c && typeof c.text === 'string' && c.text.trim()) : [];
+    if (!cards.length) return ['……'];
+    const count = 1 + Math.floor(Math.random() * 5);
+    const pool = cards.slice();
+    const picked = [];
+    for (let i = 0; i < Math.min(count, pool.length); i++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      picked.push(pool.splice(idx, 1)[0]);
+    }
+    return picked.map(c => personalizeSecretReply(c.text));
+  }
+
+  function submitSecret() {
+    const input = document.getElementById('secretInput');
     if (!input) return;
     const text = input.value.trim();
     if (!text) { input.focus(); return; }
-    if (text.length > 100) return;
-    const orders = loadOrders();
-    orders.unshift({
-      id: 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6),
-      text: text, createdAt: Date.now(), done: false, doneAt: null
-    });
-    saveOrders(orders);
+    if (text.length > 500) return;
+
+    const msg = {
+      id: 'sm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+      text: text,
+      createdAt: Date.now(),
+      readAt: null,
+      replies: [],
+      colorIdx: Math.floor(Math.random() * 5)
+    };
+    const list = loadSecretMessages();
+    list.unshift(msg);
+    saveSecretMessages(list);
+
     input.value = '';
-    renderOrders();
-    const listEl = document.getElementById('manifestList');
-    if (listEl) listEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    renderSecretBoard();
+
+    /* 2–5 秒后自动读取 */
+    const delay = 2000 + Math.random() * 3000;
+    window.setTimeout(() => {
+      const list2 = loadSecretMessages();
+      const m = list2.find(x => x.id === msg.id);
+      if (!m || m.readAt) return;
+      m.readAt = Date.now();
+      m.replies = generateSecretReplies().map(t => ({ text: t, ts: Date.now() }));
+      saveSecretMessages(list2);
+      renderSecretBoard();
+      showToast('✦ 梦角读完了你的留言');
+    }, delay);
+  }
+
+  function deleteSecretMessage(id) {
+    if (!window.confirm('删除这条秘密留言吗？此操作不可撤销。')) return;
+    saveSecretMessages(loadSecretMessages().filter(m => m.id !== id));
+    renderSecretBoard();
+    showToast('已删除');
+  }
+
+  function renderSecretBoard() {
+    const listEl = document.getElementById('secretList');
+    const countEl = document.getElementById('secretCount');
+    if (!listEl) return;
+    const messages = loadSecretMessages();
+    if (countEl) countEl.textContent = messages.length ? '共 ' + messages.length + ' 封' : '';
+    listEl.innerHTML = '';
+    if (!messages.length) {
+      const empty = document.createElement('div'); empty.className = 'secret-empty';
+      empty.innerHTML = '<div class="secret-empty-icon">✉</div><div class="secret-empty-text">还没有秘密投进来。<br/>你可以写下此刻最不敢说的那一句。</div>';
+      listEl.appendChild(empty);
+      return;
+    }
+    messages.forEach(m => listEl.appendChild(buildSecretNote(m)));
+  }
+
+  function buildSecretNote(msg) {
+    const note = document.createElement('div');
+    note.className = 'secret-note ' + (msg.readAt ? 'read' : 'unread');
+    note.dataset.color = String(msg.colorIdx != null ? msg.colorIdx : 0);
+    note.dataset.id = msg.id;
+
+    const text = document.createElement('p');
+    text.className = 'secret-note-text';
+    text.textContent = msg.text;
+    note.appendChild(text);
+
+    const foot = document.createElement('div');
+    foot.className = 'secret-note-foot';
+
+    const time = document.createElement('span');
+    time.className = 'secret-note-time';
+    time.textContent = formatDate(msg.createdAt);
+    foot.appendChild(time);
+
+    const actions = document.createElement('div');
+    actions.className = 'secret-note-actions';
+
+    const status = document.createElement('span');
+    status.className = 'secret-note-status ' + (msg.readAt ? 'read' : 'unread');
+    status.textContent = msg.readAt ? '✦ 梦角已读' : '⏳ 等待被读';
+    actions.appendChild(status);
+
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'secret-note-del';
+    del.setAttribute('aria-label', '删除这条留言');
+    del.textContent = '✕';
+    del.addEventListener('click', () => deleteSecretMessage(msg.id));
+    actions.appendChild(del);
+
+    foot.appendChild(actions);
+    note.appendChild(foot);
+
+    if (msg.readAt && msg.replies && msg.replies.length) {
+      const replies = document.createElement('div');
+      replies.className = 'secret-replies';
+      const eyebrow = document.createElement('div');
+      eyebrow.className = 'secret-replies-eyebrow';
+      eyebrow.textContent = '梦角回应了你';
+      replies.appendChild(eyebrow);
+      msg.replies.forEach(r => {
+        const rep = document.createElement('div');
+        rep.className = 'secret-reply';
+        rep.textContent = '「' + r.text + '」';
+        replies.appendChild(rep);
+      });
+      note.appendChild(replies);
+    } else if (!msg.readAt) {
+      const waiting = document.createElement('div');
+      waiting.className = 'secret-waiting';
+      waiting.textContent = '梦角正在读';
+      note.appendChild(waiting);
+    }
+
+    return note;
   }
 
   /* ============================================================
@@ -1367,25 +1476,27 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     const sensePage = document.getElementById('tuningScrollSense');
     const ordersPage = document.getElementById('tuningScrollOrders');
     const mirrorPage = document.getElementById('tuningScrollMirror');
+    const secretPage = document.getElementById('tuningScrollSecret');
     const summary = document.getElementById('tuningSummary');
     tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-tab') === name));
     if (sensePage) sensePage.hidden = name !== 'sense';
     if (ordersPage) ordersPage.hidden = name !== 'orders';
     if (mirrorPage) mirrorPage.hidden = name !== 'mirror';
+    if (secretPage) secretPage.hidden = name !== 'secret';
     if (summary) {
       if (name === 'sense') summary.textContent = '看看此刻，你们在哪一层。';
       else if (name === 'orders') summary.textContent = '写下此刻想显化的东西。';
-      else summary.textContent = '看看是不是哪里挡住了。';
+      else if (name === 'mirror') summary.textContent = '看看是不是哪里挡住了。';
+      else summary.textContent = '把秘密留在镜子里。';
     }
     if (name === 'orders') { renderOrders(); if (ordersPage) ordersPage.scrollTop = 0; }
     else if (name === 'mirror') {
-      renderMirrorPool();
-      renderMirrorLog();
+      renderMirrorPool(); renderMirrorLog();
       if (mirrorPage) mirrorPage.scrollTop = 0;
       if (autoSenseOnMirror) { autoSenseOnMirror = false; setTimeout(doMirrorSense, 350); }
-    } else if (name === 'sense') {
-      if (sensePage) sensePage.scrollTop = 0;
     }
+    else if (name === 'secret') { renderSecretBoard(); if (secretPage) secretPage.scrollTop = 0; }
+    else if (name === 'sense') { if (sensePage) sensePage.scrollTop = 0; }
   }
 
   /* ============================================================
@@ -1414,6 +1525,7 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
         '<button type="button" class="tuning-tab active" data-tab="sense">调频</button>',
         '<button type="button" class="tuning-tab" data-tab="orders">✧ 宇宙订单</button>',
         '<button type="button" class="tuning-tab" data-tab="mirror">◐ 照镜子</button>',
+        '<button type="button" class="tuning-tab" data-tab="secret">✉ 秘密留言</button>',
       '</div>',
 
       '<div class="tuning-scroll tuning-page-sense" id="tuningScrollSense">',
@@ -1500,6 +1612,25 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
         '<div class="mirror-log" id="mirrorLog"></div>',
         '<div class="mirror-pool" id="mirrorPool"></div>',
       '</div>',
+
+      '<div class="tuning-scroll tuning-page-secret" id="tuningScrollSecret" hidden>',
+        '<div class="secret-board">',
+          '<div class="secret-lead">',
+            '<span class="secret-lead-eyebrow">✉ · SECRET LETTER · ✉</span>',
+            '<h2 class="secret-lead-title">秘密留言</h2>',
+            '<p class="secret-lead-sub">写下此刻最不敢说的那一句。<br/>镜子里有人会读到它。</p>',
+          '</div>',
+          '<div class="secret-compose">',
+            '<textarea class="secret-input" id="secretInput" maxlength="500" placeholder="我的秘密是……"></textarea>',
+            '<div class="secret-compose-foot">',
+              '<span class="secret-compose-hint">只有你自己看得见这些留言</span>',
+              '<button type="button" class="secret-send" id="secretSendBtn">投进镜子</button>',
+            '</div>',
+          '</div>',
+          '<p class="manifest-summary" id="secretCount" style="margin-bottom:14px"></p>',
+          '<div class="secret-list" id="secretList"></div>',
+        '</div>',
+      '</div>',
     ].join('');
 
     main.appendChild(section);
@@ -1514,7 +1645,6 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
       if (before) grid.insertBefore(app, before); else grid.appendChild(app);
       app.addEventListener('click', () => { const ov = document.getElementById('homeOverlay'); if (ov) ov.classList.remove('visible'); openTuning(); });
     }
-
     const drawer = document.querySelector('.drawer-grid');
     if (drawer && !drawer.querySelector('[data-action="tuning"]')) {
       const item = document.createElement('button');
@@ -1529,8 +1659,19 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     const mirrorBtn = document.getElementById('mirrorBtn'); if (mirrorBtn) mirrorBtn.addEventListener('click', doMirrorSense);
     const mirrorSenseBtn = document.getElementById('mirrorSenseBtn'); if (mirrorSenseBtn) mirrorSenseBtn.addEventListener('click', doMirrorSense);
     const addBtn = document.getElementById('manifestAddBtn'); if (addBtn) addBtn.addEventListener('click', addOrder);
-    const input = document.getElementById('manifestInput');
-    if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addOrder(); } });
+    const mInput = document.getElementById('manifestInput');
+    if (mInput) mInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addOrder(); } });
+
+    const secretSendBtn = document.getElementById('secretSendBtn');
+    if (secretSendBtn) secretSendBtn.addEventListener('click', submitSecret);
+    const secretInput = document.getElementById('secretInput');
+    if (secretInput) {
+      secretInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault(); submitSecret();
+        }
+      });
+    }
 
     document.querySelectorAll('.tuning-tab').forEach(tab => {
       tab.addEventListener('click', () => switchToTab(tab.getAttribute('data-tab')));
@@ -1547,6 +1688,7 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     renderTheory();
     renderMirrorPool();
     renderMirrorLog();
+    renderSecretBoard();
   }
 
   function openTuning() {
@@ -1559,8 +1701,7 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
 
   function watch() {
     if (typeof MutationObserver !== 'function') return;
-    const t = document.getElementById('viewTuning');
-    if (!t) return;
+    const t = document.getElementById('viewTuning'); if (!t) return;
     const others = ['viewChat','viewLibrary','viewDiary','viewPainting'].map(i => document.getElementById(i)).filter(Boolean);
     const mo = new MutationObserver(() => { if (others.some(o => o.classList.contains('active'))) t.classList.remove('active'); });
     others.forEach(o => mo.observe(o, { attributes:true, attributeFilter:['class'] }));
@@ -1570,7 +1711,7 @@ html[data-mobile-fit="1"] .tuning-arrow { transform:rotate(90deg); padding:2px 0
     injectCSS();
     injectHTML();
     watch();
-    console.log('[tuning] 初始化完成 · 情绪', ALL_EMOTIONS.length, '· 阻碍', BUILTIN_OBSTACLES.length);
+    console.log('[tuning] 初始化完成 v10');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
