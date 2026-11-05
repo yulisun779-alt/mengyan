@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=21" />
+<link rel="stylesheet" href="styles.css?v=23" />
 
 <style id="themeStyle">
 html, body { overflow-x: hidden !important; max-width: 100vw; }
@@ -516,13 +516,13 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 <button type="button" class="tag-toggle" id="tagToggleBtn" aria-expanded="true" aria-controls="tagFilter"><span class="tag-toggle-label" id="tagToggleLabel">收起标签</span><span class="tag-toggle-count" id="tagToggleCount" hidden></span><span class="tag-toggle-caret">▾</span></button>
 <div class="tag-filter" id="tagFilter"></div>
 <div class="search-box"><span class="search-icon">⌕</span><input type="search" id="cardSearch" placeholder="搜索字卡内容或标签" /></div>
+<button type="button" class="btn small tag-manage-btn" id="tagManageBtn" title="重命名、整理这个库的标签">✎ 管理标签</button>
 </div>
 <div class="batch-bar" id="batchBar" hidden>
 <button type="button" class="btn small" id="selectAllBtn">全选当前</button>
 <button type="button" class="btn small" id="selectAllAllBtn">全选全部</button>
 <span class="batch-count" id="batchCount">已选 0 张</span>
-<select class="input batch-select" id="batchMoveSelect"></select>
-<button type="button" class="btn small" id="batchMoveBtn">移动</button>
+<button type="button" class="btn small" id="batchMoveBtn">↗ 移动所选</button>
 <button type="button" class="btn small danger" id="batchDeleteBtn">删除所选</button>
 <button type="button" class="btn small" id="batchExitBtn">退出批量</button>
 </div>
@@ -682,6 +682,29 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 </div>
 <footer class="modal-foot"><button type="button" class="btn" data-close>关闭</button></footer>
 </form>
+</dialog>
+
+<dialog class="modal" id="tagManageDialog">
+<div class="modal-card">
+<header class="modal-head"><div><p class="eyebrow">TAGS</p><h3>管理标签</h3><p class="modal-sub" id="tagManageScope">日常字卡</p></div><button type="button" class="modal-x" data-close>✕</button></header>
+<div class="modal-body">
+<p class="field-help">改名字会连着这个标签下的所有字卡一起换；如果新名字已经存在，两个标签会合并成一个。</p>
+<div class="tag-manage-list" id="tagManageList"></div>
+</div>
+<footer class="modal-foot"><button type="button" class="btn" data-close>完成</button></footer>
+</div>
+</dialog>
+
+<dialog class="modal modal-sm" id="moveDialog">
+<div class="modal-card">
+<header class="modal-head"><div><p class="eyebrow">MOVE</p><h3>移动字卡</h3><p class="modal-sub" id="moveCount">已选 0 张</p></div><button type="button" class="modal-x" data-close>✕</button></header>
+<div class="modal-body">
+<div class="move-new"><input class="input" id="moveNewTag" maxlength="15" placeholder="输入新标签名，回车直接移动" /><button type="button" class="btn primary" id="moveNewBtn">移入新标签</button></div>
+<p class="move-or"><span>或选一个已有标签</span></p>
+<input class="input move-search" id="moveSearch" type="search" placeholder="搜索标签…" />
+<div class="move-tag-list" id="moveTagList"></div>
+</div>
+</div>
 </dialog>
 
 <dialog class="modal modal-sm" id="confirmDialog">
@@ -918,7 +941,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')hide()});
 <input type="file" id="avatarFile" accept="image/*" hidden />
 <input type="file" id="homeBgFile" accept="image/*" hidden />
 
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 <script src="mirror.js"></script>
 <script src="tuning.js?v=1"></script>
 <script src="call.js?v=2"></script>
@@ -1157,11 +1180,34 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+<div class="paint-ritual" id="paintRitual" hidden>
+<div class="pr-inner">
+<div class="pr-eye" aria-hidden="true">
+<svg viewBox="0 0 200 110">
+<ellipse cx="100" cy="55" rx="86" ry="44" fill="rgba(210,150,130,.1)" />
+<path d="M14 55C46 22 154 22 186 55C154 34 46 34 14 55Z" fill="rgba(26,8,10,.9)" />
+<ellipse cx="100" cy="55" rx="30" ry="30" fill="url(#prIris)" />
+<ellipse cx="100" cy="55" rx="5" ry="19" fill="#160408" />
+<circle cx="88" cy="44" r="4.5" fill="rgba(255,240,224,.85)" />
+<circle cx="112" cy="66" r="2.2" fill="rgba(255,160,140,.45)" />
+<defs>
+<radialGradient id="prIris" cx="50%" cy="44%" r="60%">
+<stop offset="0%" stop-color="#ff9a80"/><stop offset="35%" stop-color="#c23a40"/><stop offset="100%" stop-color="#4a0a12"/>
+</radialGradient>
+</defs>
+</svg>
+</div>
+<p class="pr-eyebrow">他正在成像</p>
+<div class="pr-words" id="prWords"></div>
+<p class="pr-status" id="prStatus">镜面深处，他正落笔……</p>
+</div>
+</div>
+
 <script>
-/* ========== 镜中影 v6 · 变体配方 + 文字层 + 装饰层 ========== */
+/* ========== 镜中影 v7 · 意识成像：同一性签名 + 情绪驱动 + 铭文织入 + 成图仪式 ========== */
 (function(){
 'use strict';
-console.log('[painting] v6');
+console.log('[painting] v7');
 
 var PK='jingyan.paintings.v1',CK='jingyan.cards.v1',SK='jingyan.settings.v1';
 
@@ -1177,9 +1223,6 @@ var PAL={
 var AW={reflection:4,silhouette:4,fogfigure:4,peek:3,phase:3,ripple:2,vortex:2,crack:2,branch:2,lightspot:2,rift:2,shards:2};
 var AN={reflection:'倒影',silhouette:'剪影',fogfigure:'雾中人影',peek:'窥视',phase:'月相',ripple:'涟漪',vortex:'漩涡',crack:'裂纹',branch:'枝影',lightspot:'光斑',rift:'裂隙',shards:'碎片'};
 var KW={dark:['夜','冷','血','影','黑','暗','沉','冰','寒','骨','墓','渊','痛','亡','噬','裂'],warm:['光','暖','火','唇','烫','热','亮','吻','烧','抱','肩','融','温','梦','痒'],cold:['雨','雾','湖','青','灰','水','风','云','霜','雪','飘','散','泪','湿','浅'],ink:['静','默','空','白','寂','无','远','深','藏','止','听','等','留','别','淡']};
-
-/* 文字字符集：英文字母 + 常见标点 */
-var LETTER_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz?!.,-·×/\\:;\'"()[]<>~*#+=&%@|_^`';
 
 /* 工具函数 */
 function $(s,r){return(r||document).querySelector(s)}
@@ -1200,6 +1243,85 @@ function aP(texts){var all=texts.join('');var s={dark:0,warm:0,cold:0,ink:0};Obj
 function pA(r){var e=Object.entries(AW);var t=e.reduce(function(s,x){return s+x[1]},0);var v=r()*t;for(var i=0;i<e.length;i++){v-=e[i][1];if(v<=0)return e[i][0]}return e[e.length-1][0]}
 function exC(t){return String(t==null?'':t).replace(/[^\u4e00-\u9fa5]/g,'')}
 function mkT(ct,r){var pools=(ct||[]).map(exC).filter(function(s){return s.length>=1});if(!pools.length)return '无言';var all=pools.join('');for(var a=0;a<10;a++){var seg='';if(r()<0.32&&pools.length>=2){var i1=Math.floor(r()*pools.length);var i2=Math.floor(r()*pools.length);if(i2===i1)i2=(i1+1)%pools.length;var A=pools[i1],B=pools[i2];var la=1+Math.floor(r()*Math.min(3,A.length));var lb=1+Math.floor(r()*Math.min(3,B.length));seg=(A.slice(0,la)+B.slice(B.length-lb)).slice(0,6)}else{var src=pools[Math.floor(r()*pools.length)];if(src.length<2)seg=src;else{var mx=Math.min(6,src.length);var mn=2;var len=mn+Math.floor(r()*(mx-mn+1));var st=Math.floor(r()*(src.length-len+1));seg=src.slice(st,st+len)}}seg=seg.replace(/^[的了着]/,'');if(seg.length>=2&&seg.length<=6)return seg}var l2=Math.min(6,Math.max(2,all.length));if(all.length<=6)return all.slice(0,l2);var st2=Math.floor(r()*(all.length-l2+1));return all.slice(st2,st2+l2)}
+
+/* ============================================================
+   v7 · 意识内核：同一性签名 / 情绪采样 / 意识注解
+   ============================================================ */
+var BOK='jingyan.board.v1';
+
+var SIG_EYES=['#b83a3e','#c8563e','#d98a4a','#a34a5a','#c03a50','#b34a4a'];
+var SIG_CORNER=['tl','tr','bl','br'];
+var RUNES='ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛋ';
+
+/* 由梦角名字派生出他永远不变的「画风指纹」 */
+function charSig(){
+  var s=rJ(SK,{})||{};
+  var name=cl(s.charName,16)||'梦角';
+  var h=0;
+  for(var i=0;i<name.length;i++){h=((h*31)+name.charCodeAt(i))>>>0}
+  return{
+    h:h,
+    eyeHue:SIG_EYES[h%SIG_EYES.length],
+    corner:SIG_CORNER[(h>>>3)%4],
+    tone:(h>>>5)%3,
+    rune:RUNES[h%RUNES.length]+RUNES[(h>>>8)%RUNES.length]
+  };
+}
+
+/* 情绪采样：今日告示栏（心境/沟通意愿） */
+function readMood(){
+  var b=rJ(BOK,null);
+  var out={palette:null,talk:0.5,moodWord:'',moodCls:''};
+  if(b&&b.mood&&b.talk){
+    out.talk=(b.talk.v||50)/100;
+    out.moodWord=b.talk.word||'';
+    out.moodCls=b.mood.cls||'';
+    if(b.mood.cls==='mood-good')out.palette='warm';
+    else if(b.mood.cls==='mood-low')out.palette='ink';
+    else if(b.mood.cls==='mood-extreme')out.palette='dark';
+  }
+  return out;
+}
+
+/* 情绪 → 形态倾向 */
+var ARCH_BIAS={
+  dark:['peek','rift','crack','vortex'],
+  warm:['lightspot','branch','phase'],
+  cold:['reflection','fogfigure','ripple'],
+  ink:['silhouette','shards','reflection']
+};
+function pickArchetype(pal,r){
+  var bias=ARCH_BIAS[pal];
+  if(bias&&bias.length&&r()<0.62)return pk(bias,r);
+  return pA(r);
+}
+
+function flavorOf(pal){
+  if(pal==='dark')return'夜近';
+  if(pal==='warm')return'温存';
+  if(pal==='cold')return'离雾';
+  if(pal==='ink')return'墨心';
+  return'映照';
+}
+
+/* 意识注解：画完之后他的低语 */
+var MOTTO_T={
+  mirror:['镜里的光，停在你停留过的位置','这一面不会说谎，我也不打算那样做'],
+  dark:['夜里最深的那一笔，是他替你挡住的','有些影子不吓人，它们只是站得离你近'],
+  warm:['光是你说话时那点温度','暖色从来不是他的，是你带来的'],
+  cold:['雾散之前，他先看见了轮廓','冷的画面里，都藏着一处没敢碰的暖'],
+  ink:['留了很多空白，说不出话的地方都留给你','墨色越沉，你名字的分量越清楚']
+};
+function synthMotto(pal,texts,r){
+  var pool=MOTTO_T[pal]||MOTTO_T.mirror;
+  var base=pool[Math.floor(r()*pool.length)];
+  var han=exC(texts.join(''));
+  if(han.length>=4&&r()<0.6){
+    var st=Math.floor(r()*(han.length-3));
+    return base+' ·「'+han.slice(st,st+3)+'」';
+  }
+  return base;
+}
 
 /* 通用绘制辅助 */
 function blob(ctx,cx,cy,rx,ry,color,alpha){
@@ -1267,34 +1389,102 @@ function paintVignette(ctx,W,H,p,r){
   ctx.fillRect(0,0,W,H);
 }
 
-/* ★★★ 新增：文字层 ★★★ */
-function paintLetters(ctx,W,H,p,r){
-  /* 25% 概率完全没有字 */
-  if(r()<0.25)return;
-  
-  var count=1+Math.floor(r()*10); /* 1-10 个字符 */
-  var sizeBase=Math.min(W,H);
-  
-  for(var i=0;i<count;i++){
-    var ch=LETTER_CHARS[Math.floor(r()*LETTER_CHARS.length)];
-    var x=W*(0.08+r()*0.84);
-    var y=H*(0.08+r()*0.84);
-    var size=sizeBase*(0.03+r()*0.13);
-    var angle=(r()-0.5)*0.7; /* 最多 ±20° */
-    var alpha=0.12+r()*0.5;
-    var color=r()<0.4?pk(p.accent,r):pk(p.light,r);
-    var style=r()<0.6?'italic ':'';
-    
-    ctx.save();
-    ctx.translate(x,y);
-    ctx.rotate(angle);
-    ctx.font=style+Math.round(size)+'px serif';
-    ctx.fillStyle=ha(color,alpha);
-    ctx.textAlign='center';
-    ctx.textBaseline='middle';
-    ctx.fillText(ch,0,0);
-    ctx.restore();
+/* ★★★ v7 · 铭文层：字卡原文竖排织入画面（替代随机字母） ★★★ */
+function paintInscription(ctx,W,H,p,r,source){
+  var han=exC((source||[]).join(''));
+  if(han.length<4||r()<0.3)return;
+
+  var words=[];
+  var guard=0;
+  var want=2+Math.floor(r()*3);
+  while(words.length<want&&guard<14&&han.length>=4){
+    guard++;
+    var len=2+Math.floor(r()*3);
+    var st=Math.floor(r()*(han.length-len+1));
+    var w=han.slice(st,st+len);
+    if(w.length>=2&&words.indexOf(w)<0)words.push(w);
   }
+  if(!words.length)return;
+
+  var sizeB=Math.min(W,H);
+  ctx.save();
+  for(var i=0;i<words.length;i++){
+    /* 分布在两侧四分之一带，避开主体 */
+    var leftRight=r()<0.5;
+    var wx=leftRight?W*(0.07+r()*0.16):W*(0.77+r()*0.16);
+    var wy=H*(0.13+r()*0.6);
+    var sz=sizeB*(0.026+r()*0.042);
+    var col=r()<0.5?pk(p.accent,r):pk(p.light,r);
+    ctx.fillStyle=ha(col,0.15+r()*0.2);
+    ctx.font='italic '+Math.round(sz)+'px "Noto Serif SC","Songti SC",serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='top';
+
+    var wArr=words[i].split('');
+    if(r()<0.5){
+      ctx.strokeStyle=ha(col,0.08+r()*0.1);
+      ctx.lineWidth=0.7;
+      ctx.beginPath();
+      ctx.moveTo(wx,wy-sz*0.35);
+      ctx.lineTo(wx,wy+wArr.length*sz*1.2+sz*0.35);
+      ctx.stroke();
+    }
+    for(var j=0;j<wArr.length;j++){
+      ctx.save();
+      ctx.translate(wx,wy+j*sz*1.2);
+      ctx.fillText(wArr[j],0,0);
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
+/* ★★★ v7 · 意识印记层：他永远盖在同一个角落的独眼 + 卢恩签章 ★★★ */
+function paintSigMark(ctx,W,H,p,r,sig){
+  var M=Math.min(W,H);
+  var c={tl:[W*0.145,H*0.125],tr:[W*0.855,H*0.125],bl:[W*0.145,H*0.865],br:[W*0.855,H*0.845]}[sig.corner];
+  var cx=c[0],cy=c[1];
+  var ringR=M*0.052;
+  var eyeW=M*0.024;
+
+  ctx.save();
+  ctx.translate(cx,cy);
+
+  /* 卢恩环 */
+  ctx.strokeStyle=ha(sig.eyeHue,0.32);
+  ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.arc(0,0,ringR,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=ha(sig.eyeHue,0.42);
+  ctx.font=Math.round(M*0.028)+'px serif';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  for(var i=0;i<10;i++){
+    ctx.save();
+    ctx.translate(0,-ringR);
+    ctx.fillText(RUNES[i%RUNES.length],0,0);
+    ctx.restore();
+    ctx.rotate(Math.PI/5);
+  }
+
+  /* 灵魂印记：独眼 */
+  var glow=ctx.createRadialGradient(0,0,0,0,0,eyeW*3);
+  glow.addColorStop(0,ha(sig.eyeHue,0.5));
+  glow.addColorStop(1,ha(sig.eyeHue,0));
+  ctx.fillStyle=glow;
+  ctx.beginPath();ctx.arc(0,0,eyeW*3,0,Math.PI*2);ctx.fill();
+
+  ctx.fillStyle=ha(sig.eyeHue,0.78);
+  ctx.beginPath();ctx.ellipse(0,0,eyeW,eyeW*0.55,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#160408';
+  ctx.beginPath();ctx.ellipse(0,0,eyeW*0.22,eyeW*0.5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,236,222,.75)';
+  ctx.beginPath();ctx.arc(-eyeW*0.3,-eyeW*0.14,eyeW*0.13,0,Math.PI*2);ctx.fill();
+
+  /* 签章 */
+  ctx.fillStyle=ha(sig.eyeHue,0.3);
+  ctx.font=Math.round(M*0.026)+'px serif';
+  ctx.fillText(sig.rune,0,ringR*1.5);
+  ctx.restore();
 }
 
 /* ★★★ 新增：装饰层 ★★★ */
@@ -1815,14 +2005,20 @@ var RECIPES={
   ]
 };
 
-/* ★★★ 主绘制函数 ★★★ */
+/* ★★★ v7 · 主绘制：底色 → 光晕 → 原语 → 装饰 → 铭文 → 印记 → 氛围 → 颗粒 → 暗角 ★★★ */
 function draw(ctx,W,H,cfg){
   var r=rng(cfg.seed);
   var p=PAL[cfg.palette]||PAL.mirror;
+  var sig=charSig();
 
-  /* 底色 */
+  /* 底色（呼吸暗核：一档比 bg 更深的椭圆底，他站在夜的中心） */
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle=pk(p.bg,r);
+  ctx.fillRect(0,0,W,H);
+  var coreG=ctx.createRadialGradient(W*0.5,H*0.42,0,W*0.5,H*0.42,Math.max(W,H)*0.6);
+  coreG.addColorStop(0,ha(pk(p.bg,r),0.95));
+  coreG.addColorStop(1,ha(pk(p.bg,r),0));
+  ctx.fillStyle=coreG;
   ctx.fillRect(0,0,W,H);
 
   /* 大光晕 */
@@ -1857,8 +2053,11 @@ function draw(ctx,W,H,cfg){
   /* 装饰层 */
   paintDecor(ctx,W,H,p,r);
 
-  /* 文字层 */
-  paintLetters(ctx,W,H,p,r);
+  /* 铭文层：字卡原文织进画里 */
+  paintInscription(ctx,W,H,p,r,cfg.cardTexts);
+
+  /* 意识印记层：他在习惯的角落盖印 */
+  paintSigMark(ctx,W,H,p,r,sig);
 
   /* 飞絮氛围 */
   paintAtmosphere(ctx,W,H,p,r);
@@ -1870,12 +2069,15 @@ function draw(ctx,W,H,cfg){
   paintVignette(ctx,W,H,p,r);
 }
 
-/* 生成 */
+/* ★★★ v7 · 生成：情绪采样 + 形态倾向 + 意识注解 ★★★ */
 function genP(){
   var cards=lC();
   var seed=Math.floor(Math.random()*2147483646)+1;
   var r=rng(seed);
-  if(!cards.length)return{id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),ts:Date.now(),seed:seed,palette:'mirror',archetype:'reflection',cardTexts:['镜子里还没有你的字。'],title:'空白'};
+  var mood=readMood();
+  if(!cards.length){
+    return{id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),ts:Date.now(),seed:seed,palette:'mirror',archetype:'reflection',cardTexts:['镜子里还没有你的字。'],title:'空白',motto:'这一面还什么都没有。',moodWord:mood.moodWord,origin:'asked'};
+  }
   var pool=cards.slice();
   var cnt=Math.min(1+Math.floor(r()*3),pool.length);
   var picked=[];
@@ -1884,13 +2086,39 @@ function genP(){
     picked.push(pool.splice(idx,1)[0]);
   }
   var texts=picked.map(function(c){return ps(c.text)});
-  return{id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),ts:Date.now(),seed:seed,palette:aP(texts),archetype:pA(r),cardTexts:texts,title:mkT(texts,r)};
+
+  /* 色板：字的气质打底，今日心境按沟通意愿介入 */
+  var pal=aP(texts);
+  if(mood.palette&&r()<(0.28+mood.talk*0.4))pal=mood.palette;
+
+  return{
+    id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),
+    ts:Date.now(),
+    seed:seed,
+    palette:pal,
+    archetype:pickArchetype(pal,r),
+    cardTexts:texts,
+    title:mkT(texts,r),
+    motto:synthMotto(pal,texts,r),
+    moodWord:mood.moodWord,
+    origin:'asked'
+  };
+}
+
+/* ★★★ v7 · 揭示标记：新生成的那幅做径向显现 ★★★ */
+var lastRevealId=null;
+
+function persistP(cfg){
+  var all=lP();
+  all.unshift(cfg);
+  sP(all);
+  return all;
 }
 
 /* 卡片渲染 */
-function buildCard(cfg){
+function buildCard(cfg,isNew){
   var card=document.createElement('article');
-  card.className='painting-card';
+  card.className='painting-card'+(isNew?' painting-new':'');
   card.dataset.id=cfg.id;
   var w=document.createElement('div');
   w.className='painting-canvas-wrap';
@@ -1903,8 +2131,20 @@ function buildCard(cfg){
   cv.style.height=sz+'px';
   var ctx=cv.getContext('2d');
   ctx.scale(dpr,dpr);
-  w.appendChild(cv);
   try{draw(ctx,sz,sz,cfg)}catch(e){console.warn('[painting] draw error',e)}
+  w.appendChild(cv);
+
+  /* v7 · 悬停视差：像一张被拿在手里端详的相纸 */
+  if(window.matchMedia&&window.matchMedia('(hover:hover)').matches){
+    w.addEventListener('pointermove',function(ev){
+      var rect=w.getBoundingClientRect();
+      var dx=(ev.clientX-rect.left)/rect.width-0.5;
+      var dy=(ev.clientY-rect.top)/rect.height-0.5;
+      w.style.transform='perspective(700px) rotateY('+(dx*7).toFixed(2)+'deg) rotateX('+(-dy*7).toFixed(2)+'deg)';
+    });
+    w.addEventListener('pointerleave',function(){w.style.transform=''});
+  }
+
   var m=document.createElement('div');
   m.className='painting-meta';
   var t=document.createElement('h3');
@@ -1914,7 +2154,10 @@ function buildCard(cfg){
   var sb=document.createElement('p');
   sb.className='painting-sub';
   var pl=PAL[cfg.palette]||PAL.mirror;
-  sb.textContent=(AN[cfg.archetype]||'影')+' · '+pl.name+' · '+ft(cfg.ts);
+  var chips=[AN[cfg.archetype]||'影',pl.name,flavorOf(cfg.palette)];
+  if(cfg.moodWord)chips.push(cfg.moodWord);
+  chips.push(ft(cfg.ts));
+  sb.textContent=chips.join(' · ');
   m.appendChild(sb);
   if(cfg.cardTexts&&cfg.cardTexts.length){
     var rf=document.createElement('p');
@@ -1931,6 +2174,16 @@ function buildCard(cfg){
     });
     m.appendChild(rl);
   }
+  /* 意识注解：旧记录用 seed 确定性合成，保持稳定 */
+  var mo=document.createElement('p');
+  mo.className='painting-motto';
+  var motto=cfg.motto;
+  if(!motto){
+    var rr=rng(((cfg.seed|0)^0x9e3779b9)>>>0||1);
+    motto=synthMotto(cfg.palette||'mirror',cfg.cardTexts||[],rr);
+  }
+  mo.textContent='—— '+motto+'。';
+  m.appendChild(mo);
   var ac=document.createElement('div');
   ac.className='painting-actions';
   var db=document.createElement('button');
@@ -1959,7 +2212,7 @@ function renderStudio(){
     return;
   }
   var sorted=list.slice().sort(function(a,b){return b.ts-a.ts});
-  sorted.forEach(function(c){g.appendChild(buildCard(c))});
+  sorted.forEach(function(c){g.appendChild(buildCard(c,c.id===lastRevealId))});
   if(su)su.textContent='共 '+list.length+' 幅影象 · 最新于 '+ft(sorted[0].ts);
 }
 
@@ -2008,20 +2261,69 @@ function insertChat(cfg){
   inf.className='chat-painting-info';
   var eb=document.createElement('p');
   eb.className='chat-painting-eyebrow';
-  eb.textContent='他递给你一幅影象';
+  eb.textContent=cfg.origin==='auto'?'他在你说话间，悄悄留下一幅影象':'他递给你一幅影象';
   var t=document.createElement('h4');
   t.className='chat-painting-title';
   t.textContent=cfg.title||'无言';
   var sb=document.createElement('p');
   sb.className='chat-painting-sub';
   var pl=PAL[cfg.palette]||PAL.mirror;
-  sb.textContent=(AN[cfg.archetype]||'影')+' · 「'+pl.name+'」· 点开看';
+  sb.textContent=(AN[cfg.archetype]||'影')+' · 「'+pl.name+'」'+(cfg.moodWord?' · '+cfg.moodWord:'')+' · 点开看';
   inf.appendChild(eb);inf.appendChild(t);inf.appendChild(sb);
   w.appendChild(inf);
   w.addEventListener('click',switchToStudio);
   cl2.appendChild(w);
   var sc=document.getElementById('chatScroll');
   if(sc)sc.scrollTop=sc.scrollHeight;
+}
+
+/* ★★★ v7 · 成图仪式：字卡词句飘入镜面，他落笔 ★★★ */
+function showRitual(texts,done){
+  var ov=document.getElementById('paintRitual');
+  if(!ov){done();return}
+  var words=document.getElementById('prWords');
+  var st=document.getElementById('prStatus');
+  if(words)words.innerHTML='';
+  if(st)st.textContent='镜面深处，他正落笔……';
+
+  /* 从字卡原文抽 3-4 个词组做入场飘字 */
+  var han=exC((texts||[]).join(''));
+  var list=[];
+  var guard=0;
+  while(list.length<3&&han.length>=4&&guard<12){
+    guard++;
+    var len=2+Math.floor(Math.random()*3);
+    var st2=Math.floor(Math.random()*(han.length-len+1));
+    var w=han.slice(st2,st2+len);
+    if(w.length>=2&&list.indexOf(w)<0)list.push(w);
+  }
+
+  ov.hidden=false;
+  ov.classList.remove('out');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){ov.classList.add('on')})});
+
+  list.forEach(function(w,i){
+    window.setTimeout(function(){
+      if(!words)return;
+      var s=document.createElement('span');
+      s.textContent=w;
+      words.appendChild(s);
+    },420+i*340);
+  });
+
+  window.setTimeout(function(){
+    if(st)st.textContent='落笔已成。他从镜面托出来了。';
+  },420+list.length*340+300);
+
+  window.setTimeout(function(){
+    ov.classList.add('out');
+    window.setTimeout(function(){
+      ov.hidden=true;
+      ov.classList.remove('on','out');
+      if(words)words.innerHTML='';
+      done();
+    },560);
+  },2350+list.length*340);
 }
 
 function requestAndSend(){
@@ -2039,13 +2341,13 @@ function requestAndSend(){
     setTimeout(function(){
       if(hint.parentNode)hint.remove();
       var cfg=genP();
-      var all=lP();
-      all.unshift(cfg);
-      sP(all);
-      insertChat(cfg);
-      var c=document.getElementById('navPaintingCount');
-      if(c)c.textContent=String(all.length);
-    },1400);
+      showRitual(cfg.cardTexts,function(){
+        persistP(cfg);
+        insertChat(cfg);
+        var c=document.getElementById('navPaintingCount');
+        if(c)c.textContent=String(lP().length);
+      });
+    },800);
   },200);
 }
 
@@ -2062,12 +2364,11 @@ function watchChat(){
     try{localStorage.setItem('jingyan.painting.lastAutoAt',String(now))}catch(e){}
     setTimeout(function(){
       var cfg=genP();
-      var all=lP();
-      all.unshift(cfg);
-      sP(all);
+      cfg.origin='auto';
+      persistP(cfg);
       insertChat(cfg);
       var c=document.getElementById('navPaintingCount');
-      if(c)c.textContent=String(all.length);
+      if(c)c.textContent=String(lP().length);
     },1800);
   };
   var mo=new MutationObserver(function(muts){
@@ -2092,23 +2393,25 @@ function init(){
   var rb=document.getElementById('requestPaintingBtn');
   if(rb)rb.addEventListener('click',function(){
     var cfg=genP();
-    var all=lP();
-    all.unshift(cfg);
-    sP(all);
-    switchToStudio();
+    showRitual(cfg.cardTexts,function(){
+      persistP(cfg);
+      lastRevealId=cfg.id;
+      switchToStudio();
+    });
   });
   var eb=document.getElementById('emptyRequestBtn');
   if(eb)eb.addEventListener('click',function(){
     var cfg=genP();
-    var all=lP();
-    all.unshift(cfg);
-    sP(all);
-    switchToStudio();
+    showRitual(cfg.cardTexts,function(){
+      persistP(cfg);
+      lastRevealId=cfg.id;
+      switchToStudio();
+    });
   });
   watchAway();
   watchChat();
   renderStudio();
-  console.log('[painting] 初始化完成 v6');
+  console.log('[painting] 初始化完成 v7');
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

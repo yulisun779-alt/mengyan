@@ -1451,7 +1451,6 @@
     updateCounts();
     updateTagSuggestions();
     syncKindButtons();
-    renderBatchTagOptions();
     syncBatchUI();
   }
 
@@ -1499,30 +1498,179 @@
     }
   }
 
-  function renderBatchTagOptions() {
-    const select = $('#batchMoveSelect');
-    if (!select) return;
+  /* =========================================================
+     批量移动·面板式（取代旧的 select 下拉）
+     ========================================================= */
 
-    const previous = select.value;
-    select.innerHTML = '';
+  function openMoveDialog() {
+    if (!selectedIds.size) { toast('先在卡片上点选要移动的字卡'); return; }
+    const dialog = $('#moveDialog');
+    if (!dialog) return;
 
-    const tags = getAllTags();
+    const countEl = $('#moveCount');
+    if (countEl) countEl.textContent = '已选 ' + selectedIds.size + ' 张字卡';
+
+    const newTag = $('#moveNewTag');
+    if (newTag) newTag.value = '';
+    const search = $('#moveSearch');
+    if (search) search.value = '';
+
+    renderMoveTagList('');
+    openDialog(dialog);
+    window.setTimeout(() => { if (newTag) newTag.focus(); }, 60);
+  }
+
+  function renderMoveTagList(query) {
+    const list = $('#moveTagList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const q = String(query || '').trim().toLowerCase();
+    const tags = getTags(activeKind).filter(({ tag }) => !q || tag.toLowerCase().includes(q));
+
     if (!tags.length) {
-      const option = document.createElement('option');
-      option.value = '';
-      option.textContent = '还没有标签';
-      select.appendChild(option);
+      const empty = document.createElement('p');
+      empty.className = 'move-empty';
+      empty.textContent = q ? '没有匹配的标签，可以直接用上面的输入框新建。' : '这个库里还没有标签，直接用上面的输入框新建一个。';
+      list.appendChild(empty);
       return;
     }
 
     tags.forEach(({ tag, count }) => {
-      const option = document.createElement('option');
-      option.value = tag;
-      option.textContent = tag + ' · ' + count;
-      select.appendChild(option);
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'move-tag-item';
+      const label = document.createElement('span');
+      label.textContent = tag;
+      const cnt = document.createElement('span');
+      cnt.className = 'move-tag-count';
+      cnt.textContent = count + ' 张';
+      item.append(label, cnt);
+      item.addEventListener('click', () => batchMove(tag));
+      list.appendChild(item);
+    });
+  }
+
+  function batchMove(targetTag) {
+    const tag = String(targetTag || '').trim().slice(0, 15);
+    if (!tag) { toast('先选一个已有标签，或输入新标签名'); return; }
+    if (!selectedIds.size) { toast('先选中要移动的字卡'); return; }
+
+    const total = selectedIds.size;
+    allCards().forEach((card) => {
+      if (selectedIds.has(card.id)) card.tag = tag;
     });
 
-    if (previous && tags.some((item) => item.tag === previous)) select.value = previous;
+    writeJSON(KEYS.cards, cards);
+    writeJSON(KEYS.sensation, sensationCards);
+    pruneDrawTags();
+    resetBag();
+    resetSensationBag();
+    selectedIds.clear();
+
+    const dialog = $('#moveDialog');
+    if (dialog && dialog.open) dialog.close();
+    renderLibrary();
+    toast('已把 ' + total + ' 张字卡移到「' + tag + '」');
+  }
+
+  /* =========================================================
+     标签管理·改名（连卡一起换，同名则合并）
+     ========================================================= */
+
+  function openTagManage() {
+    const dialog = $('#tagManageDialog');
+    if (!dialog) return;
+    renderTagManageList();
+    openDialog(dialog);
+  }
+
+  function renderTagManageList() {
+    const list = $('#tagManageList');
+    const scope = $('#tagManageScope');
+    if (!list) return;
+
+    if (scope) scope.textContent = activeKind === 'sensation' ? '体感字卡' : '日常字卡';
+    list.innerHTML = '';
+
+    const tags = getTags(activeKind);
+    if (!tags.length) {
+      const empty = document.createElement('p');
+      empty.className = 'move-empty';
+      empty.textContent = '这个库里还没有标签。写卡时填一个就能在这里管理。';
+      list.appendChild(empty);
+      return;
+    }
+
+    tags.forEach(({ tag, count }) => {
+      const row = document.createElement('div');
+      row.className = 'tag-manage-row';
+
+      const cnt = document.createElement('span');
+      cnt.className = 'tag-manage-count';
+      cnt.textContent = String(count);
+
+      const input = document.createElement('input');
+      input.className = 'input';
+      input.type = 'text';
+      input.maxLength = 15;
+      input.value = tag;
+      input.dataset.old = tag;
+      input.setAttribute('aria-label', '标签「' + tag + '」的新名字');
+
+      const save = document.createElement('button');
+      save.type = 'button';
+      save.className = 'mini-btn tag-manage-save';
+      save.textContent = '改名';
+      save.addEventListener('click', () => renameTag(tag, input.value));
+
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.isComposing) {
+          event.preventDefault();
+          renameTag(tag, input.value);
+        }
+      });
+
+      row.append(cnt, input, save);
+      list.appendChild(row);
+    });
+  }
+
+  function renameTag(oldTag, nextRaw) {
+    const next = String(nextRaw || '').trim().slice(0, 15);
+    if (!next) { toast('标签名不能是空的'); return; }
+    if (next === oldTag) { toast('名字没有变化'); return; }
+
+    const exists = cardsOf(activeKind).some((card) => card.tag === next);
+    const affected = cardsOf(activeKind).filter((card) => card.tag === oldTag).length;
+
+    const apply = () => {
+      if (activeKind === 'sensation') {
+        sensationCards.forEach((card) => { if (card.tag === oldTag) card.tag = next; });
+      } else {
+        cards.forEach((card) => { if (card.tag === oldTag) card.tag = next; });
+      }
+      writeJSON(KEYS.cards, cards);
+      writeJSON(KEYS.sensation, sensationCards);
+      pruneDrawTags();
+      resetBag();
+      resetSensationBag();
+      if (libFilter.tag === oldTag) libFilter.tag = next;
+      renderLibrary();
+      renderTagManageList();
+      toast('已把 ' + affected + ' 张字卡的标签改成「' + next + '」' + (exists ? '（并入已有标签）' : ''));
+    };
+
+    if (exists) {
+      askConfirm(
+        '合并标签？',
+        '「' + next + '」已经存在。改名后，' + affected + ' 张字卡会并入那个标签（两个标签合而为一）。',
+        '合并',
+        apply
+      );
+    } else {
+      apply();
+    }
   }
 
   function setSelectMode(on) {
@@ -1580,27 +1728,6 @@
         toast('已删除 ' + total + ' 张字卡');
       }
     );
-  }
-
-  function batchMove() {
-    if (!selectedIds.size) { toast('先选中要移动的字卡'); return; }
-    const select = $('#batchMoveSelect');
-    const tag = select ? select.value : '';
-    if (!tag) { toast('先选择一个目标标签'); return; }
-
-    const total = selectedIds.size;
-    allCards().forEach((card) => {
-      if (selectedIds.has(card.id)) card.tag = tag;
-    });
-
-    writeJSON(KEYS.cards, cards);
-    writeJSON(KEYS.sensation, sensationCards);
-    pruneDrawTags();
-    resetBag();
-    resetSensationBag();
-    selectedIds.clear();
-    renderLibrary();
-    toast('已把 ' + total + ' 张字卡移到「' + tag + '」');
   }
 
   function deleteCard(id) {
@@ -2321,7 +2448,26 @@
     if (selectAllAllBtn) selectAllAllBtn.addEventListener('click', selectAllCards);
 
     const batchMoveBtn = $('#batchMoveBtn');
-    if (batchMoveBtn) batchMoveBtn.addEventListener('click', batchMove);
+    if (batchMoveBtn) batchMoveBtn.addEventListener('click', openMoveDialog);
+
+    const moveNewBtn = $('#moveNewBtn');
+    if (moveNewBtn) moveNewBtn.addEventListener('click', () => batchMove($('#moveNewTag') ? $('#moveNewTag').value : ''));
+
+    const moveNewTag = $('#moveNewTag');
+    if (moveNewTag) {
+      moveNewTag.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.isComposing) {
+          event.preventDefault();
+          batchMove(moveNewTag.value);
+        }
+      });
+    }
+
+    const moveSearch = $('#moveSearch');
+    if (moveSearch) moveSearch.addEventListener('input', (event) => renderMoveTagList(event.target.value));
+
+    const tagManageBtn = $('#tagManageBtn');
+    if (tagManageBtn) tagManageBtn.addEventListener('click', openTagManage);
 
     const batchDeleteBtn = $('#batchDeleteBtn');
     if (batchDeleteBtn) batchDeleteBtn.addEventListener('click', batchDelete);
