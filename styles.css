@@ -2873,7 +2873,23 @@ html[data-mode="light"] .call-line {
    日用版（亮色版） · html[data-mode="light"]
    羊皮纸 × 烛光 × 酒红，保留神秘学气质
    ========================================================= */
-html[data-mode="light"] { color-scheme: light; }
+/* —— 颜色 token 重定义：所有继承 var(--text)/var(--muted) 的文字同步换成深色 —— */
+html[data-mode="light"] {
+  color-scheme: light;
+  --bg: #f6ecdb;
+  --bg-2: #efe0cc;
+  --panel: rgba(255, 252, 246, 0.72);
+  --panel-solid: #f8efdf;
+  --text: #3a241d;
+  --muted: #8a5a4a;
+  --muted-2: #a1735f;
+  --line: rgba(150, 86, 74, 0.18);
+  --line-strong: rgba(150, 86, 74, 0.34);
+  --gold: #8a6a34;
+  --gold-rgb: 138, 106, 52;
+  --danger: #b05a4e;
+  --shadow: 0 40px 120px -40px rgba(120, 70, 50, 0.5);
+}
 html[data-mode="light"] body { background: var(--bg); }
 
 html[data-mode="light"] .backdrop {
@@ -3060,6 +3076,22 @@ html[data-mode="light"] .sensation-card {
 html[data-mode="light"] .sensation-card h3 { color: #38221c; }
 html[data-mode="light"] .sensation-text { color: #4a342c; text-shadow: none; }
 html[data-mode="light"] .toast { background: rgba(252, 246, 234, 0.97); border-color: rgba(150, 86, 80, 0.35); box-shadow: 0 18px 40px -16px rgba(120, 70, 50, 0.5), 0 0 0 1px rgba(150, 100, 70, 0.2); }
+
+/* —— token 翻转后的例外修正：固定深底组件保持浅字 —— */
+html[data-mode="light"] .btn.danger { color: #9a4a40; background: rgba(160, 60, 58, 0.1); border-color: rgba(150, 60, 56, 0.4); }
+html[data-mode="light"] .btn.danger:hover { background: rgba(160, 60, 58, 0.2); }
+
+/* 回复栏 / 关闭键 —— 原夜用浅色残留 */
+html[data-mode="light"] .reply-bar { background: rgba(170, 100, 90, 0.1); border-color: rgba(150, 86, 80, 0.32); }
+html[data-mode="light"] .reply-bar-name { color: #8a4a3c; }
+html[data-mode="light"] .reply-bar-close { background: rgba(110, 60, 40, 0.08); color: #8a5a4a; }
+html[data-mode="light"] .reply-bar-close:hover { background: rgba(170, 100, 90, 0.22); color: #3a241d; }
+
+/* 体感弹窗计时条 —— 白色残透明在羊皮纸上不可见 */
+html[data-mode="light"] .sensation-timer { background: rgba(110, 60, 40, 0.16); }
+
+/* 字体 scaling 下 meta/占位符等继承 token，已随 token 变深；补：发送键图标在暗红渐变上提亮一档 */
+html[data-mode="light"] .send-btn { color: #f5e3d8; box-shadow: 0 8px 24px -10px rgba(150, 70, 70, 0.6), inset 0 1px 0 rgba(255, 220, 210, 0.25); }
 
 @media (prefers-reduced-motion: reduce) {
   .splash-mirror, .splash-ring, .splash-aura, .splash-title, .splash-sub, .splash-eyebrow, .splash-mirror::after, .sp-motes span, .board-bar i { animation: none !important; }
