@@ -1,13 +1,14 @@
 /* 镜魇 · 离线缓存
    改了样式或脚本后：把下面的 VERSION 加一，并同步 index.html 里的 ?v= 数字。 */
 
-const VERSION = 'jingyan-v17';
+const VERSION = 'jingyan-v20';
 
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=17',
-  './app.js?v=17',
+  './styles.css?v=20',
+  './app.js?v=18',
+  './call.js?v=2',
   './favicon.svg',
   './manifest.json',
   './icons/icon-192.png',

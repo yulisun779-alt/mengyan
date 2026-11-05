@@ -34,6 +34,7 @@
     status: '在等你的消息',
     statusPool: DEFAULT_STATUS_POOL.slice(),
     proactive: true,
+    callFreq: 'mid',
     sensationPopup: true
   };
 
@@ -242,6 +243,8 @@
   let bag = [];
   let sensationBag = [];
   let busy = false;
+  let userChainQueue = Promise.resolve();
+  let userChainRuns = 0;
   let editingId = null;
   let editingKind = 'daily';
   let confirmCallback = null;
@@ -858,16 +861,12 @@
   }
 
   async function handleSend() {
-    if (busy) return;
-
     const input = $('#messageInput');
     const text = input.value.trim();
     if (!text) { input.focus(); return; }
 
     noteUserActivity();
 
-    busy = true;
-    $('#sendBtn').disabled = true;
     input.value = '';
     autoGrow(input);
 
@@ -882,21 +881,60 @@
       ts: Date.now()
     };
     appendMessage(userMsg);
-
-    setBusyUI(true);
-    await dreamReplyChain(userMsg);
-
-    busy = false;
-    $('#sendBtn').disabled = false;
-    setBusyUI(false);
     updatePoolHint();
-    maybeSensation(0.38);
-    input.focus({ preventScroll: true });
+
+    /* 梦角连发期间也允许继续发送：按顺序排队，链式回复不会乱序 */
+    userChainRuns += 1;
+    setBusyUI(true);
+
+    userChainQueue = userChainQueue
+      .then(() => waitForBusyRelease())
+      .then(() => dreamReplyChain(userMsg))
+      .catch(() => {})
+      .then(() => {
+        userChainRuns = Math.max(0, userChainRuns - 1);
+        if (userChainRuns === 0 && !busy) {
+          setBusyUI(false);
+          updatePoolHint();
+          maybeSensation(0.38);
+        }
+      });
+  }
+
+  /* 主动传讯进行中时，等它说完再开始队列里的回复 */
+  function waitForBusyRelease() {
+    if (!busy) return Promise.resolve();
+    return new Promise((resolve) => {
+      const check = () => {
+        if (!busy) { resolve(); return; }
+        window.setTimeout(check, 200);
+      };
+      window.setTimeout(check, 200);
+    });
   }
 
   /* =========================================================
      梦角连发 1-3 条
      ========================================================= */
+
+  function recentUserMessages(count = 3) {
+    const found = [];
+    for (let i = messages.length - 1; i >= 0 && found.length < count; i -= 1) {
+      if (messages[i].role === 'user') found.push(messages[i]);
+    }
+    return found;
+  }
+
+  /* 从最近几句用户消息里挑一句引用；同一条链内不重复引用同一句 */
+  function pickQuoteTarget(triggerMsg, quotedIds, probability) {
+    if (Math.random() >= probability) return null;
+    const pool = recentUserMessages(3).filter((msg) => !quotedIds.has(msg.id));
+    if (triggerMsg && !quotedIds.has(triggerMsg.id)) pool.unshift(triggerMsg);
+    if (!pool.length) return null;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (pick.id) quotedIds.add(pick.id);
+    return makeReplyQuote(pick);
+  }
 
   async function dreamReplyChain(triggerMsg) {
     const pool = eligibleCards();
@@ -916,6 +954,7 @@
     }
 
     const count = 1 + Math.floor(Math.random() * 3); // 1 ~ 3
+    const quotedIds = new Set();
 
     for (let i = 0; i < count; i += 1) {
       showTyping();
@@ -925,10 +964,7 @@
       const card = drawCard();
       if (!card) break;
 
-      let replyTo = null;
-      if (i === 0 && triggerMsg && Math.random() < 0.5) {
-        replyTo = makeReplyQuote(triggerMsg);
-      }
+      const replyTo = pickQuoteTarget(triggerMsg, quotedIds, 0.42);
 
       appendMessage({
         id: uid(),
@@ -1025,7 +1061,7 @@
 
     const wait = typeof delay === 'number'
       ? delay
-      : (45000 + Math.random() * 85000);
+      : (25000 + Math.random() * 55000);
     proactiveTimer = window.setTimeout(runProactivePulse, wait);
   }
 
@@ -1040,34 +1076,31 @@
     proactiveTimer = null;
     if (!settings.proactive) return;
 
-    const chatView = $('#viewChat');
-    const chatActive = chatView && chatView.classList.contains('active');
-
-    if (busy || document.visibilityState !== 'visible' || !chatActive
+    if (busy || userChainRuns > 0 || document.visibilityState !== 'visible'
+      || document.body.dataset.callActive === '1'
       || !eligibleCards().length || document.querySelector('dialog[open]')) {
-      scheduleProactiveNext(40000 + Math.random() * 50000);
+      scheduleProactiveNext(18000 + Math.random() * 25000);
       return;
     }
 
     const input = $('#messageInput');
     if (input && document.activeElement === input && input.value.trim()) {
-      scheduleProactiveNext(35000 + Math.random() * 40000);
+      scheduleProactiveNext(16000 + Math.random() * 22000);
       return;
     }
 
     const idle = Date.now() - lastUserAt;
-    if (idle < 30000) {
-      scheduleProactiveNext(30000 + Math.random() * 40000);
+    if (idle < 20000) {
+      scheduleProactiveNext(14000 + Math.random() * 20000);
       return;
     }
 
-    let chance = proactiveQuiet === 0 ? 0.62 : 0.46;
-    if (idle > 10 * 60 * 1000) chance = 0.16;
-    else if (idle > 5 * 60 * 1000) chance = 0.32;
-    if (!lastUserMessage()) chance *= 0.6;
+    let chance = proactiveQuiet === 0 ? 0.85 : 0.6;
+    if (idle > 10 * 60 * 1000) chance = 0.28;
+    else if (idle > 5 * 60 * 1000) chance = 0.5;
 
     if (Math.random() > chance) {
-      scheduleProactiveNext(45000 + Math.random() * 80000);
+      scheduleProactiveNext(20000 + Math.random() * 35000);
       return;
     }
 
@@ -1075,15 +1108,19 @@
   }
 
   async function sendProactiveMessages() {
-    if (busy) return;
+    if (busy || userChainRuns > 0) return;
+    if (document.body.dataset.callActive === '1') return;
     const pool = eligibleCards();
-    if (!pool.length) { scheduleProactiveNext(90000); return; }
+    if (!pool.length) { scheduleProactiveNext(60000); return; }
 
     busy = true;
     setBusyUI(true);
 
     const count = Math.random() < 0.74 ? 1 : 2;
     const triggerMsg = lastUserMessage();
+    const quotedIds = new Set();
+    const chatView = $('#viewChat');
+    const chatActive = chatView && chatView.classList.contains('active');
 
     for (let i = 0; i < count; i += 1) {
       showTyping();
@@ -1093,10 +1130,7 @@
       const card = drawCard();
       if (!card) break;
 
-      let replyTo = null;
-      if (i === 0 && triggerMsg && Math.random() < 0.32) {
-        replyTo = makeReplyQuote(triggerMsg);
-      }
+      const replyTo = pickQuoteTarget(triggerMsg, quotedIds, 0.4);
 
       appendMessage({
         id: uid(),
@@ -1117,11 +1151,15 @@
     updatePoolHint();
     proactiveQuiet += 1;
 
+    if (!chatActive) {
+      toast('『' + settings.charName + '』隔着镜面递来了一张字卡…');
+    }
+
     maybeSensation(0.45);
 
     const next = proactiveQuiet >= 3
-      ? (150000 + Math.random() * 240000)
-      : (75000 + Math.random() * 130000);
+      ? (60000 + Math.random() * 90000)
+      : (30000 + Math.random() * 60000);
     scheduleProactiveNext(next);
   }
 
@@ -1695,6 +1733,11 @@
     $('#setAvoidRepeat').checked = settings.avoidRepeat;
     $('#setProactive').checked = settings.proactive;
     $('#setSensation').checked = settings.sensationPopup;
+    const callRadio = $('input[name="callFreq"][value="' + (settings.callFreq || 'mid') + '"]');
+    if (callRadio) callRadio.checked = true;
+    $$('input[name="callFreq"]').forEach((input) => {
+      if (input !== callRadio) input.checked = false;
+    });
     const statusInput = $('#statusAddInput');
     if (statusInput) statusInput.value = '';
 
@@ -1833,6 +1876,7 @@
       statusPool: nextStatusPool,
       status: nextStatusPool.includes(previousStatus) ? previousStatus : nextStatusPool[0],
       proactive: $('#setProactive').checked,
+      callFreq: ($('input[name="callFreq"]:checked') || {}).value || 'mid',
       sensationPopup: $('#setSensation').checked
     };
 
@@ -2229,6 +2273,20 @@
     $('#composer').addEventListener('submit', (event) => {
       event.preventDefault();
       handleSend();
+    });
+
+    /* 来电等独立模块通过系统事件写进聊天记录 */
+    document.addEventListener('jingyan:systemMsg', (event) => {
+      const detail = event.detail || {};
+      const text = String(detail.text || '').trim();
+      if (!text) return;
+      appendMessage({
+        id: uid(),
+        role: 'system',
+        text,
+        ts: Date.now()
+      });
+      if (userChainRuns === 0 && !busy) setBusyUI(false);
     });
 
     const input = $('#messageInput');

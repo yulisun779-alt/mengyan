@@ -12,7 +12,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="镜魇" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="stylesheet" href="styles.css?v=17" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css?v=20" />
 
 <style id="themeStyle">
 html, body { overflow-x: hidden !important; max-width: 100vw; }
@@ -206,9 +209,123 @@ html[data-theme="rose"]{--accent:#c48a9a;--accent-2:#6e2e44;--accent-rgb:196,138
 html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animation-play-state:paused!important}
 .sky span:nth-child(n+33){display:none!important}
 @media(max-width:768px){.backdrop,.sidebar,.chat-shell,.view-library.active,.view-diary.active,.view-painting.active,.composer,.modal::backdrop,.sensation-overlay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.glow-a,.glow-b{filter:blur(50px)!important;opacity:.1!important}.bat{opacity:.3!important}.lace-bloom{opacity:.1!important}.watcher{opacity:.12!important}}
+
+html[data-mode="light"]{--gold:#8a6a34;--gold-rgb:138,106,52}
 </style>
 </head>
 <body>
+
+<div class="splash" id="splashOverlay" aria-hidden="true">
+<div class="splash-inner">
+<div class="splash-mirror-wrap">
+<svg class="splash-ring" viewBox="0 0 320 320" aria-hidden="true">
+<defs><path id="spRunePath" d="M160 36a124 124 0 1 1-.01 0" fill="none" /></defs>
+<circle cx="160" cy="160" r="150" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="1 9" opacity=".5" />
+<circle cx="160" cy="160" r="96" fill="none" stroke="currentColor" stroke-width=".7" opacity=".22" />
+<path d="M160 4v32M144 20h32M149.5 8.5l21 23M170.5 8.5l-21 23" stroke="currentColor" stroke-width=".8" opacity=".4" fill="none" />
+<g fill="currentColor" font-size="15" opacity=".9"><text letter-spacing="6"><textPath href="#spRunePath">☽ ✦ ᚠ ᚢ ᚦ ✧ ✶ ᚨ ᚱ ᚲ ✷ ❂ ᚷ ᚹ ✸ ✵ ᚺ ᚾ ᚹ ᛉ ᛋ ✹ ᛏ ᛒ ᛖ ᛗ ᛚ ᛞ ☾</textPath></text></g>
+</svg>
+<div class="splash-aura"></div>
+<div class="sp-motes"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+<div class="splash-mirror">
+<svg viewBox="0 0 140 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="spFrameA" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ecd09a" /><stop offset="45%" stop-color="#b3843f" /><stop offset="100%" stop-color="#7a5222" /></linearGradient>
+<linearGradient id="spFrameB" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f6e4b2" /><stop offset="100%" stop-color="#8a5f28" /></linearGradient>
+<radialGradient id="spGlassA" cx="50%" cy="36%" r="80%"><stop offset="0%" stop-color="#3a1830" /><stop offset="45%" stop-color="#1e0c1c" /><stop offset="100%" stop-color="#0a0410" /></radialGradient>
+<radialGradient id="spIrisA" cx="50%" cy="45%" r="60%"><stop offset="0%" stop-color="#ff9a80" /><stop offset="35%" stop-color="#d43a34" /><stop offset="100%" stop-color="#5a0a10" /></radialGradient>
+<filter id="spBlurA" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" /></filter>
+<clipPath id="spEyeClip"><path d="M42 84Q70 68 98 84Q70 102 42 84Z" /></clipPath>
+</defs>
+<path d="M61 152h18l-2.5 9c-3.5 3-10 3-13.5 0Z" fill="url(#spFrameA)" />
+<path d="M63 161h14c4 6 6 12 6 18 0 6-5.5 10-13 10s-13-4-13-10c0-6 2-12 6-18Z" fill="url(#spFrameB)" />
+<circle cx="70" cy="185" r="5.5" fill="url(#spFrameA)" /><circle cx="70" cy="185" r="2.2" fill="#2a0c12" />
+<ellipse cx="70" cy="80" rx="56" ry="72" fill="url(#spFrameA)" />
+<circle cx="70" cy="10" r="4.6" fill="#f0dca4" /><circle cx="14.5" cy="80" r="3.8" fill="#cfa254" /><circle cx="125.5" cy="80" r="3.8" fill="#cfa254" />
+<ellipse cx="70" cy="80" rx="46" ry="62" fill="url(#spGlassA)" />
+<ellipse cx="70" cy="80" rx="46" ry="62" fill="none" stroke="rgba(244,226,178,.55)" stroke-width="1.2" />
+<ellipse cx="70" cy="80" rx="40" ry="56" fill="none" stroke="rgba(244,226,178,.2)" stroke-width=".8" />
+<ellipse cx="70" cy="80" rx="51" ry="67" fill="none" stroke="rgba(72,42,18,.5)" stroke-width="1" />
+<g fill="#e8cf96">
+<circle cx="123" cy="55" r="2.4" /><circle cx="89" cy="12" r="2.4" /><circle cx="51" cy="12" r="2.4" /><circle cx="17" cy="55" r="2.4" />
+<circle cx="17" cy="105" r="2.4" /><circle cx="51" cy="148" r="2.4" /><circle cx="89" cy="148" r="2.4" /><circle cx="123" cy="105" r="2.4" />
+<circle cx="70" cy="150" r="3" />
+</g>
+<path d="M38 34C29 47 27 64 33 80C35 62 42 46 52 35Z" fill="rgba(255,240,220,.13)" />
+<ellipse cx="47" cy="45" rx="6.5" ry="13" transform="rotate(-24 47 45)" fill="rgba(255,244,228,.18)" />
+<path d="M104 118l6-5M108 124l7-1M105 128l6 4" stroke="rgba(255,110,100,.4)" stroke-width="1" fill="none" stroke-linecap="round" />
+<g>
+<ellipse cx="70" cy="85" rx="34" ry="16" fill="rgba(196,44,48,.15)" />
+<ellipse cx="70" cy="85" rx="34" ry="16" fill="rgba(196,44,48,.14)" filter="url(#spBlurA)" />
+
+<g class="sp-eye-open">
+<g clip-path="url(#spEyeClip)">
+<path d="M42 84Q70 68 98 84Q70 102 42 84Z" fill="url(#spGlassA)" opacity=".88" />
+<circle cx="70" cy="86" r="11" fill="url(#spIrisA)" />
+<ellipse cx="70" cy="86" rx="2.6" ry="8" fill="#12060a" />
+<circle cx="64" cy="80" r="2.4" fill="rgba(255,240,220,.85)" />
+<circle cx="76" cy="92" r="1.2" fill="rgba(255,160,150,.45)" />
+<path d="M42 79Q70 62 98 79" fill="none" stroke="rgba(28,10,14,.6)" stroke-width="4" stroke-linecap="round" />
+</g>
+<path d="M42 84Q70 68 98 84" fill="none" stroke="#1c0a0e" stroke-width="3.2" stroke-linecap="round" />
+<path d="M98 84Q70 102 42 84" fill="none" stroke="#1c0a0e" stroke-width="1.6" stroke-linecap="round" opacity=".85" />
+<path d="M46 79q-3.5-3-5.5-6.5M58 74.5q-.8-3-.4-6M82 74.5q.8-3 .4-6M94 79q3.5-3 5.5-6.5" stroke="#1c0a0e" stroke-width="1.5" stroke-linecap="round" fill="none" />
+<circle cx="61" cy="76" r="2" fill="rgba(255,240,220,.75)" />
+</g>
+
+<g class="sp-eye-closed">
+<path d="M42 82Q70 100 98 82" fill="none" stroke="rgba(255,120,110,.5)" stroke-width="6" stroke-linecap="round" filter="url(#spBlurA)" />
+<path d="M42 82Q70 100 98 82" fill="none" stroke="#1c0a0e" stroke-width="3.2" stroke-linecap="round" />
+<path d="M44 78Q70 94 96 78" fill="none" stroke="rgba(255,210,190,.18)" stroke-width="1.2" stroke-linecap="round" />
+<g stroke="#1c0a0e" stroke-width="1.5" fill="none" stroke-linecap="round">
+<path d="M50 88q-3 5-4 8" /><path d="M60 92q-1.5 5-2 8.5" /><path d="M80 92q1.5 5 2 8.5" /><path d="M90 88q3 5 4 8" />
+</g>
+<circle cx="61" cy="76" r="2" fill="rgba(255,240,220,.75)" />
+<circle cx="80" cy="74" r="1.2" fill="rgba(255,240,220,.5)" />
+</g>
+</g>
+<g fill="#ffeec4">
+<g transform="translate(10 36)"><path class="sp-spark" style="animation-delay:.2s" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z" /></g>
+<g transform="translate(130 60)"><path class="sp-spark" style="animation-delay:1.1s" d="M0-5.4 1.3-1.3 5.4 0 1.3 1.3 0 5.4-1.3 1.3-5.4 0-1.3-1.3Z" /></g>
+<g transform="translate(18 118)"><path class="sp-spark" style="animation-delay:.6s" d="M0-4.6 1.1-1.1 4.6 0 1.1 1.1 0 4.6-1.1 1.1-4.6 0-1.1-1.1Z" /></g>
+<g transform="translate(126 132)"><path class="sp-spark" style="animation-delay:1.7s" d="M0-6 1.4-1.4 6 0 1.4 1.4 0 6-1.4 1.4-6 0-1.4-1.4Z" /></g>
+<g transform="translate(56 22)"><path class="sp-spark" style="animation-delay:1.4s" d="M0-4 1-1 4 0 1 1 0 4-1 1-4 0-1-1Z" /></g>
+<g transform="translate(108 24)"><path class="sp-spark" style="animation-delay:.9s" d="M0-4.4 1.1-1.1 4.4 0 1.1 1.1 0 4.4-1.1 1.1-4.4 0-1.1-1.1Z" /></g>
+<g transform="translate(38 158)"><path class="sp-spark" style="animation-delay:2s" d="M0-4.8 1.2-1.2 4.8 0 1.2 1.2 0 4.8-1.2 1.2-4.8 0-1.2-1.2Z" /></g>
+<g transform="translate(98 152)"><path class="sp-spark" style="animation-delay:2.6s" d="M0-4 1-1 4 0 1 1 0 4-1 1-4 0-1-1Z" /></g>
+</g>
+</svg>
+</div>
+</div>
+<p class="splash-eyebrow">INTO&nbsp;THE&nbsp;GLASS</p>
+<h1 class="splash-title">Mirror&nbsp;Nightmare</h1>
+<p class="splash-rule">✦</p>
+<p class="splash-sub" id="splashSub">当你凝视他，他也会回应你.....</p>
+</div>
+</div>
+
+<script>
+/* ========== 开场动画 · 魔镜 ========== */
+(function(){
+'use strict';
+var el=document.getElementById('splashOverlay');
+if(!el)return;
+var sub=document.getElementById('splashSub');
+try{
+var c=JSON.parse(localStorage.getItem('jingyan.home.v1')||'{}');
+if(sub&&c.splashText)sub.textContent=c.splashText;
+}catch(e){}
+var done=false;
+function end(){
+if(done)return;done=true;
+el.classList.add('splash-done');
+try{document.dispatchEvent(new CustomEvent('jingyan:splashEnd'))}catch(e){}
+setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el)},850);
+}
+el.addEventListener('click',end);
+setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?500:3600);
+})();
+</script>
 
 <div class="backdrop" aria-hidden="true">
 <span class="veil veil-a"></span><span class="veil veil-b"></span><span class="veil veil-c"></span>
@@ -254,6 +371,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <div class="home-overlay visible" id="homeOverlay">
 <div class="home-bg" id="homeBg"></div>
 <div class="home-top-actions">
+<button type="button" class="home-top-btn" id="homeModeBtn" title="切换日用 / 夜用" aria-label="切换日用 / 夜用">☾</button>
 <button type="button" class="home-top-btn" id="homeSettingsBtn" title="主页设置" aria-label="主页设置">✎</button>
 </div>
 <div class="home-inner">
@@ -361,6 +479,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 <button type="button" class="drawer-item" data-action="diary"><span class="drawer-icon">✎</span><span class="drawer-label">日记本</span></button>
 <button type="button" class="drawer-item" data-action="painting"><span class="drawer-icon">✧</span><span class="drawer-label">镜中影</span></button>
 <button type="button" class="drawer-item" data-action="sendPainting"><span class="drawer-icon">⋆</span><span class="drawer-label">索要影象</span></button>
+<button type="button" class="drawer-item" data-action="call"><span class="drawer-icon">☾</span><span class="drawer-label">意识沟通</span></button>
 <button type="button" class="drawer-item" data-action="settings"><span class="drawer-icon">⚙</span><span class="drawer-label">设定</span></button>
 </div>
 </div>
@@ -456,6 +575,13 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 </div>
 <div class="field"><label for="setCharTitle">身份或签名</label><input class="input" id="setCharTitle" maxlength="30" placeholder="住在镜子背面的人" /></div>
 <div class="field">
+<label>亮度版本 <span class="label-hint">日用 / 夜用</span></label>
+<div class="segmented" id="modeGroup">
+<label><input type="radio" name="brightnessMode" value="dark" /><span>夜用版 · 暗</span></label>
+<label><input type="radio" name="brightnessMode" value="light" /><span>日用版 · 亮</span></label>
+</div>
+</div>
+<div class="field">
 <label>主题色 <span class="label-hint">一键切换</span></label>
 <div class="theme-picker" id="themePicker">
 <button type="button" class="theme-dot" data-theme="default" title="镜红"></button>
@@ -466,6 +592,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 </div>
 </div>
 <div class="field"><label for="setHomeGreeting">主页留言 <span class="label-hint">显示在时间下方</span></label><input class="input" id="setHomeGreeting" maxlength="60" placeholder="镜面之下，有人在等" /></div>
+<div class="field"><label for="setSplashText">开场小字 <span class="label-hint">开场动画中的一行小字</span></label><input class="input" id="setSplashText" maxlength="40" placeholder="当你凝视他，他也会回应你....." /></div>
 <div class="field">
 <label>主页背景图 <span class="label-hint">上传一张图片</span></label>
 <div class="avatar-edit">
@@ -492,6 +619,16 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 </div></div>
 <div class="field switch-field"><div><label for="setAvoidRepeat">避免连续重复</label><p class="field-help">抽完一轮之前不重复。</p></div><label class="switch"><input type="checkbox" id="setAvoidRepeat" /><span class="switch-track"><span class="switch-thumb"></span></span></label></div>
 <div class="field switch-field"><div><label for="setProactive">主动传讯</label><p class="field-help">你安静时他会主动说话。</p></div><label class="switch"><input type="checkbox" id="setProactive" /><span class="switch-track"><span class="switch-thumb"></span></span></label></div>
+<div class="field">
+<label>意识沟通来电 <span class="label-hint">他会像打电话一样找你</span></label>
+<div class="segmented" id="callFreqGroup">
+<label><input type="radio" name="callFreq" value="off" /><span>关</span></label>
+<label><input type="radio" name="callFreq" value="low" /><span>低</span></label>
+<label><input type="radio" name="callFreq" value="mid" /><span>中</span></label>
+<label><input type="radio" name="callFreq" value="high" /><span>高</span></label>
+</div>
+<p class="field-help">拒接或没接到，都会写进聊天记录。</p>
+</div>
 <div class="field switch-field"><div><label for="setSensation">体感弹窗</label><p class="field-help">偶尔传来体感。</p></div><label class="switch"><input type="checkbox" id="setSensation" /><span class="switch-track"><span class="switch-thumb"></span></span></label></div>
 <div class="field"><label>抽卡池 <span class="label-hint" id="drawPoolHint">不选 = 全部</span></label><div class="tag-checks" id="drawTags"></div></div>
 <div class="field data-zone">
@@ -586,12 +723,205 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after{animatio
 </div>
 
 <div class="toast-root" id="toastRoot" role="status" aria-live="polite"></div>
+
+<section class="board-overlay" id="boardOverlay" hidden>
+<div class="board" role="dialog" aria-label="今日告示">
+<header class="board-head">
+<p class="board-eyebrow">DAILY&nbsp;ORACLE</p>
+<h2 class="board-title">今日告示 · 镜启</h2>
+<button type="button" class="board-close" id="boardCloseBtn" aria-label="收起告示">✕</button>
+</header>
+<div class="board-body">
+<div class="board-row board-figure">
+<span class="board-name" id="boardName">沈砚</span>
+<div class="board-status"><span class="board-label">今日状态</span><span class="board-value" id="boardStatus">在等你的消息</span></div>
+</div>
+<div class="board-row board-mood">
+<span class="board-label">今日心情</span>
+<span class="board-tag mood-neutral" id="boardMood">—</span>
+<span class="board-note" id="boardNote"></span>
+</div>
+<div class="board-bars">
+<div class="board-bar-row"><span class="board-label">沟通意愿</span><span class="board-bar"><i id="boardTalkBar"></i></span><b class="board-bar-word" id="boardTalkWord">—</b></div>
+<div class="board-bar-row"><span class="board-label">连接意愿</span><span class="board-bar"><i id="boardLinkBar"></i></span><b class="board-bar-word" id="boardLinkWord">—</b></div>
+</div>
+<div class="board-lines">
+<p class="board-lines-label">— 今日内心戏 · <span id="boardLineCount">0</span> 则 —</p>
+<ul class="board-line" id="boardLineList"></ul>
+</div>
+</div>
+<footer class="board-foot">
+<span class="board-seal" aria-hidden="true">魇</span>
+<p>镜面所感，只作参考 · 点空白处收起</p>
+</footer>
+</div>
+</section>
+
+<script>
+/* ========== 今日告示栏 · 心情 / 意愿 / 内心戏 ========== */
+(function(){
+'use strict';
+var BK='jingyan.board.v1',SK='jingyan.settings.v1',CK='jingyan.cards.v1';
+var MOODS={
+good:['平静安稳','开心愉快','满足安心','轻松放松'],
+low:['低落难过','烦躁生气','焦虑紧张','担心害怕','疲惫没劲','无聊麻木'],
+ex:['极度兴奋','暴怒失控','悲伤绝望','恐惧惊恐','焦虑恐慌','厌恶崩溃','麻木空虚','高涨失控','低落无望','极端波动']
+};
+var NOTES={
+'mood-good':['镜面微微发热。','光在镜框上多停留了一会儿。','今天乐意多说几句。'],
+'mood-low':['镜面有些凉。','他好像不太想说话，但没有走开。','玻璃后传来很轻的呼吸声。'],
+'mood-extreme':['镜面在轻轻震颤。','倒影里有什么东西在晃。','镜里的光忽明忽暗。']
+};
+var FALLBACK=['镜的那一面，今晚格外安静。','他数着你呼吸的间隔，像在数星星。','有什么话，就隔着玻璃说吧。'];
+function rJ(k,f){try{var r=localStorage.getItem(k);return r?JSON.parse(r):f}catch(e){return f}}
+function wJ(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function p2(n){return String(n).padStart(2,'0')}
+function today(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function ps(t){var s=rJ(SK,{})||{};var m=String(s.myName||'你').slice(0,16);var c=String(s.charName||'梦角').slice(0,16);return String(t).split('{我}').join(m).split('{名字}').join(c)}
+function word(v){return v>=78?'渴切':v>=58?'平稳':v>=38?'迟疑':'低哑'}
+function moodPick(){
+if(Math.random()<0.12){var t2=pick(MOODS.ex);return{text:t2,cls:'mood-extreme',extreme:true}}
+var t=pick(MOODS.good.concat(MOODS.low));
+return{text:t,cls:MOODS.good.indexOf(t)>=0?'mood-good':'mood-low',extreme:false}
+}
+function willFor(mood){
+var v;
+if(mood.extreme)v=32+Math.floor(Math.random()*58);
+else if(mood.cls==='mood-good')v=66+Math.floor(Math.random()*30);
+else v=20+Math.floor(Math.random()*40);
+v=Math.max(8,Math.min(98,v));
+return{v:v,word:word(v)}
+}
+function lines(n){
+var cards=rJ(CK,[]);
+var pool=(Array.isArray(cards)?cards:[]).filter(function(c){return c&&typeof c.text==='string'&&c.text.trim()}).map(function(c){return ps(c.text)});
+if(!pool.length)pool=FALLBACK.slice();
+var out=[],bag=pool.slice(),tries=0;
+while(out.length<Math.min(n,pool.length)&&bag.length&&tries<200){tries++;var t=bag.splice(Math.floor(Math.random()*bag.length),1)[0];out.push(t)}
+while(out.length<n&&tries<600){tries++;out.push(pick(pool))}
+return out;
+}
+function build(){
+var t=today(),b=rJ(BK,null);
+if(b&&b.date===t)return b;
+var mood=moodPick();
+var talk=willFor(mood),link=willFor(mood);
+var n=3+Math.floor(Math.random()*6);
+b={date:t,mood:{text:mood.text,cls:mood.cls},note:pick(NOTES[mood.cls]||NOTES['mood-low']),talk:talk,link:link,lines:lines(n)};
+wJ(BK,b);
+return b;
+}
+function fill(b){
+var s=rJ(SK,{})||{};
+var name=(s.charName||'沈砚').slice(0,16);
+var status=(s.status||'在等你的消息').slice(0,20);
+var el=function(id){return document.getElementById(id)};
+var n=el('boardName');if(n)n.textContent=name;
+var st=el('boardStatus');if(st)st.textContent=status;
+var mo=el('boardMood');if(mo){mo.textContent=b.mood.text;mo.className='board-tag '+b.mood.cls}
+var no=el('boardNote');if(no)no.textContent='「'+b.note+'」';
+function setBar(bar,wordEl,data){
+var bb=el(bar);var ww=el(wordEl);
+if(bb)bb.style.width=data.v+'%';
+if(ww){ww.textContent=data.word;ww.className='board-bar-word'+(data.v>=78?' hot':data.v<38?' cold':'')}
+}
+setBar('boardTalkBar','boardTalkWord',b.talk);
+setBar('boardLinkBar','boardLinkWord',b.link);
+var cnt=el('boardLineCount');if(cnt)cnt.textContent=String(b.lines.length);
+var list=el('boardLineList');
+if(list){
+list.innerHTML='';
+b.lines.forEach(function(t,i){
+var li=document.createElement('li');
+li.textContent=t;
+li.style.animationDelay=(200+i*90)+'ms';
+list.appendChild(li);
+});
+}
+}
+function show(){var ov=document.getElementById('boardOverlay');if(!ov)return;fill(build());ov.hidden=false}
+function hide(){var ov=document.getElementById('boardOverlay');if(ov)ov.hidden=true}
+document.addEventListener('jingyan:splashEnd',function(){setTimeout(show,450)});
+var cb=document.getElementById('boardCloseBtn');if(cb)cb.addEventListener('click',hide);
+var ov=document.getElementById('boardOverlay');
+if(ov)ov.addEventListener('click',function(e){if(e.target===ov)hide()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')hide()});
+})();
+</script>
+
+<div class="call-overlay" id="callOverlay" hidden>
+<div class="call-eye-bg" aria-hidden="true">
+<svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice">
+<defs>
+<radialGradient id="ceSclera" cx="50%" cy="50%" r="72%"><stop offset="0%" stop-color="#f4e3d8"/><stop offset="45%" stop-color="#e0c2b6"/><stop offset="82%" stop-color="#b08f88"/><stop offset="100%" stop-color="#7d5e59"/></radialGradient>
+<radialGradient id="ceIris" cx="50%" cy="44%" r="60%"><stop offset="0%" stop-color="#ffb898"/><stop offset="10%" stop-color="#f05040"/><stop offset="32%" stop-color="#cc1a24"/><stop offset="62%" stop-color="#7a0b12"/><stop offset="100%" stop-color="#2a0305"/></radialGradient>
+<filter id="ceBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<rect x="0" y="0" width="400" height="220" fill="#050108" />
+<g class="ce-eye-gaze">
+<ellipse cx="200" cy="110" rx="150" ry="86" fill="url(#ceSclera)" />
+<path d="M60 96C120 58 280 58 340 96C300 74 100 74 60 96Z" fill="rgba(30,8,10,.85)" />
+<path d="M52 100C130 52 270 52 348 100C270 82 130 82 52 100Z" fill="rgba(255,120,110,.3)" filter="url(#ceBlur)" />
+<ellipse cx="200" cy="110" rx="52" ry="52" fill="url(#ceIris)" class="ce-iris" />
+<ellipse cx="200" cy="110" rx="9" ry="34" fill="#12060a" class="ce-pupil" />
+<circle cx="182" cy="92" r="8" fill="rgba(255,240,220,.7)" class="ce-glint" />
+<circle cx="216" cy="128" r="4" fill="rgba(255,160,150,.35)" />
+<path d="M148 66C180 52 236 52 262 68" fill="none" stroke="rgba(28,10,14,.25)" stroke-width="1.5" opacity=".6" />
+</g>
+</svg>
+</div>
+<div class="call-veil" aria-hidden="true"></div>
+<div class="call-card">
+<p class="call-rune">☽ ✦ ᛉ ✦ ☾</p>
+<div class="call-ripple"><i></i><i></i><i></i></div>
+<div class="call-avatar"><span>☾ ✦</span></div>
+<p class="call-name" id="callName">梦角</p>
+<p class="call-sub" id="callSub">邀请你进行意识沟通……</p>
+<div class="call-actions">
+<button type="button" class="call-btn call-reject" id="callRejectBtn" aria-label="拒接"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M7 10.5c2.6.5 5-.5 6.5-2.3l2-2.2c.6-.7 1.7-.7 2.4-.1l2.6 2.6c.6.6.6 1.3 0 1.9-4.4 4.9-11 5.7-15 2.4L3.6 11c-.6-.5-.6-1.2-.1-1.8l2.2-2.5c.5-.6 1.5-.7 2.1-.1z" fill="currentColor" transform="rotate(135 12 12)"/></svg></button>
+<button type="button" class="call-btn call-accept" id="callAcceptBtn" aria-label="接听"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M12.6 4.4c1.2-1.2 3-1.2 4.2 0l2.6 2.6c1.2 1.2 1.2 3 0 4.2-.4.4-.9.3-1.3-.1l-1.1-1.4-4.5 4.5 1.4 1.1c.4.4.5.9.1 1.3-1.2 1.2-3 1.2-4.2 0L7.2 14c-1.2-1.2-1.2-3 0-4.2z" fill="currentColor" transform="rotate(225 12 12)"/></svg></button>
+</div>
+<p class="call-hint" id="callHint">接听 — 只要伸手，他就会看见你</p>
+</div>
+</div>
+
+<div class="call-panel" id="callPanel" hidden>
+<div class="call-eye-bg call-eye-bg-live" aria-hidden="true">
+<svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice">
+<defs>
+<radialGradient id="ceSclera2" cx="50%" cy="50%" r="72%"><stop offset="0%" stop-color="#f4e3d8"/><stop offset="45%" stop-color="#e0c2b6"/><stop offset="82%" stop-color="#b08f88"/><stop offset="100%" stop-color="#7d5e59"/></radialGradient>
+<radialGradient id="ceIris2" cx="50%" cy="44%" r="60%"><stop offset="0%" stop-color="#ffb898"/><stop offset="10%" stop-color="#f05040"/><stop offset="32%" stop-color="#cc1a24"/><stop offset="62%" stop-color="#7a0b12"/><stop offset="100%" stop-color="#2a0305"/></radialGradient>
+<filter id="ceBlur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>
+<g class="ce-eye-gaze ce-eye-gaze-live">
+<ellipse cx="200" cy="110" rx="150" ry="86" fill="url(#ceSclera2)" />
+<path d="M60 96C120 58 280 58 340 96C300 74 100 74 60 96Z" fill="rgba(30,8,10,.85)" />
+<path d="M52 100C130 52 270 52 348 100C270 82 130 82 52 100Z" fill="rgba(255,120,110,.3)" filter="url(#ceBlur2)" />
+<ellipse cx="200" cy="110" rx="52" ry="52" fill="url(#ceIris2)" class="ce-iris" />
+<ellipse cx="200" cy="110" rx="9" ry="34" fill="#12060a" class="ce-pupil" />
+<circle cx="182" cy="92" r="8" fill="rgba(255,240,220,.7)" class="ce-glint" />
+</g>
+</svg>
+</div>
+<div class="call-live-top">
+<span class="call-live-status" id="callLiveStatus">意识沟通中</span>
+<span class="call-live-timer" id="callTimer">00:00</span>
+</div>
+<div class="call-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<div class="call-live-lines" id="callLiveLines"></div>
+<div class="call-live-actions">
+<button type="button" class="call-btn call-reject" id="callHangBtn" aria-label="挂断"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2.6 22 21H2Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M12 8v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="currentColor"/></svg></button>
+</div>
+</div>
+
 <input type="file" id="avatarFile" accept="image/*" hidden />
 <input type="file" id="homeBgFile" accept="image/*" hidden />
 
-<script src="app.js?v=17"></script>
+<script src="app.js?v=18"></script>
 <script src="mirror.js"></script>
 <script src="tuning.js?v=1"></script>
+<script src="call.js?v=2"></script>
 <script>
 /* ========== 主页 + 主题 + 抽屉 + 清理 ========== */
 (function(){
@@ -605,6 +935,15 @@ var overlay=document.getElementById('homeOverlay');
 
 function applyTheme(t){var ok=['default','purple','emerald','azure','rose'];if(ok.indexOf(t)<0)t='default';document.documentElement.setAttribute('data-theme',t);var picker=document.getElementById('themePicker');if(picker)picker.querySelectorAll('.theme-dot').forEach(function(d){d.classList.toggle('active',d.getAttribute('data-theme')===t)})}
 applyTheme(cfg.theme||'default');
+
+function applyMode(m){var ok=['dark','light'];if(ok.indexOf(m)<0)m='dark';document.documentElement.setAttribute('data-mode',m);
+try{var mt=document.querySelector('meta[name="theme-color"]');if(mt)mt.setAttribute('content',m==='light'?'#f3e9dc':'#0a0506')}catch(e){}
+var btn=document.getElementById('homeModeBtn');if(btn){btn.textContent=m==='light'?'☀':'☾';btn.title=m==='light'?'切换到夜用版':'切换到日用版';btn.setAttribute('aria-label',btn.title)}
+var mr=document.querySelector('#modeGroup input[value="'+m+'"]');if(mr)mr.checked=true}
+applyMode(cfg.mode||'dark');
+
+var modeBtn=document.getElementById('homeModeBtn');
+if(modeBtn)modeBtn.addEventListener('click',function(){cfg.mode=(cfg.mode||'dark')==='light'?'dark':'light';wHome(cfg);applyMode(cfg.mode)});
 
 function applyBg(bg){
 var el=document.getElementById('homeBg');if(!el)return;
@@ -657,12 +996,15 @@ else{var iv=setInterval(function(){if(document.getElementById('mirrorDialog')){c
 var picker=document.getElementById('themePicker');
 if(picker){picker.querySelectorAll('.theme-dot').forEach(function(d){d.addEventListener('click',function(){var t=d.getAttribute('data-theme');cfg.theme=t;wHome(cfg);applyTheme(t)})})}
 
-function syncExtra(){var c=rHome();applyTheme(c.theme||'default');var g=document.getElementById('setHomeGreeting');if(g)g.value=c.greeting||'';applyBg(c.bg||'')}
+function syncExtra(){var c=rHome();applyTheme(c.theme||'default');applyMode(c.mode||'dark');var g=document.getElementById('setHomeGreeting');if(g)g.value=c.greeting||'';var st=document.getElementById('setSplashText');if(st)st.value=c.splashText||'';applyBg(c.bg||'')}
 var csb=document.getElementById('chatSettingsBtn'),osb=document.getElementById('openSettingsBtn');
 [csb,osb].forEach(function(b){if(b)b.addEventListener('click',function(){setTimeout(syncExtra,50)})});
 
 var sForm=document.getElementById('settingsForm');
-if(sForm)sForm.addEventListener('submit',function(){var c=rHome();var g=document.getElementById('setHomeGreeting');if(g)c.greeting=g.value.trim().slice(0,60);wHome(c);applyGreeting(c.greeting)},true);
+if(sForm)sForm.addEventListener('submit',function(){var c=rHome();var g=document.getElementById('setHomeGreeting');if(g)c.greeting=g.value.trim().slice(0,60);
+var st=document.getElementById('setSplashText');if(st)c.splashText=st.value.trim().slice(0,40);
+var mr=document.querySelector('input[name="brightnessMode"]:checked');if(mr)c.mode=mr.value;
+wHome(c);applyGreeting(c.greeting);applyMode(c.mode)},true);
 
 var bgFile=document.getElementById('homeBgFile');
 var pickBgBtn=document.getElementById('pickHomeBgBtn');
@@ -679,7 +1021,7 @@ if(clearBgBtn)clearBgBtn.addEventListener('click',function(){var c=rHome();c.bg=
 
 function compress(file,maxSize,quality){return new Promise(function(res,rej){var r=new FileReader();r.onerror=function(){rej(new Error('读取失败'))};r.onload=function(){var img=new Image();img.onerror=function(){rej(new Error('无法解析'))};img.onload=function(){try{var sw=img.naturalWidth||1,sh=img.naturalHeight||1;var ratio=Math.min(1,maxSize/Math.max(sw,sh));var w=Math.max(1,Math.round(sw*ratio)),h=Math.max(1,Math.round(sh*ratio));var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');if(!ctx){rej(new Error('画布失败'));return}ctx.fillStyle='#120709';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);res(c.toDataURL('image/jpeg',quality))}catch(e){rej(new Error('处理失败'))}};img.src=String(r.result||'')};r.readAsDataURL(file)})}
 
-function setupDrawer(){var p=document.getElementById('composerPlusBtn'),d=document.getElementById('composerDrawer'),c=document.getElementById('drawerCloseBtn');if(!p||!d)return;function o(){d.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add('open')})});p.classList.add('active')}function cl(){d.classList.remove('open');p.classList.remove('active');setTimeout(function(){if(!d.classList.contains('open'))d.hidden=true},220)}p.addEventListener('click',function(e){e.stopPropagation();if(d.classList.contains('open'))cl();else o()});if(c)c.addEventListener('click',cl);document.addEventListener('click',function(e){if(!d.classList.contains('open'))return;if(d.contains(e.target))return;if(p.contains(e.target))return;cl()});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&d.classList.contains('open'))cl()});d.querySelectorAll('.drawer-item').forEach(function(it){it.addEventListener('click',function(){var a=it.getAttribute('data-action');cl();setTimeout(function(){if(a==='home'){showHome();return}if(a==='library'){openView('library');return}if(a==='diary'){openView('diary');return}if(a==='painting'){openView('painting');return}if(a==='sendPainting'){document.dispatchEvent(new CustomEvent('jingyan:requestPaintingToChat'));return}if(a==='settings'){var g=document.getElementById('chatSettingsBtn');if(g)g.click();return}},120)})})}
+function setupDrawer(){var p=document.getElementById('composerPlusBtn'),d=document.getElementById('composerDrawer'),c=document.getElementById('drawerCloseBtn');if(!p||!d)return;function o(){d.hidden=false;requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add('open')})});p.classList.add('active')}function cl(){d.classList.remove('open');p.classList.remove('active');setTimeout(function(){if(!d.classList.contains('open'))d.hidden=true},220)}p.addEventListener('click',function(e){e.stopPropagation();if(d.classList.contains('open'))cl();else o()});if(c)c.addEventListener('click',cl);document.addEventListener('click',function(e){if(!d.classList.contains('open'))return;if(d.contains(e.target))return;if(p.contains(e.target))return;cl()});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&d.classList.contains('open'))cl()});d.querySelectorAll('.drawer-item').forEach(function(it){it.addEventListener('click',function(){var a=it.getAttribute('data-action');cl();setTimeout(function(){if(a==='home'){showHome();return}if(a==='library'){openView('library');return}if(a==='diary'){openView('diary');return}if(a==='painting'){openView('painting');return}if(a==='sendPainting'){document.dispatchEvent(new CustomEvent('jingyan:requestPaintingToChat'));return}if(a==='call'){document.dispatchEvent(new CustomEvent('jingyan:requestCall'));return}if(a==='settings'){var g=document.getElementById('chatSettingsBtn');if(g)g.click();return}},120)})})}
 setupDrawer();
 
 var cleanBtn=document.getElementById('cleanCacheBtn');
