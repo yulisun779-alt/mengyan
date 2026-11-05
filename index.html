@@ -16,6 +16,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css?v=23" />
+<link rel="stylesheet" href="fix.css?v=1" />
+<link rel="stylesheet" href="extras.css?v=1" />
+<link rel="stylesheet" href="pet.css?v=2" />
 
 <style id="themeStyle">
 html, body { overflow-x: hidden !important; max-width: 100vw; }
@@ -172,7 +175,7 @@ html[data-theme="rose"]{--accent:#c48a9a;--accent-2:#6e2e44;--accent-rgb:196,138
   .chat-who-text strong, .chat-who-text span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .chat-actions { flex: 0 0 auto; flex-wrap: nowrap; gap: 4px !important; }
   .chat-actions .icon-btn { width: 30px !important; height: 30px !important; font-size: 11px !important; }
-  #chatLibraryBtn, #fontBtn, .install-btn { display: none !important; }
+  #chatLibraryBtn, #fontBtn { display: none !important; }
   .chat-scroll { padding: 14px 10px 6px !important; }
   .composer-wrap { padding: 6px 10px calc(8px + env(safe-area-inset-bottom)) !important; }
   .page-head { padding: 10px 12px 8px !important; padding-top: calc(10px + env(safe-area-inset-top)) !important; gap: 8px !important; flex-wrap: wrap; }
@@ -223,7 +226,7 @@ html[data-mode="light"]{--gold:#8a6a34;--gold-rgb:138,106,52}
 <circle cx="160" cy="160" r="150" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="1 9" opacity=".5" />
 <circle cx="160" cy="160" r="96" fill="none" stroke="currentColor" stroke-width=".7" opacity=".22" />
 <path d="M160 4v32M144 20h32M149.5 8.5l21 23M170.5 8.5l-21 23" stroke="currentColor" stroke-width=".8" opacity=".4" fill="none" />
-<g fill="currentColor" font-size="15" opacity=".9"><text letter-spacing="6"><textPath href="#spRunePath">☽ ✦ ᚠ ᚢ ᚦ ✧ ✶ ᚨ ᚱ ᚲ ✷ ❂ ᚷ ᚹ ✸ ✵ ᚺ ᚾ ᚹ ᛉ ᛋ ✹ ᛏ ᛒ ᛖ ᛗ ᛚ ᛞ ☾</textPath></text></g>
+<g fill="currentColor" font-size="15" opacity=".9"><text letter-spacing="6"><textPath href="#spRunePath">☪ ✦ ᚠ ᚢ ᚰ ✧ ✶ ᚨ ᚱ ᚲ ✷ ❂ ᚷ ᚹ ✸ ✵ ᚺ ᚻ ᚹ ᛉ ᛋ ✹ ᛏ ᛒ ᛖ ᛗ ᛡ ᛞ ☫</textPath></text></g>
 </svg>
 <div class="splash-aura"></div>
 <div class="sp-motes"><span></span><span></span><span></span><span></span><span></span><span></span></div>
@@ -385,8 +388,8 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 <button type="button" class="home-app" data-view="library"><span class="home-icon" aria-hidden="true">❖</span><span class="home-label">字卡库</span></button>
 <button type="button" class="home-app" data-view="diary"><span class="home-icon" aria-hidden="true">✎</span><span class="home-label">日记本</span></button>
 <button type="button" class="home-app" data-view="painting"><span class="home-icon" aria-hidden="true">✧</span><span class="home-label">镜中影</span></button>
-<button type="button" class="home-app" data-action="mirror"><span class="home-icon" aria-hidden="true">◉</span><span class="home-label">镜中梦魇</span></button>
-<button type="button" class="home-app" data-action="settings"><span class="home-icon" aria-hidden="true">⚙</span><span class="home-label">设定</span></button>
+<button type="button" class="home-app" data-action="mirror"><span class="home-icon" aria-hidden="true">◗</span><span class="home-label">镜中梦魇</span></button>
+<button type="button" class="home-app" data-action="settings"><span class="home-icon" aria-hidden="true">⚙</span><span class="home-label">设置</span></button>
 </nav>
 <footer class="home-footer">
 <div class="home-status"><span class="pulse-dot"></span><span id="homeStatus">沈砚 · 在等你的消息</span></div>
@@ -478,9 +481,9 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 <button type="button" class="drawer-item" data-action="library"><span class="drawer-icon">❖</span><span class="drawer-label">字卡库</span></button>
 <button type="button" class="drawer-item" data-action="diary"><span class="drawer-icon">✎</span><span class="drawer-label">日记本</span></button>
 <button type="button" class="drawer-item" data-action="painting"><span class="drawer-icon">✧</span><span class="drawer-label">镜中影</span></button>
-<button type="button" class="drawer-item" data-action="sendPainting"><span class="drawer-icon">⋆</span><span class="drawer-label">索要影象</span></button>
+<button type="button" class="drawer-item" data-action="sendPainting"><span class="drawer-icon">⊕</span><span class="drawer-label">索要图象</span></button>
 <button type="button" class="drawer-item" data-action="call"><span class="drawer-icon">☾</span><span class="drawer-label">意识沟通</span></button>
-<button type="button" class="drawer-item" data-action="settings"><span class="drawer-icon">⚙</span><span class="drawer-label">设定</span></button>
+<button type="button" class="drawer-item" data-action="settings"><span class="drawer-icon">⚙</span><span class="drawer-label">设置</span></button>
 </div>
 </div>
 <form class="composer" id="composer" autocomplete="off">
@@ -644,7 +647,7 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 <p class="field-help">「整理 & 重启」压缩聊天记录并刷新。「清空所有数据」彻底删除全部数据，不可撤销。</p>
 </div>
 </div>
-<footer class="modal-foot"><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary">保存设定</button></footer>
+<footer class="modal-foot"><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary">保存设置</button></footer>
 </form>
 </dialog>
 
@@ -653,7 +656,7 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 <header class="modal-head"><div><p class="eyebrow">CARD</p><h3 id="cardDialogTitle">新建字卡</h3></div><button type="button" class="modal-x" data-close>✕</button></header>
 <div class="modal-body">
 <div class="field"><label for="cardText">字卡内容</label><textarea class="input textarea" id="cardText" maxlength="200" rows="5" placeholder="写下梦角会对你说的那句话…"></textarea><div class="field-foot"><span class="field-error" id="cardTextError"></span><span class="counter" id="cardTextCount">0 / 200</span></div></div>
-<div class="field"><label for="cardTag">标签</label><input class="input" id="cardTag" maxlength="12" list="tagSuggestions" placeholder="例如：低语、渴念、深夜" /><datalist id="tagSuggestions"></datalist><p class="field-help" id="cardTagHelp">标签用于分类筛选。</p></div>
+<div class="field"><label for="cardTag">标签</label><input class="input" id="cardTag" maxlength="12" list="tagSuggestions" placeholder="例如：低语、渴望、深夜" /><datalist id="tagSuggestions"></datalist><p class="field-help" id="cardTagHelp">标签用于分类筛选。</p></div>
 <div class="field"><label>效果预览</label><div class="preview-card" id="cardPreview"><div class="preview-card-head"><span>镜魇 · 字卡</span><span class="card-tag" id="previewTag">日常</span></div><p class="preview-card-text" id="previewText">你的字卡会出现在这里。</p><div class="preview-card-foot"><span>No. ???</span><span class="seal">魇</span></div></div></div>
 </div>
 <footer class="modal-foot"><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary">保存字卡</button></footer>
@@ -736,7 +739,7 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 <h3 id="sensationTitle">镜后传来一阵体感</h3>
 <p class="sensation-text" id="sensationText"></p>
 <div class="sensation-actions">
-<button type="button" class="btn small primary" data-sensation="felt">我感觉到了</button>
+<button type="button" class="btn small primary" data-sensation="felt">我感受到了</button>
 <button type="button" class="btn small" data-sensation="none">没感觉到</button>
 <button type="button" class="btn small" data-sensation="weak">感觉太弱</button>
 </div>
@@ -786,9 +789,9 @@ setTimeout(end,window.matchMedia&&window.matchMedia('(prefers-reduced-motion: re
 'use strict';
 var BK='jingyan.board.v1',SK='jingyan.settings.v1',CK='jingyan.cards.v1';
 var MOODS={
-good:['平静安稳','开心愉快','满足安心','轻松放松'],
+good:['平静安稳','开心愉悦','满足安心','轻松放松'],
 low:['低落难过','烦躁生气','焦虑紧张','担心害怕','疲惫没劲','无聊麻木'],
-ex:['极度兴奋','暴怒失控','悲伤绝望','恐惧惊恐','焦虑恐慌','厌恶崩溃','麻木空虚','高涨失控','低落无望','极端波动']
+ex:['极度兴奋','暴怒失控','悲伤绝望','恐惧惊慌','焦虑恐慌','厌恶崩溃','麻木空虚','高涨失控','低落无望','极端波动']
 };
 var NOTES={
 'mood-good':['镜面微微发热。','光在镜框上多停留了一会儿。','今天乐意多说几句。'],
@@ -802,7 +805,7 @@ function p2(n){return String(n).padStart(2,'0')}
 function today(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function ps(t){var s=rJ(SK,{})||{};var m=String(s.myName||'你').slice(0,16);var c=String(s.charName||'梦角').slice(0,16);return String(t).split('{我}').join(m).split('{名字}').join(c)}
-function word(v){return v>=78?'渴切':v>=58?'平稳':v>=38?'迟疑':'低哑'}
+function word(v){return v>=78?'渴切':v>=58?'平稳':v>=38?'迟疑':'低吟'}
 function moodPick(){
 if(Math.random()<0.12){var t2=pick(MOODS.ex);return{text:t2,cls:'mood-extreme',extreme:true}}
 var t=pick(MOODS.good.concat(MOODS.low));
@@ -896,7 +899,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')hide()});
 </div>
 <div class="call-veil" aria-hidden="true"></div>
 <div class="call-card">
-<p class="call-rune">☽ ✦ ᛉ ✦ ☾</p>
+<p class="call-rune">☪ ✦ ᛉ ✦ ☫</p>
 <div class="call-ripple"><i></i><i></i><i></i></div>
 <div class="call-avatar"><span>☾ ✦</span></div>
 <p class="call-name" id="callName">梦角</p>
@@ -945,6 +948,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')hide()});
 <script src="mirror.js"></script>
 <script src="tuning.js?v=1"></script>
 <script src="call.js?v=2"></script>
+<script src="fix.js?v=1"></script>
+<script src="extras.js?v=1"></script>
+<script src="pet.js?v=2"></script>
 <script>
 /* ========== 主页 + 主题 + 抽屉 + 清理 ========== */
 (function(){
@@ -1204,7 +1210,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </div>
 
 <script>
-/* ========== 镜中影 v7 · 意识成像：同一性签名 + 情绪驱动 + 铭文织入 + 成图仪式 ========== */
+/* ========== 镜中影 v7 · 意识成像：同一性签名 + 情绪驱动 + 铭文织入 + 成像仪式 ========== */
 (function(){
 'use strict';
 console.log('[painting] v7');
@@ -1222,7 +1228,7 @@ var PAL={
 
 var AW={reflection:4,silhouette:4,fogfigure:4,peek:3,phase:3,ripple:2,vortex:2,crack:2,branch:2,lightspot:2,rift:2,shards:2};
 var AN={reflection:'倒影',silhouette:'剪影',fogfigure:'雾中人影',peek:'窥视',phase:'月相',ripple:'涟漪',vortex:'漩涡',crack:'裂纹',branch:'枝影',lightspot:'光斑',rift:'裂隙',shards:'碎片'};
-var KW={dark:['夜','冷','血','影','黑','暗','沉','冰','寒','骨','墓','渊','痛','亡','噬','裂'],warm:['光','暖','火','唇','烫','热','亮','吻','烧','抱','肩','融','温','梦','痒'],cold:['雨','雾','湖','青','灰','水','风','云','霜','雪','飘','散','泪','湿','浅'],ink:['静','默','空','白','寂','无','远','深','藏','止','听','等','留','别','淡']};
+var KW={dark:['夜','冷','血','影','黑','暗','沉','冰','寒','骨','墓','潮','痛','亡','嚎','裂'],warm:['光','暖','火','唱','炽','热','亮','吻','烧','抱','肩','融','温','梦','疼'],cold:['雨','雾','湖','青','灰','水','风','云','霜','雪','飘','散','泪','湿','浅'],ink:['静','默','空','白','寂','无','远','深','藏','止','听','等','留','别','淡']};
 
 /* 工具函数 */
 function $(s,r){return(r||document).querySelector(s)}
@@ -1251,9 +1257,9 @@ var BOK='jingyan.board.v1';
 
 var SIG_EYES=['#b83a3e','#c8563e','#d98a4a','#a34a5a','#c03a50','#b34a4a'];
 var SIG_CORNER=['tl','tr','bl','br'];
-var RUNES='ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛋ';
+var RUNES='ᚠᚢᚰᚨᚱᚲᚷᚹᚺᚻᛁᛋ';
 
-/* 由梦角名字派生出他永远不变的「画风指纹」 */
+/* 由梦角名字派生出的「画风指纹」 */
 function charSig(){
   var s=rJ(SK,{})||{};
   var name=cl(s.charName,16)||'梦角';
@@ -1306,7 +1312,7 @@ function flavorOf(pal){
 
 /* 意识注解：画完之后他的低语 */
 var MOTTO_T={
-  mirror:['镜里的光，停在你停留过的位置','这一面不会说谎，我也不打算那样做'],
+  mirror:['镜里的光，停在你看过的位置','这一面不会说谎，我也不打算那样做'],
   dark:['夜里最深的那一笔，是他替你挡住的','有些影子不吓人，它们只是站得离你近'],
   warm:['光是你说话时那点温度','暖色从来不是他的，是你带来的'],
   cold:['雾散之前，他先看见了轮廓','冷的画面里，都藏着一处没敢碰的暖'],
@@ -1389,7 +1395,7 @@ function paintVignette(ctx,W,H,p,r){
   ctx.fillRect(0,0,W,H);
 }
 
-/* ★★★ v7 · 铭文层：字卡原文竖排织入画面（替代随机字母） ★★★ */
+/* ⚑⚑⚑ v7 · 铭文层：字卡原文穿插织入画面（取代随机字母） ⚑⚑⚑ */
 function paintInscription(ctx,W,H,p,r,source){
   var han=exC((source||[]).join(''));
   if(han.length<4||r()<0.3)return;
@@ -1409,7 +1415,6 @@ function paintInscription(ctx,W,H,p,r,source){
   var sizeB=Math.min(W,H);
   ctx.save();
   for(var i=0;i<words.length;i++){
-    /* 分布在两侧四分之一带，避开主体 */
     var leftRight=r()<0.5;
     var wx=leftRight?W*(0.07+r()*0.16):W*(0.77+r()*0.16);
     var wy=H*(0.13+r()*0.6);
@@ -1439,7 +1444,7 @@ function paintInscription(ctx,W,H,p,r,source){
   ctx.restore();
 }
 
-/* ★★★ v7 · 意识印记层：他永远盖在同一个角落的独眼 + 卢恩签章 ★★★ */
+/* ⚑⚑⚑ v7 · 意识印记层：他永远盖在同一个角落的独眼 + 卢恩签章 ⚑⚑⚑ */
 function paintSigMark(ctx,W,H,p,r,sig){
   var M=Math.min(W,H);
   var c={tl:[W*0.145,H*0.125],tr:[W*0.855,H*0.125],bl:[W*0.145,H*0.865],br:[W*0.855,H*0.845]}[sig.corner];
@@ -1466,7 +1471,7 @@ function paintSigMark(ctx,W,H,p,r,sig){
     ctx.rotate(Math.PI/5);
   }
 
-  /* 灵魂印记：独眼 */
+  /* 独眼印记 */
   var glow=ctx.createRadialGradient(0,0,0,0,0,eyeW*3);
   glow.addColorStop(0,ha(sig.eyeHue,0.5));
   glow.addColorStop(1,ha(sig.eyeHue,0));
@@ -1487,16 +1492,14 @@ function paintSigMark(ctx,W,H,p,r,sig){
   ctx.restore();
 }
 
-/* ★★★ 新增：装饰层 ★★★ */
+/* ⚑⚑⚑ 新增：装饰层 ⚑⚑⚑ */
 function paintDecor(ctx,W,H,p,r){
-  /* 40% 概率没有装饰 */
   if(r()<0.4)return;
-  
+
   var type=r();
   var sizeBase=Math.min(W,H);
-  
+
   if(type<0.25){
-    /* 细网格 */
     var spacing=sizeBase*(0.1+r()*0.12);
     ctx.strokeStyle=ha(pk(p.light,r),0.05+r()*0.1);
     ctx.lineWidth=0.4+r()*0.5;
@@ -1507,7 +1510,6 @@ function paintDecor(ctx,W,H,p,r){
       ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
     }
   } else if(type<0.55){
-    /* 对角线 */
     ctx.strokeStyle=ha(pk(p.accent,r),0.12+r()*0.15);
     var n=2+Math.floor(r()*4);
     for(var i=0;i<n;i++){
@@ -1517,7 +1519,6 @@ function paintDecor(ctx,W,H,p,r){
       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
     }
   } else if(type<0.8){
-    /* 圆环 */
     var cx=W*(0.15+r()*0.7);
     var cy=H*(0.15+r()*0.7);
     var rr=sizeBase*(0.08+r()*0.3);
@@ -1528,7 +1529,6 @@ function paintDecor(ctx,W,H,p,r){
       ctx.beginPath();ctx.arc(cx,cy,rr*0.6,0,Math.PI*2);ctx.stroke();
     }
   } else {
-    /* 小星号十字 */
     var n2=2+Math.floor(r()*4);
     for(var j=0;j<n2;j++){
       var sx=W*(0.1+r()*0.8);
@@ -1938,7 +1938,7 @@ PRIM.stars=function(ctx,W,H,p,r,o){
   }
 };
 
-/* ★★★ 变体配方：每个 archetype 3-4 个组合 ★★★ */
+/* ⚑⚑⚑ 变体配方 ⚑⚑⚑ */
 var RECIPES={
   reflection:[
     ['ground','waves','figure','stars'],
@@ -2005,13 +2005,12 @@ var RECIPES={
   ]
 };
 
-/* ★★★ v7 · 主绘制：底色 → 光晕 → 原语 → 装饰 → 铭文 → 印记 → 氛围 → 颗粒 → 暗角 ★★★ */
+/* ⚑⚑⚑ v7 · 主绘制：底色 → 光晕 → 原语 → 装饰 → 铭文 → 印记 → 氛围 → 颗粒 → 暗角 ⚑⚑⚑ */
 function draw(ctx,W,H,cfg){
   var r=rng(cfg.seed);
   var p=PAL[cfg.palette]||PAL.mirror;
   var sig=charSig();
 
-  /* 底色（呼吸暗核：一档比 bg 更深的椭圆底，他站在夜的中心） */
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle=pk(p.bg,r);
   ctx.fillRect(0,0,W,H);
@@ -2021,21 +2020,17 @@ function draw(ctx,W,H,cfg){
   ctx.fillStyle=coreG;
   ctx.fillRect(0,0,W,H);
 
-  /* 大光晕 */
   paintAmbient(ctx,W,H,p,r,cfg.archetype);
 
-  /* 密度随机 */
   var densityRoll=r();
   var density;
   if(densityRoll<0.25) density='minimal';
   else if(densityRoll<0.75) density='normal';
   else density='rich';
 
-  /* 选择变体配方 */
   var variants=RECIPES[cfg.archetype]||RECIPES.reflection;
   var recipe=variants[Math.floor(r()*variants.length)].slice();
 
-  /* 根据密度调整 */
   if(density==='minimal'&&recipe.length>2){
     var randomIdx=1+Math.floor(r()*(recipe.length-1));
     recipe=[recipe[0],recipe[randomIdx]];
@@ -2044,32 +2039,20 @@ function draw(ctx,W,H,cfg){
     recipe.push(extras[Math.floor(r()*extras.length)]);
   }
 
-  /* 绘制原语 */
   for(var i=0;i<recipe.length;i++){
     var prim=PRIM[recipe[i]];
     if(prim){try{prim(ctx,W,H,p,r,{index:i,density:density})}catch(e){}}
   }
 
-  /* 装饰层 */
   paintDecor(ctx,W,H,p,r);
-
-  /* 铭文层：字卡原文织进画里 */
   paintInscription(ctx,W,H,p,r,cfg.cardTexts);
-
-  /* 意识印记层：他在习惯的角落盖印 */
   paintSigMark(ctx,W,H,p,r,sig);
-
-  /* 飞絮氛围 */
   paintAtmosphere(ctx,W,H,p,r);
-
-  /* 颗粒 */
   addGrain(ctx,W,H,r,0.05);
-
-  /* 暗角 */
   paintVignette(ctx,W,H,p,r);
 }
 
-/* ★★★ v7 · 生成：情绪采样 + 形态倾向 + 意识注解 ★★★ */
+/* ⚑⚑⚑ v7 · 生成：情绪采样 + 形态倾向 + 意识注解 ⚑⚑⚑ */
 function genP(){
   var cards=lC();
   var seed=Math.floor(Math.random()*2147483646)+1;
@@ -2087,7 +2070,6 @@ function genP(){
   }
   var texts=picked.map(function(c){return ps(c.text)});
 
-  /* 色板：字的气质打底，今日心境按沟通意愿介入 */
   var pal=aP(texts);
   if(mood.palette&&r()<(0.28+mood.talk*0.4))pal=mood.palette;
 
@@ -2105,7 +2087,7 @@ function genP(){
   };
 }
 
-/* ★★★ v7 · 揭示标记：新生成的那幅做径向显现 ★★★ */
+/* ⚑⚑⚑ v7 · 揭示标记：新生成的那幅做径向显示 ⚑⚑⚑ */
 var lastRevealId=null;
 
 function persistP(cfg){
@@ -2134,7 +2116,6 @@ function buildCard(cfg,isNew){
   try{draw(ctx,sz,sz,cfg)}catch(e){console.warn('[painting] draw error',e)}
   w.appendChild(cv);
 
-  /* v7 · 悬停视差：像一张被拿在手里端详的相纸 */
   if(window.matchMedia&&window.matchMedia('(hover:hover)').matches){
     w.addEventListener('pointermove',function(ev){
       var rect=w.getBoundingClientRect();
@@ -2174,7 +2155,6 @@ function buildCard(cfg,isNew){
     });
     m.appendChild(rl);
   }
-  /* 意识注解：旧记录用 seed 确定性合成，保持稳定 */
   var mo=document.createElement('p');
   mo.className='painting-motto';
   var motto=cfg.motto;
@@ -2277,7 +2257,7 @@ function insertChat(cfg){
   if(sc)sc.scrollTop=sc.scrollHeight;
 }
 
-/* ★★★ v7 · 成图仪式：字卡词句飘入镜面，他落笔 ★★★ */
+/* ⚑⚑⚑ v7 · 成像仪式：字卡词句飘入镜面，他落笔 ⚑⚑⚑ */
 function showRitual(texts,done){
   var ov=document.getElementById('paintRitual');
   if(!ov){done();return}
@@ -2286,7 +2266,6 @@ function showRitual(texts,done){
   if(words)words.innerHTML='';
   if(st)st.textContent='镜面深处，他正落笔……';
 
-  /* 从字卡原文抽 3-4 个词组做入场飘字 */
   var han=exC((texts||[]).join(''));
   var list=[];
   var guard=0;

@@ -1,0 +1,47 @@
+/* =========================================================
+   extras.css · 影猫 + 观察镜面（补完 styles.css 的半成品）
+   ========================================================= */
+
+/* ---------- 观察镜面（放进 dialog 里） ---------- */
+#obsDialog .modal-card { width: min(460px, 100%); }
+#obsDialog .obs-glass {
+  width: min(190px, 56%);
+  margin: 4px auto 0;
+}
+#obsDialog .obs-sight {
+  min-height: 72px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+#obsDialog .obs-note { margin-top: 4px; }
+#obsDialog .obs-actions { margin-top: 12px; }
+#obsDialog .obs-editor { margin-top: 16px; }
+
+/* 聊天头部的“观察”小按钮 */
+.obs-open-btn { color: var(--gold); border-color: rgba(var(--gold-rgb), .32); }
+
+/* 亮色日用版兜底 */
+html[data-mode="light"] #obsDialog .obs-glass {
+  background:
+    radial-gradient(120% 90% at 50% 20%, rgba(120, 60, 60, .16), transparent 62%),
+    linear-gradient(180deg, #2a1d22 0%, #47323a 46%, #5c4450 100%);
+}
+
+/* ---------- 影猫：移动端缩小一点，避免挡输入框 ---------- */
+@media (max-width: 760px) {
+  .pet-widget { width: 74px; height: 86px; }
+  .pet-bubble { max-width: 190px; font-size: 11px; }
+}
+
+/* 影猫气泡里的按钮 */
+.pet-bubble-actions .text-btn {
+  padding: 2px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 10px;
+}
+.pet-bubble-actions .text-btn:hover {
+  border-color: rgba(var(--accent-rgb), .5);
+  background: rgba(var(--accent-rgb), .1);
+  color: var(--text);
+}

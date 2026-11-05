@@ -604,7 +604,6 @@
 
   function getChainDelay(index) {
     if (index === 0) return getDelay(20);
-    // 后续条数稍微快一点
     const base = settings.speed === 'fast' ? 300 : settings.speed === 'slow' ? 900 : 560;
     return base + Math.random() * 340;
   }
@@ -883,7 +882,6 @@
     appendMessage(userMsg);
     updatePoolHint();
 
-    /* 梦角连发期间也允许继续发送：按顺序排队，链式回复不会乱序 */
     userChainRuns += 1;
     setBusyUI(true);
 
@@ -901,7 +899,6 @@
       });
   }
 
-  /* 主动传讯进行中时，等它说完再开始队列里的回复 */
   function waitForBusyRelease() {
     if (!busy) return Promise.resolve();
     return new Promise((resolve) => {
@@ -925,7 +922,6 @@
     return found;
   }
 
-  /* 从最近几句用户消息里挑一句引用；同一条链内不重复引用同一句 */
   function pickQuoteTarget(triggerMsg, quotedIds, probability) {
     if (Math.random() >= probability) return null;
     const pool = recentUserMessages(3).filter((msg) => !quotedIds.has(msg.id));
@@ -953,7 +949,7 @@
       return;
     }
 
-    const count = 1 + Math.floor(Math.random() * 3); // 1 ~ 3
+    const count = 1 + Math.floor(Math.random() * 3);
     const quotedIds = new Set();
 
     for (let i = 0; i < count; i += 1) {
@@ -1004,17 +1000,18 @@
     setBusyUI(true);
     noteUserActivity();
 
-    // 找最近一条用户消息，供梦角概率引用
     let triggerMsg = null;
     for (let i = messages.length - 1; i >= 0; i -= 1) {
       if (messages[i].role === 'user') { triggerMsg = messages[i]; break; }
     }
 
-    await dreamReplyChain(triggerMsg);
-
-    busy = false;
-    setBusyUI(false);
-    updatePoolHint();
+    try {
+      await dreamReplyChain(triggerMsg);
+    } finally {
+      busy = false;
+      setBusyUI(false);
+      updatePoolHint();
+    }
     maybeSensation(0.3);
   }
 
@@ -1076,8 +1073,12 @@
     proactiveTimer = null;
     if (!settings.proactive) return;
 
+    const boardOpen = (() => {
+      const b = document.getElementById('boardOverlay');
+      return b && !b.hidden;
+    })();
     if (busy || userChainRuns > 0 || document.visibilityState !== 'visible'
-      || document.body.dataset.callActive === '1'
+      || document.body.dataset.callActive === '1' || boardOpen
       || !eligibleCards().length || document.querySelector('dialog[open]')) {
       scheduleProactiveNext(18000 + Math.random() * 25000);
       return;
@@ -1499,7 +1500,7 @@
   }
 
   /* =========================================================
-     批量移动·面板式（取代旧的 select 下拉）
+     批量移动·面板式
      ========================================================= */
 
   function openMoveDialog() {
@@ -1575,7 +1576,7 @@
   }
 
   /* =========================================================
-     标签管理·改名（连卡一起换，同名则合并）
+     标签管理·改名
      ========================================================= */
 
   function openTagManage() {
@@ -2312,7 +2313,8 @@
      ========================================================= */
 
   function switchView(view) {
-    const isChat = view !== 'library';
+    if (view !== 'chat' && view !== 'library') return;
+    const isChat = view === 'chat';
 
     $('#viewChat').classList.toggle('active', isChat);
     $('#viewLibrary').classList.toggle('active', !isChat);
@@ -2402,7 +2404,6 @@
       handleSend();
     });
 
-    /* 来电等独立模块通过系统事件写进聊天记录 */
     document.addEventListener('jingyan:systemMsg', (event) => {
       const detail = event.detail || {};
       const text = String(detail.text || '').trim();
@@ -2678,7 +2679,9 @@
 
   function init() {
     const knownTags = new Set(cards.map((card) => card.tag));
+    const beforeDrawTags = settings.drawTags.length;
     settings.drawTags = settings.drawTags.filter((tag) => knownTags.has(tag));
+    if (settings.drawTags.length !== beforeDrawTags) writeJSON(KEYS.settings, settings);
 
     spawnStars();
     applySettings();

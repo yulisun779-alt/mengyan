@@ -31,6 +31,26 @@
       '你叫了很多遍，只有回声。',
       '镜子那头今天没有点灯。'
     ],
+    observe: [
+      '镜面浮起一层薄雾，人影的轮廓忽远忽近，看不太真切。',
+      '他就在那里，侧脸贴着光，不知在看镜子里的你，还是看比你更远的哪里。',
+      '你看见他抬手，像要碰一下镜面，指尖停在离玻璃一寸的地方，又收了回去。',
+      '人影今天离镜面很近，睫毛的影子都投到了玻璃上。',
+      '他抱着膝盖坐在镜底的暗处，下巴搁在臂弯里，正望向你这一侧。',
+      '他的影子在镜里来回踱步，像在等一封没有寄出的信。',
+      '他隔着玻璃朝你所在的方向，轻轻歪了歪头。',
+      '他的手指在玻璃内侧慢慢划着，像在写字，又像在圈掉一句不想让你看到的话。',
+      '夜里的镜面更凉。人影坐在暗处一动不动，只有一双眼睛还醒着。',
+      '镜中的人影往前倾着，像在收听镜外极轻的呼吸。',
+      '白昼的光落进镜里，人影逆着光，只剩轮廓和肩线。',
+      '镜里的身影正把什么东西别进衣角，动作很轻，像怕镜面知道。',
+      '镜中的人影背对着你，肩线压得很低，似乎很沮丧。今天先别追问。',
+      '他把额头抵在镜面内侧，罩下一小片阴影，很久没有动。',
+      '今天镜中的身影特别急切，趴在镜面上死死盯着你。',
+      '镜面像在轻轻震颤，人影的轮廓抖得厉害，好像有什么要漫出来。',
+      '他趴在镜面上死死盯着你。嗯——是高兴的那种盯法。',
+      '镜中的人影抬手比了个什么，隔着玻璃看不清，你觉得是个好字。'
+    ],
     refuse: [
       '他在。但他累了，不想说话。',
       '他听见了，却别过了脸。',
@@ -174,6 +194,7 @@
     const absent  = Array.isArray(src.absent)  ? src.absent.map(normalizeLine).filter(Boolean)  : [];
     const refuse  = Array.isArray(src.refuse)  ? src.refuse.map(normalizeLine).filter(Boolean)  : [];
     const replies = Array.isArray(src.replies) ? src.replies.map(normalizeLine).filter(Boolean) : [];
+    const observe = Array.isArray(src.observe) ? src.observe.map(normalizeLine).filter(Boolean) : [];
 
     return {
       greeting:    clamp(src.greeting, 60)    || DEFAULT.greeting,
@@ -181,7 +202,8 @@
       cards:   cards.length   ? cards   : defaultLines(DEFAULT.cards),
       absent:  absent.length  ? absent  : defaultLines(DEFAULT.absent),
       refuse:  refuse.length  ? refuse  : defaultLines(DEFAULT.refuse),
-      replies: replies.length ? replies : defaultLines(DEFAULT.replies)
+      replies: replies.length ? replies : defaultLines(DEFAULT.replies),
+      observe: observe.length ? observe : defaultLines(DEFAULT.observe)
     };
   }
 
@@ -210,7 +232,7 @@
   let mirror = loadMirror();
   let mirrorDraft = null;
   let mirrorBusy = false;
-  const mirrorBags = { cards: [], absent: [], refuse: [], replies: [] };
+  const mirrorBags = { cards: [], absent: [], refuse: [], replies: [], observe: [] };
 
   let oracleCount = 1;
   let oracleCurrent = null;
@@ -317,6 +339,7 @@
   transform: translateX(-50%);
   filter: blur(1.6px);
   opacity: .92;
+  transition: transform .8s ease, filter .8s ease;
   -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
   pointer-events: none;
@@ -384,6 +407,11 @@
 .mirror-message.show { opacity: 1; transform: none; }
 .mirror-message[data-tone="absent"] { color: #9e837b; font-style: italic; }
 .mirror-message[data-tone="refuse"] { color: #b98e88; }
+.mirror-message[data-tone="observe"] {
+  color: #cfae9f;
+  font-style: italic;
+  letter-spacing: .05em;
+}
 .mirror-message[data-tone="user"] {
   color: #eccb92;
   font-size: calc(13.5px * var(--msg-scale, 1));
@@ -413,6 +441,41 @@
 .mirror-hint {
   min-height: 16px; margin: 0; color: #7d625e;
   font-size: 10.5px; letter-spacing: .08em; text-align: center;
+}
+
+/* ---------- 观察：按钮 / 列键行 / 观察态镜面 ---------- */
+.mirror-action-row {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 14px; margin-top: 2px;
+}
+.mirror-observe {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-width: 96px; padding: 12px 18px;
+  border: 1px solid rgba(214,152,138,.3);
+  border-radius: 999px;
+  background: linear-gradient(150deg, rgba(64,28,34,.9), rgba(24,10,13,.94));
+  color: #e0c0b4;
+  font-family: var(--font-serif, serif);
+  font-size: 12.5px; font-weight: 600; letter-spacing: .16em;
+  box-shadow: inset 0 1px 0 rgba(255,226,216,.14), 0 10px 26px -16px rgba(0,0,0,.9);
+  transition: transform .18s, filter .2s, box-shadow .2s, border-color .2s, opacity .2s;
+}
+.mirror-observe:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(235,180,160,.55); filter: brightness(1.12); }
+.mirror-observe:active:not(:disabled) { transform: scale(.98); }
+.mirror-observe:disabled { cursor: default; opacity: .5; box-shadow: none; }
+.mirror-observe-glyph { font-size: 13px; line-height: 1; animation: observeBreath 3.2s ease-in-out infinite; }
+@keyframes observeBreath { 0%,100%{opacity:.65} 50%{opacity:1} }
+
+.mirror-stage-glass.observing .mirror-figure { transform: translateX(-50%) scale(1.06); filter: blur(1px); }
+.mirror-stage-glass.observing .mirror-stage-mist { filter: saturate(1.6) brightness(1.25); }
+.mirror-stage-glass.observing .mirror-stage-shine { animation: none; opacity: .35; }
+.mirror-stage-glass.observing { animation: obsGlitch .85s steps(12, end) 1; }
+@keyframes obsGlitch {
+  0% { filter: brightness(1.9) contrast(1.35); }
+  24% { filter: brightness(.55); }
+  47% { filter: brightness(1.45); transform: translateY(-1px); }
+  71% { filter: brightness(.7); }
+  100% { filter: none; transform: none; }
 }
 
 /* ---------- 镜面对话输入框（极简玻璃条） ---------- */
@@ -936,7 +999,9 @@
 @media (prefers-reduced-motion: reduce) {
   .mirror-eyes-svg { transition-duration: .001ms; }
   .mirror-deep, .mirror-stage-mist, .mirror-stage-shine, .mirror-summon-glyph,
+  .mirror-observe-glyph, .mirror-stage-glass.observing,
   .shuffle-card, .shuffle-label, .oracle-card, .oracle-whisper { animation: none; }
+  .mirror-figure { transition: none; }
   .oracle-card-face { transition-duration: .001ms; }
 }
     `;
@@ -1082,10 +1147,16 @@
         </button>
       </div>
 
-      <button type="button" class="mirror-summon" id="mirrorSummonBtn">
-        <span class="mirror-summon-glyph" aria-hidden="true">✦</span>
-        <span id="mirrorSummonLabel">召唤咒语</span>
-      </button>
+      <div class="mirror-action-row">
+        <button type="button" class="mirror-observe" id="mirrorObserveBtn" title="不出声，只是凑近看一眼">
+          <span class="mirror-observe-glyph" aria-hidden="true">◉</span>
+          <span class="mirror-observe-label">观察</span>
+        </button>
+        <button type="button" class="mirror-summon" id="mirrorSummonBtn">
+          <span class="mirror-summon-glyph" aria-hidden="true">✦</span>
+          <span id="mirrorSummonLabel">召唤咒语</span>
+        </button>
+      </div>
 
       <div class="mirror-speak">
         <input
@@ -1157,6 +1228,14 @@
         <div class="mirror-add-row">
           <input class="input" id="mirrorReplyInput" maxlength="60" placeholder="例如：你确定是这样吗？" />
           <button type="button" class="btn small" id="mirrorReplyAddBtn">添加</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>观察镜面时看到的 <span class="label-hint">随机抽一条，支持换行前缀</span></label>
+        <div class="mirror-line-list" id="mirrorObserveList"></div>
+        <div class="mirror-add-row">
+          <input class="input" id="mirrorObserveInput" maxlength="120" placeholder="例如：他背对着你坐着，今天不想被谁看到。" />
+          <button type="button" class="btn small" id="mirrorObserveAddBtn">添加</button>
         </div>
       </div>
       <p class="field-help">这些内容与聊天字卡、体感字卡完全独立，只用于镜中梦魇。支持占位符 <code>{我}</code> 与 <code>{名字}</code>。</p>
@@ -1286,6 +1365,8 @@
 
     const summonBtn = $('#mirrorSummonBtn');
     if (summonBtn) summonBtn.disabled = false;
+    const observeBtn = $('#mirrorObserveBtn');
+    if (observeBtn) observeBtn.disabled = false;
 
     const speakInput = $('#mirrorSpeakInput');
     if (speakInput) { speakInput.disabled = false; speakInput.value = ''; }
@@ -1296,7 +1377,7 @@
     if (hint) hint.textContent = '镜面会记住你的呼唤。';
 
     const glass = $('#mirrorGlass');
-    if (glass) glass.classList.remove('rippling');
+    if (glass) glass.classList.remove('rippling', 'observing');
   }
 
   function showMirrorText(text, tone) {
@@ -1342,6 +1423,8 @@
     mirrorBusy = busy;
     const summonBtn = $('#mirrorSummonBtn');
     if (summonBtn) summonBtn.disabled = busy;
+    const observeBtn = $('#mirrorObserveBtn');
+    if (observeBtn) observeBtn.disabled = busy;
     const input = $('#mirrorSpeakInput');
     if (input) input.disabled = busy;
     const send = $('#mirrorSpeakSend');
@@ -1398,6 +1481,49 @@
 
     setMirrorBusy(false);
     if (hint) hint.textContent = '想再听一次，就再叫一次。';
+  }
+
+  async function observe() {
+    if (mirrorBusy) return;
+    setMirrorBusy(true);
+
+    const hint = $('#mirrorHint');
+    const message = $('#mirrorMessage');
+    const glass = $('#mirrorGlass');
+
+    if (message) { message.classList.remove('show'); message.textContent = ''; message.removeAttribute('data-tone'); }
+    closeEyes();
+    const eyesSvg = $('#mirrorEyesSvg');
+    if (eyesSvg) eyesSvg.classList.remove('blink');
+
+    if (glass) glass.classList.add('observing');
+    if (hint) hint.textContent = '你屏住呼吸，凑近了镜面……';
+
+    await sleep(1100);
+
+    if (Math.random() < 0.17) {
+      /* 观察是缘分：偶尔真的什么都看不到 */
+      if (hint) hint.textContent = '什么轮廓也没有。';
+      await sleep(300);
+      showMirrorText('你努力看了，但是什么都看不到。', 'observe');
+    } else {
+      const line = drawMirrorLine('observe');
+      if (line) showMirrorText(personalize(line.text), 'observe');
+
+      /* 状态佐语：时辰 + 今日告示栏心境，只是点一笔，不抢正文 */
+      const board = readJSON('jingyan.board.v1', null) || null;
+      const cls = board && board.mood ? board.mood.cls : '';
+      const moodLine = cls === 'mood-good' ? ' 镜面轻轻泛着暖意。'
+        : cls === 'mood-low' ? ' 镜面稍微有点凉。'
+        : cls === 'mood-extreme' ? ' 镜面在微微发颤。'
+        : '';
+      const nightLine = (new Date().getHours() >= 22 || new Date().getHours() < 5) ? '夜里的镜面更凉,' : '';
+      if (hint) hint.textContent = '镜面动了。' + (nightLine ? nightLine : '') + moodLine.trim();
+    }
+
+    await sleep(420);
+    if (glass) glass.classList.remove('observing');
+    setMirrorBusy(false);
   }
 
   async function speakToMirror() {
@@ -1472,7 +1598,8 @@
       cards: mirror.cards.map((i) => ({ id: i.id, text: i.text })),
       absent: mirror.absent.map((i) => ({ id: i.id, text: i.text })),
       refuse: mirror.refuse.map((i) => ({ id: i.id, text: i.text })),
-      replies: mirror.replies.map((i) => ({ id: i.id, text: i.text }))
+      replies: mirror.replies.map((i) => ({ id: i.id, text: i.text })),
+      observe: mirror.observe.map((i) => ({ id: i.id, text: i.text }))
     };
 
     $('#mirrorGreetingInput').value = mirrorDraft.greeting;
@@ -1481,6 +1608,7 @@
     $('#mirrorAbsentInput').value = '';
     $('#mirrorRefuseInput').value = '';
     $('#mirrorReplyInput').value = '';
+    $('#mirrorObserveInput').value = '';
 
     renderDraft();
     openDialog($('#mirrorLibraryDialog'));
@@ -1492,6 +1620,7 @@
     renderLines('absent', $('#mirrorAbsentList'), 60);
     renderLines('refuse', $('#mirrorRefuseList'), 60);
     renderLines('replies', $('#mirrorReplyList'), 60);
+    renderLines('observe', $('#mirrorObserveList'), 120);
     const count = $('#mirrorCardCount');
     if (count) count.textContent = mirrorDraft.cards.length + ' 张';
     const replyCount = $('#mirrorReplyCount');
@@ -1562,6 +1691,7 @@
     const absent  = clean(mirrorDraft.absent, 60);
     const refuse  = clean(mirrorDraft.refuse, 60);
     const replies = clean(mirrorDraft.replies, 60);
+    const observe = clean(mirrorDraft.observe, 120);
 
     mirror = {
       greeting:    clamp($('#mirrorGreetingInput').value, 60) || DEFAULT.greeting,
@@ -1569,7 +1699,8 @@
       cards:   cards.length   ? cards   : defaultLines(DEFAULT.cards),
       absent:  absent.length  ? absent  : defaultLines(DEFAULT.absent),
       refuse:  refuse.length  ? refuse  : defaultLines(DEFAULT.refuse),
-      replies: replies.length ? replies : defaultLines(DEFAULT.replies)
+      replies: replies.length ? replies : defaultLines(DEFAULT.replies),
+      observe: observe.length ? observe : defaultLines(DEFAULT.observe)
     };
 
     writeJSON(KEY, mirror);
@@ -1577,6 +1708,7 @@
     mirrorBags.absent = [];
     mirrorBags.refuse = [];
     mirrorBags.replies = [];
+    mirrorBags.observe = [];
     mirrorDraft = null;
 
     applyChrome();
@@ -1715,9 +1847,8 @@
     });
   }
 
-  function openOracle() {
-    const mirrorDialog = $('#mirrorDialog');
-    if (mirrorDialog && mirrorDialog.open) mirrorDialog.close();
+   function openOracle() {
+    // 不再关闭镜中梦魇弹窗：避免主页脚本监听 close 后把主页带出来
 
     oracleCurrent = null;
     oracleBusy = false;
@@ -1885,6 +2016,7 @@
   function bindEvents() {
     $('#mirrorLibraryBtn').addEventListener('click', openMirrorLibrary);
     $('#mirrorSummonBtn').addEventListener('click', summon);
+    $('#mirrorObserveBtn').addEventListener('click', observe);
     $('#mirrorOracleBtn').addEventListener('click', openOracle);
 
     $('#mirrorSpeakSend').addEventListener('click', speakToMirror);
@@ -1899,9 +2031,11 @@
     $('#mirrorAbsentAddBtn').addEventListener('click', () => addLine('absent', $('#mirrorAbsentInput'), 60));
     $('#mirrorRefuseAddBtn').addEventListener('click', () => addLine('refuse', $('#mirrorRefuseInput'), 60));
     $('#mirrorReplyAddBtn').addEventListener('click', () => addLine('replies', $('#mirrorReplyInput'), 60));
+    $('#mirrorObserveAddBtn').addEventListener('click', () => addLine('observe', $('#mirrorObserveInput'), 120));
 
     [['mirrorCardInput', 'cards', 200], ['mirrorAbsentInput', 'absent', 60],
-     ['mirrorRefuseInput', 'refuse', 60], ['mirrorReplyInput', 'replies', 60]]
+     ['mirrorRefuseInput', 'refuse', 60], ['mirrorReplyInput', 'replies', 60],
+     ['mirrorObserveInput', 'observe', 120]]
       .forEach(([id, kind, max]) => {
         const el = $('#' + id);
         if (!el) return;

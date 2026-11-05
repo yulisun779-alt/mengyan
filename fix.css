@@ -1,0 +1,33 @@
+/* =========================================================
+   fix.css · 修正补丁（在 styles.css 之后加载）
+   ========================================================= */
+
+/* 1. 修复 mirror.js 与 tuning.js 的 .mirror-stage / .mirror-hint 冲突
+      —— 镜中梦魇弹窗里保持“镜子 + 水晶球”左右并排 */
+#mirrorDialog .mirror-stage {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 6px 0 2px;
+}
+#mirrorDialog .mirror-hint {
+  font-size: 10.5px;
+  color: #7d625e;
+  min-height: 16px;
+}
+
+/* 2. 移动端不再隐藏“安装到桌面”按钮 */
+@media (max-width: 760px) {
+  #installBtn.install-btn { display: grid !important; }
+  #chatLibraryBtn, #fontBtn { display: none !important; }
+}
+
+/* 3. 主页功能格：6 个时更紧凑，避免 7 个时空出一整行 */
+.home-grid { grid-auto-rows: min-content; }
+
+/* 4. 被补插回来的“镜中影”消息，给一个明显一点的边框 */
+.msg-painting-restored {
+  border-style: dashed !important;
+  opacity: .92;
+}
