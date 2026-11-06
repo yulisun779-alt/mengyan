@@ -1,14 +1,24 @@
 /* 镜魇 · 离线缓存
    改了样式或脚本后：把下面的 VERSION 加一，并同步 index.html 里的 ?v= 数字。 */
 
-const VERSION = 'jingyan-v28';
+const VERSION = 'jingyan-v32';
 
+/* 与 index.html 里的实际引用保持一致（漏缓存会导致断网时“网络连接失败”） */
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=28',
+  './styles.css?v=23',
+  './fix.css?v=1',
+  './extras.css?v=1',
+  './pet.css?v=4',
   './app.js?v=19',
+  './mirror.js',
+  './mirror-scene.js?v=2',
+  './tuning.js?v=1',
   './call.js?v=2',
+  './fix.js?v=1',
+  './extras.js?v=1',
+  './pet.js?v=4',
   './favicon.svg',
   './manifest.json',
   './icons/icon-192.png',
@@ -22,8 +32,13 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(VERSION)
+      // 逐个缓存：单个文件失败不再拖垮整个 SW 安装
       // reload：绕过 HTTP 缓存，避免更新后仍拿到旧文件
-      .then((cache) => cache.addAll(ASSETS.map((url) => new Request(url, { cache: 'reload' }))))
+      .then((cache) =>
+        Promise.allSettled(
+          ASSETS.map((url) => cache.add(new Request(url, { cache: 'reload' })))
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
@@ -65,19 +80,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 静态资源：先用缓存，同时后台更新
+  // 静态资源：命中缓存立即返回，同时后台联网刷新；
+  // 未命中缓存才走网络。无论哪条路都不会把空响应交给页面
   event.respondWith(
-    caches.match(request).then((hit) => {
-      const network = fetch(request, { cache: 'no-cache' })
+    (async () => {
+      const cache = await caches.open(VERSION);
+      const cached =
+        (await cache.match(request)) ||
+        (await caches.match(request, { ignoreSearch: true }));
+
+      const fetchAndCache = fetch(request, { cache: 'no-cache' })
         .then((response) => {
-          if (response && response.status === 200) {
+          if (response && response.ok) {
             const copy = response.clone();
-            caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+            cache.put(request, copy).catch(() => {});
           }
           return response;
-        })
-        .catch(() => hit);
-      return hit || network;
-    })
+        });
+
+      if (cached) {
+        fetchAndCache.catch(() => {}); /* 后台刷新，失败不影响当前页面 */
+        return cached;
+      }
+      try {
+        return await fetchAndCache;
+      } catch (error) {
+        return Response.error();
+      }
+    })()
   );
 });

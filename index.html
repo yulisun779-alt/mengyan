@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="styles.css?v=23" />
 <link rel="stylesheet" href="fix.css?v=1" />
 <link rel="stylesheet" href="extras.css?v=1" />
-<link rel="stylesheet" href="pet.css?v=2" />
+<link rel="stylesheet" href="pet.css?v=4" />
 
 <style id="themeStyle">
 html, body { overflow-x: hidden !important; max-width: 100vw; }
@@ -158,6 +158,7 @@ html[data-theme="rose"]{--accent:#c48a9a;--accent-2:#6e2e44;--accent-rgb:196,138
 .painting-ref{margin:10px 0 4px;color:rgba(var(--gold-rgb),.7);font-size:9.5px;letter-spacing:.18em}
 .painting-ref-list{padding-left:2px}
 .painting-ref-text{margin:3px 0;color:#c9b8a0;font-family:var(--font-serif);font-size:11.5px;line-height:1.75;font-style:italic;overflow-wrap:anywhere}
+.painting-will{margin:10px 0 2px;padding:7px 10px;border-left:2px solid rgba(var(--accent-rgb),.45);background:rgba(var(--accent-rgb),.05);color:#e2d4c8;font-family:var(--font-serif);font-size:11.5px;line-height:1.8;overflow-wrap:anywhere}
 .painting-actions{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(var(--accent-rgb),.1)}
 .painting-act{padding:2px 0;border:none;background:none;color:var(--muted-2);font-size:10px;letter-spacing:.06em;cursor:pointer}
 .painting-act.del:hover{color:var(--danger)}
@@ -950,7 +951,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')hide()});
 <script src="call.js?v=2"></script>
 <script src="fix.js?v=1"></script>
 <script src="extras.js?v=1"></script>
-<script src="pet.js?v=2"></script>
+<script src="pet.js?v=4"></script>
 <script>
 /* ========== 主页 + 主题 + 抽屉 + 清理 ========== */
 (function(){
@@ -1209,11 +1210,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </div>
 </div>
 
+<script src="mirror-scene.js?v=2"></script>
 <script>
-/* ========== 镜中影 v7 · 意识成像：同一性签名 + 情绪驱动 + 铭文织入 + 成像仪式 ========== */
+/* ========== 镜中影 v8 · 场景成像：他的意志 + 能看懂的画 + 场景母题 ========== */
 (function(){
 'use strict';
-console.log('[painting] v7');
+console.log('[painting] v8');
 
 var PK='jingyan.paintings.v1',CK='jingyan.cards.v1',SK='jingyan.settings.v1';
 
@@ -1270,7 +1272,10 @@ function charSig(){
     eyeHue:SIG_EYES[h%SIG_EYES.length],
     corner:SIG_CORNER[(h>>>3)%4],
     tone:(h>>>5)%3,
-    rune:RUNES[h%RUNES.length]+RUNES[(h>>>8)%RUNES.length]
+    rune:RUNES[h%RUNES.length]+RUNES[(h>>>8)%RUNES.length],
+    scene:['window','hall','street','sea','forest','desk','garden','snow'][(h>>>11)%8],
+    /* 他的习惯构图永远偏一侧，不把主体摆在死正中 */
+    comp:1+((h>>>13)%2)
   };
 }
 
@@ -1369,23 +1374,18 @@ function paintAmbient(ctx,W,H,p,r,arch){
     ctx.fillRect(0,0,W,H);
   }
 }
-function paintAtmosphere(ctx,W,H,p,r){
-  var moteCount=30+Math.floor(r()*50);
-  for(var i=0;i<moteCount;i++){
-    var x=r()*W,y=r()*H,size=0.4+r()*1.6,a=0.15+r()*0.4;
-    ctx.fillStyle=ha(pk(p.accent,r),a);
-    ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fill();
-  }
-  var strokeCount=6+Math.floor(r()*10);
-  for(var j=0;j<strokeCount;j++){
-    var x1=r()*W,y1=r()*H,ang=r()*Math.PI*2,len=12+r()*40;
-    var x2=x1+Math.cos(ang)*len,y2=y1+Math.sin(ang)*len;
-    ctx.strokeStyle=ha(pk(p.light,r),0.08+r()*0.22);
-    ctx.lineWidth=0.5+r()*1.2;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(x1,y1);
-    ctx.quadraticCurveTo((x1+x2)/2+(r()-0.5)*15,(y1+y2)/2+(r()-0.5)*15,x2,y2);
-    ctx.stroke();
-  }
+/* ⚑⚑⚑ v8 · 收尾：只加柔和的边缘光，不再往画面里撒点 ⚑⚑⚑ */
+function paintFinish(ctx,W,H,p,r,scene){
+  var warm=pk(p.accent,r),cool=pk(p.light,r);
+  var g=ctx.createRadialGradient(W*0.14,H*0.1,0,W*0.14,H*0.1,Math.max(W,H)*0.85);
+  g.addColorStop(0,ha(warm,0.10));
+  g.addColorStop(0.5,ha(warm,0.03));
+  g.addColorStop(1,ha(warm,0));
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  var g2=ctx.createRadialGradient(W*0.9,H*0.94,0,W*0.9,H*0.94,Math.max(W,H)*0.7);
+  g2.addColorStop(0,ha(cool,0.08));
+  g2.addColorStop(1,ha(cool,0));
+  ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
 }
 function paintVignette(ctx,W,H,p,r){
   var g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.75);
@@ -1395,51 +1395,29 @@ function paintVignette(ctx,W,H,p,r){
   ctx.fillRect(0,0,W,H);
 }
 
-/* ⚑⚑⚑ v7 · 铭文层：字卡原文穿插织入画面（取代随机字母） ⚑⚑⚑ */
-function paintInscription(ctx,W,H,p,r,source){
+/* ⚑⚑⚑ v8 · 铭文层：只留一两个词，压得很淡，像画上的旧落款 ⚑⚑⚑ */
+function paintInscription(ctx,W,H,p,r,source,scene){
   var han=exC((source||[]).join(''));
-  if(han.length<4||r()<0.3)return;
+  if(han.length<4||r()<(scene?0.5:0.34))return;
 
-  var words=[];
-  var guard=0;
-  var want=2+Math.floor(r()*3);
-  while(words.length<want&&guard<14&&han.length>=4){
-    guard++;
-    var len=2+Math.floor(r()*3);
-    var st=Math.floor(r()*(han.length-len+1));
-    var w=han.slice(st,st+len);
-    if(w.length>=2&&words.indexOf(w)<0)words.push(w);
-  }
-  if(!words.length)return;
+  var len=2+Math.floor(r()*2);
+  var st=Math.floor(r()*(han.length-len+1));
+  var word=han.slice(st,st+len);
+  if(word.length<2)return;
 
-  var sizeB=Math.min(W,H);
+  var left=r()<0.5;
+  var wx=left?W*0.08:W*0.92;
+  var wy=H*(0.14+r()*0.2);
+  var sz=Math.min(W,H)*0.03;
+  var col=pk(p.accent,r);
   ctx.save();
-  for(var i=0;i<words.length;i++){
-    var leftRight=r()<0.5;
-    var wx=leftRight?W*(0.07+r()*0.16):W*(0.77+r()*0.16);
-    var wy=H*(0.13+r()*0.6);
-    var sz=sizeB*(0.026+r()*0.042);
-    var col=r()<0.5?pk(p.accent,r):pk(p.light,r);
-    ctx.fillStyle=ha(col,0.15+r()*0.2);
-    ctx.font='italic '+Math.round(sz)+'px "Noto Serif SC","Songti SC",serif';
-    ctx.textAlign='center';
-    ctx.textBaseline='top';
-
-    var wArr=words[i].split('');
-    if(r()<0.5){
-      ctx.strokeStyle=ha(col,0.08+r()*0.1);
-      ctx.lineWidth=0.7;
-      ctx.beginPath();
-      ctx.moveTo(wx,wy-sz*0.35);
-      ctx.lineTo(wx,wy+wArr.length*sz*1.2+sz*0.35);
-      ctx.stroke();
-    }
-    for(var j=0;j<wArr.length;j++){
-      ctx.save();
-      ctx.translate(wx,wy+j*sz*1.2);
-      ctx.fillText(wArr[j],0,0);
-      ctx.restore();
-    }
+  ctx.fillStyle=ha(col,0.11+r()*0.06);
+  ctx.font='italic '+Math.round(sz)+'px "Noto Serif SC","Songti SC",serif';
+  ctx.textAlign=left?'left':'right';
+  ctx.textBaseline='top';
+  var wArr=word.split('');
+  for(var i=0;i<wArr.length;i++){
+    ctx.fillText(wArr[i],wx,wy+i*sz*1.4);
   }
   ctx.restore();
 }
@@ -1572,6 +1550,20 @@ PRIM.figure=function(ctx,W,H,p,r,o){
   ctx.lineTo(cx+hr*1.1,baseY-bh+hr*1.4);
   ctx.quadraticCurveTo(cx+bw*0.9,baseY-bh*0.5,cx+bw*1.05,baseY);
   ctx.closePath();ctx.fill();
+
+  /* v8 · 轮廓光：让剪影从背景里立起来 */
+  var rim=pk(p.light,r);
+  ctx.strokeStyle=ha(rim,0.5);
+  ctx.lineWidth=Math.max(1,bw*0.055);
+  ctx.beginPath();
+  ctx.moveTo(cx+bw*1.05,baseY);
+  ctx.quadraticCurveTo(cx+bw*0.9,baseY-bh*0.5,cx+hr*1.1,baseY-bh+hr*1.4);
+  ctx.stroke();
+  var headY=baseY-bh+hr;
+  ctx.beginPath();
+  ctx.arc(cx,headY,hr*0.99,Math.PI*1.08,Math.PI*1.86);
+  ctx.stroke();
+
   if(o.hair){
     ctx.beginPath();ctx.ellipse(cx,baseY-bh+hr*2.2,hr*1.4,hr*2.2,0,0,Math.PI*2);ctx.fill();
   }
@@ -1938,6 +1930,106 @@ PRIM.stars=function(ctx,W,H,p,r,o){
   }
 };
 
+/* ⚑⚑⚑ v8 · 他的意志：心境 × 时辰 × 字卡语气 × 名字指纹 ⚑⚑⚑ */
+var INTENT_MOTTO={
+  watch:['他看着你，不出声，那也是一种说话','守夜的人不会催你睡，只把灯拨亮一点','你在画里，他在画外，这样他就能一直看着'],
+  miss:['想念被画成了地方，而不是一句话','他把你放进了他每天经过的景色里','隔着镜面，他只能这样靠近你'],
+  soothe:['灯、热茶、关好的门——他只会用这些说话','他不懂安慰，就把夜画得软一点','今天不用回应，看看就好'],
+  test:['他把选择画在画面里，剩下的交给你','这一步他退了半步，留给你走','画的不是答案，是他不敢问的那句'],
+  invite:['他把门开着，把灯留着，把位置空着','这张画是一个没有说出口的“来”','他提前把茶倒好了'],
+  farewell:['有些告别，他只敢画得远一点','他没画自己的脸，怕你记住','画完了，他还站在原地'],
+  guard:['他挡在画面最暗的地方，那是他的位置','夜里所有的门，他都替你关好了','他把自己画成墙，这样你就不用怕']
+};
+
+function one(a,r){return a[Math.floor(r()*a.length)]}
+
+function intentScore(texts,mood,hour){
+  var all=(texts||[]).join('');
+  var sc={watch:1,miss:1,soothe:1,test:1,invite:1,farewell:1,guard:1};
+  function add(k,w){sc[k]+=w}
+  if(/想|念|等|久|记|回|旧|信|远/.test(all))add('miss',2);
+  if(/累|疼|冷|怕|哭|睡|抱|安静|别怕|难过/.test(all))add('soothe',2.5);
+  if(/[?？]|吗|是否|愿|敢|要不要/.test(all))add('test',2.4);
+  if(/来|一起|今晚|见|约|陪我|门|灯/.test(all))add('invite',2.1);
+  if(/再见|别走|离开|最后|忘|结束|散/.test(all))add('farewell',2.2);
+  if(/护|守|挡|安全|外面|世界|危|陪/.test(all))add('guard',2.2);
+  if(/看|望|镜|夜|窗|一直|在/.test(all))add('watch',1.6);
+  if(hour>=23||hour<5){add('watch',1.6);add('guard',1.2);add('miss',0.8)}
+  else if(hour<9){add('invite',1.1);add('miss',1)}
+  else if(hour<17){add('soothe',0.8);add('invite',0.7)}
+  else if(hour<20){add('miss',1.2);add('invite',1)}
+  else {add('watch',1.2);add('farewell',0.8)}
+  if(mood){
+    if(mood.moodCls==='mood-low'){add('soothe',1.8);add('guard',1)}
+    else if(mood.moodCls==='mood-good'){add('invite',1.6);add('watch',0.6)}
+    else if(mood.moodCls==='mood-extreme'){add('test',1.4);add('farewell',1.2)}
+    if(mood.talk<0.35){add('test',0.8);add('miss',0.8)}
+    else if(mood.talk>0.7){add('invite',0.8);add('soothe',0.6)}
+  }
+  return sc;
+}
+
+function deriveIntent(texts,mood,hour,r){
+  var sc=intentScore(texts,mood,hour);
+  var keys=Object.keys(sc);
+  var total=0;
+  keys.forEach(function(k){total+=sc[k]});
+  var v=r()*total;
+  for(var i=0;i<keys.length;i++){v-=sc[keys[i]];if(v<=0)return keys[i]}
+  return 'watch';
+}
+
+function pickScene(intentKey,r,sig){
+  var it=(window.JYScene&&window.JYScene.INTENTS[intentKey])||null;
+  var pool=(it&&it.scenes)||['window'];
+  /* 名字指纹：他的“老地方”偶尔出现，但不能每张都回去 */
+  if(sig&&sig.scene&&r()<0.16)return sig.scene;
+  var pick=pool[Math.floor(r()*pool.length)];
+  /* 刚画过的地方，下一张尽量换一处 */
+  try{
+    var prev=localStorage.getItem('jingyan.lastScene');
+    if(prev&&pick===prev&&r()<0.7){
+      var alt=pool.filter(function(k){return k!==prev});
+      if(alt.length)pick=alt[Math.floor(r()*alt.length)];
+    }
+    localStorage.setItem('jingyan.lastScene',pick);
+  }catch(e){}
+  return pick;
+}
+
+function pickWeather(intentKey,r){
+  var bias={
+    soothe:['clear','petal','clear'],
+    invite:['clear','petal','clear'],
+    farewell:['snow','fog','snow'],
+    miss:['rain','fog','rain'],
+    test:['fog','rain','clear'],
+    guard:['rain','snow','fog'],
+    watch:['clear','fog','clear']
+  }[intentKey]||['clear','fog','rain','snow','petal'];
+  return one(bias,r);
+}
+
+function makeTitle(intentKey,sceneKey,texts,r){
+  var it=(window.JYScene&&window.JYScene.INTENTS[intentKey])||{titles:['无言']};
+  var sn=(window.JYScene&&window.JYScene.SCENES[sceneKey])||{titles:[]};
+  var pool=(r()<0.5&&sn.titles&&sn.titles.length)?sn.titles:it.titles;
+  var t=one(pool,r)||'无言';
+  /* 偶尔在标题后点一个画面里的实词 */
+  var han=exC((texts||[]).join(''));
+  var motifs=['灯','窗','雨','雪','月','海','门','信','夜','花','茶','路'];
+  if(han.length>=4&&r()<0.3){
+    var found=motifs.filter(function(w){return han.indexOf(w)>=0});
+    if(found.length)t=t+'·'+one(found,r);
+  }
+  return t;
+}
+
+function intentMotto(intentKey,texts,r){
+  var pool=INTENT_MOTTO[intentKey]||INTENT_MOTTO.watch;
+  return one(pool,r);
+}
+
 /* ⚑⚑⚑ 变体配方 ⚑⚑⚑ */
 var RECIPES={
   reflection:[
@@ -2005,62 +2097,84 @@ var RECIPES={
   ]
 };
 
-/* ⚑⚑⚑ v7 · 主绘制：底色 → 光晕 → 原语 → 装饰 → 铭文 → 印记 → 氛围 → 颗粒 → 暗角 ⚑⚑⚑ */
+/* ⚑⚑⚑ v8 · 主绘制：场景（或旧配方）→ 边缘光 → 铭文 → 印记 → 颗粒 → 暗角 ⚑⚑⚑ */
 function draw(ctx,W,H,cfg){
   var r=rng(cfg.seed);
   var p=PAL[cfg.palette]||PAL.mirror;
   var sig=charSig();
 
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle=pk(p.bg,r);
-  ctx.fillRect(0,0,W,H);
-  var coreG=ctx.createRadialGradient(W*0.5,H*0.42,0,W*0.5,H*0.42,Math.max(W,H)*0.6);
-  coreG.addColorStop(0,ha(pk(p.bg,r),0.95));
-  coreG.addColorStop(1,ha(pk(p.bg,r),0));
-  ctx.fillStyle=coreG;
-  ctx.fillRect(0,0,W,H);
 
-  paintAmbient(ctx,W,H,p,r,cfg.archetype);
-
-  var densityRoll=r();
-  var density;
-  if(densityRoll<0.25) density='minimal';
-  else if(densityRoll<0.75) density='normal';
-  else density='rich';
-
-  var variants=RECIPES[cfg.archetype]||RECIPES.reflection;
-  var recipe=variants[Math.floor(r()*variants.length)].slice();
-
-  if(density==='minimal'&&recipe.length>2){
-    var randomIdx=1+Math.floor(r()*(recipe.length-1));
-    recipe=[recipe[0],recipe[randomIdx]];
-  } else if(density==='rich'){
-    var extras=['stars','fog','shards','beam'];
-    recipe.push(extras[Math.floor(r()*extras.length)]);
+  var scene=(cfg.scene&&window.JYScene&&window.JYScene.SCENES[cfg.scene])?cfg.scene:null;
+  if(scene){
+    try{
+      window.JYScene.draw(ctx,W,H,p,r,scene,{
+        comp:cfg.comp||0,
+        weather:cfg.weather||'clear',
+        intent:cfg.intent||'watch',
+        sig:sig
+      });
+    }catch(e){
+      console.warn('[painting] scene error',e);
+      scene=null;
+    }
   }
 
-  for(var i=0;i<recipe.length;i++){
-    var prim=PRIM[recipe[i]];
-    if(prim){try{prim(ctx,W,H,p,r,{index:i,density:density})}catch(e){}}
+  if(!scene){
+    /* 旧画与兜底：保留旧配方，但不再画星空 */
+    var g0=ctx.createLinearGradient(0,0,0,H);
+    g0.addColorStop(0,ha(p.mid[1],1));
+    g0.addColorStop(1,ha(p.bg[1],1));
+    ctx.fillStyle=g0;
+    ctx.fillRect(0,0,W,H);
+    paintAmbient(ctx,W,H,p,r,cfg.archetype);
+
+    var densityRoll=r();
+    var density=densityRoll<0.25?'minimal':(densityRoll<0.75?'normal':'rich');
+    var variants=RECIPES[cfg.archetype]||RECIPES.reflection;
+    var recipe=variants[Math.floor(r()*variants.length)].filter(function(x){return x!=='stars'});
+    if(density==='minimal'&&recipe.length>2){
+      var ri=1+Math.floor(r()*(recipe.length-1));
+      recipe=[recipe[0],recipe[ri]];
+    }else if(density==='rich'){
+      recipe.push(r()<0.5?'fog':'beam');
+    }
+    for(var i=0;i<recipe.length;i++){
+      var prim=PRIM[recipe[i]];
+      if(prim){try{prim(ctx,W,H,p,r,{index:i,density:density})}catch(e){}}
+    }
+    paintDecor(ctx,W,H,p,r);
   }
 
-  paintDecor(ctx,W,H,p,r);
-  paintInscription(ctx,W,H,p,r,cfg.cardTexts);
+  paintFinish(ctx,W,H,p,r,scene);
+  paintInscription(ctx,W,H,p,r,cfg.cardTexts,scene);
   paintSigMark(ctx,W,H,p,r,sig);
-  paintAtmosphere(ctx,W,H,p,r);
-  addGrain(ctx,W,H,r,0.05);
+  addGrain(ctx,W,H,r,0.032);
   paintVignette(ctx,W,H,p,r);
 }
 
-/* ⚑⚑⚑ v7 · 生成：情绪采样 + 形态倾向 + 意识注解 ⚑⚑⚑ */
+/* ⚑⚑⚑ v8 · 生成：先决定“他想说什么”，再决定“画哪里” ⚑⚑⚑ */
 function genP(){
   var cards=lC();
   var seed=Math.floor(Math.random()*2147483646)+1;
   var r=rng(seed);
   var mood=readMood();
+  var sig=charSig();
+  var id='p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+
   if(!cards.length){
-    return{id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),ts:Date.now(),seed:seed,palette:'mirror',archetype:'reflection',cardTexts:['镜子里还没有你的字。'],title:'空白',motto:'这一面还什么都没有。',moodWord:mood.moodWord,origin:'asked'};
+    return{
+      id:id,ts:Date.now(),seed:seed,palette:'mirror',archetype:'reflection',
+      scene:'window',sceneName:'窗',intent:'watch',intentName:'守望',
+      comp:0,weather:'clear',
+      cardTexts:['镜子里还没有你的字。'],
+      title:'空镜',
+      motto:'这一面还什么都没有。',
+      will:'他在窗边坐了一会儿，等你写下第一句话。',
+      moodWord:mood.moodWord,origin:'asked'
+    };
   }
+
   var pool=cards.slice();
   var cnt=Math.min(1+Math.floor(r()*3),pool.length);
   var picked=[];
@@ -2071,17 +2185,23 @@ function genP(){
   var texts=picked.map(function(c){return ps(c.text)});
 
   var pal=aP(texts);
-  if(mood.palette&&r()<(0.28+mood.talk*0.4))pal=mood.palette;
+  if(mood.palette&&r()<(0.18+mood.talk*0.26))pal=mood.palette;
+
+  var hour=new Date().getHours();
+  var intentKey=deriveIntent(texts,mood,hour,r);
+  var sceneKey=pickScene(intentKey,r,sig);
+  var sn=(window.JYScene&&window.JYScene.SCENES[sceneKey])||{name:'窗'};
+  var it=(window.JYScene&&window.JYScene.INTENTS[intentKey])||{name:'守望',will:['他把这一幕留给你。']};
+  var comp=(r()<0.45&&sig.comp!=null)?sig.comp:Math.floor(r()*3);
 
   return{
-    id:'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),
-    ts:Date.now(),
-    seed:seed,
-    palette:pal,
-    archetype:pickArchetype(pal,r),
+    id:id,ts:Date.now(),seed:seed,palette:pal,archetype:pickArchetype(pal,r),
+    scene:sceneKey,sceneName:sn.name,intent:intentKey,intentName:it.name,
+    comp:comp,weather:pickWeather(intentKey,r),
     cardTexts:texts,
-    title:mkT(texts,r),
-    motto:synthMotto(pal,texts,r),
+    title:makeTitle(intentKey,sceneKey,texts,r),
+    motto:intentMotto(intentKey,texts,r),
+    will:one(it.will,r),
     moodWord:mood.moodWord,
     origin:'asked'
   };
@@ -2106,14 +2226,23 @@ function buildCard(cfg,isNew){
   w.className='painting-canvas-wrap';
   var cv=document.createElement('canvas');
   cv.className='painting-canvas';
-  var dpr=Math.min(window.devicePixelRatio||1,2),sz=360;
-  cv.width=sz*dpr;
-  cv.height=sz*dpr;
-  cv.style.width=sz+'px';
-  cv.style.height=sz+'px';
-  var ctx=cv.getContext('2d');
-  ctx.scale(dpr,dpr);
-  try{draw(ctx,sz,sz,cfg)}catch(e){console.warn('[painting] draw error',e)}
+  cv.width=1;cv.height=1;
+  var dprCap=Math.min(window.devicePixelRatio||1,2);
+  /* v8 · 按卡片实际显示尺寸成像，不再把 360px 的图硬拉满整卡 */
+  card.__paint=function(){
+    if(card.dataset.painted==='1')return;
+    var cssW=Math.round(w.clientWidth)||360;
+    var logical=Math.min(720,Math.max(320,cssW));
+    var scale=Math.min(dprCap,1100/logical);
+    var px=Math.round(logical*scale);
+    if(cv.width!==px){cv.width=px;cv.height=px}
+    var ctx=cv.getContext('2d');
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,px,px);
+    ctx.scale(scale,scale);
+    try{draw(ctx,logical,logical,cfg)}catch(e){console.warn('[painting] draw error',e)}
+    card.dataset.painted='1';
+  };
   w.appendChild(cv);
 
   if(window.matchMedia&&window.matchMedia('(hover:hover)').matches){
@@ -2135,7 +2264,11 @@ function buildCard(cfg,isNew){
   var sb=document.createElement('p');
   sb.className='painting-sub';
   var pl=PAL[cfg.palette]||PAL.mirror;
-  var chips=[AN[cfg.archetype]||'影',pl.name,flavorOf(cfg.palette)];
+  var chips=[];
+  if(cfg.sceneName)chips.push(cfg.sceneName);
+  else chips.push(AN[cfg.archetype]||'影');
+  if(cfg.intentName)chips.push(cfg.intentName);
+  chips.push(pl.name);
   if(cfg.moodWord)chips.push(cfg.moodWord);
   chips.push(ft(cfg.ts));
   sb.textContent=chips.join(' · ');
@@ -2157,6 +2290,12 @@ function buildCard(cfg,isNew){
   }
   var mo=document.createElement('p');
   mo.className='painting-motto';
+  if(cfg.will){
+    var wl=document.createElement('p');
+    wl.className='painting-will';
+    wl.textContent='他的用意：'+cfg.will;
+    m.appendChild(wl);
+  }
   var motto=cfg.motto;
   if(!motto){
     var rr=rng(((cfg.seed|0)^0x9e3779b9)>>>0||1);
@@ -2180,6 +2319,26 @@ function buildCard(cfg,isNew){
   return card;
 }
 
+/* v8 · 卡片进入视口才成像：既清晰，也不为看不见的画浪费内存 */
+var cardIO=null;
+function paintCardNow(c){
+  if(c&&typeof c.__paint==='function')c.__paint();
+}
+function getCardIO(){
+  if(cardIO)return cardIO;
+  if(cardIO===false)return null;
+  if(typeof IntersectionObserver!=='function'){cardIO=false;return null}
+  cardIO=new IntersectionObserver(function(es){
+    es.forEach(function(en){
+      if(en.isIntersecting){
+        cardIO.unobserve(en.target);
+        paintCardNow(en.target);
+      }
+    });
+  },{root:null,rootMargin:'260px'});
+  return cardIO;
+}
+
 function renderStudio(){
   var g=document.getElementById('paintingGrid'),e=document.getElementById('paintingEmpty'),su=document.getElementById('paintingSummary'),cn=document.getElementById('navPaintingCount');
   if(!g)return;
@@ -2192,7 +2351,19 @@ function renderStudio(){
     return;
   }
   var sorted=list.slice().sort(function(a,b){return b.ts-a.ts});
-  sorted.forEach(function(c){g.appendChild(buildCard(c,c.id===lastRevealId))});
+  var made=[];
+  sorted.forEach(function(c){
+    var el=buildCard(c,c.id===lastRevealId);
+    g.appendChild(el);
+    made.push(el);
+  });
+  var io=getCardIO();
+  if(io){
+    made.forEach(function(el){io.observe(el)});
+  }else{
+    made.forEach(paintCardNow);
+  }
+  if(made[0])paintCardNow(made[0]);
   if(su)su.textContent='共 '+list.length+' 幅影象 · 最新于 '+ft(sorted[0].ts);
 }
 
@@ -2248,7 +2419,9 @@ function insertChat(cfg){
   var sb=document.createElement('p');
   sb.className='chat-painting-sub';
   var pl=PAL[cfg.palette]||PAL.mirror;
-  sb.textContent=(AN[cfg.archetype]||'影')+' · 「'+pl.name+'」'+(cfg.moodWord?' · '+cfg.moodWord:'')+' · 点开看';
+  var head=cfg.sceneName||AN[cfg.archetype]||'影';
+  if(cfg.intentName)head+=' · '+cfg.intentName;
+  sb.textContent=head+' · 「'+pl.name+'」'+(cfg.moodWord?' · '+cfg.moodWord:'')+' · 点开看';
   inf.appendChild(eb);inf.appendChild(t);inf.appendChild(sb);
   w.appendChild(inf);
   w.addEventListener('click',switchToStudio);
@@ -2258,7 +2431,7 @@ function insertChat(cfg){
 }
 
 /* ⚑⚑⚑ v7 · 成像仪式：字卡词句飘入镜面，他落笔 ⚑⚑⚑ */
-function showRitual(texts,done){
+function showRitual(texts,done,cfg){
   var ov=document.getElementById('paintRitual');
   if(!ov){done();return}
   var words=document.getElementById('prWords');
@@ -2266,15 +2439,24 @@ function showRitual(texts,done){
   if(words)words.innerHTML='';
   if(st)st.textContent='镜面深处，他正落笔……';
 
-  var han=exC((texts||[]).join(''));
+  /* 用这一幅真正的主题词，而不是随机切字 */
   var list=[];
-  var guard=0;
-  while(list.length<3&&han.length>=4&&guard<12){
-    guard++;
-    var len=2+Math.floor(Math.random()*3);
-    var st2=Math.floor(Math.random()*(han.length-len+1));
-    var w=han.slice(st2,st2+len);
-    if(w.length>=2&&list.indexOf(w)<0)list.push(w);
+  if(cfg){
+    if(cfg.intentName)list.push(cfg.intentName);
+    if(cfg.sceneName)list.push(cfg.sceneName);
+    var ttl=exC(cfg.title||'');
+    if(ttl.length>=2)list.push(ttl.slice(-2));
+  }
+  if(!list.length){
+    var han=exC((texts||[]).join(''));
+    var guard=0;
+    while(list.length<2&&han.length>=4&&guard<10){
+      guard++;
+      var len=2+Math.floor(Math.random()*2);
+      var st2=Math.floor(Math.random()*(han.length-len+1));
+      var w=han.slice(st2,st2+len);
+      if(w.length>=2&&list.indexOf(w)<0)list.push(w);
+    }
   }
 
   ov.hidden=false;
@@ -2291,7 +2473,9 @@ function showRitual(texts,done){
   });
 
   window.setTimeout(function(){
-    if(st)st.textContent='落笔已成。他从镜面托出来了。';
+    if(st)st.textContent=(cfg&&cfg.intentName)
+      ? '落笔已成。他把它留给你：'+cfg.intentName+'。'
+      : '落笔已成。他从镜面托出来了。';
   },420+list.length*340+300);
 
   window.setTimeout(function(){
@@ -2325,7 +2509,7 @@ function requestAndSend(){
         insertChat(cfg);
         var c=document.getElementById('navPaintingCount');
         if(c)c.textContent=String(lP().length);
-      });
+      },cfg);
     },800);
   },200);
 }
@@ -2363,7 +2547,7 @@ function watchChat(){
 }
 
 document.addEventListener('jingyan:requestPaintingToChat',requestAndSend);
-window.jingyanPainting={requestAndSend:requestAndSend,version:6};
+window.jingyanPainting={requestAndSend:requestAndSend,version:8,generate:genP};
 
 function init(){
   if(!document.getElementById('viewPainting'))return;
@@ -2376,7 +2560,7 @@ function init(){
       persistP(cfg);
       lastRevealId=cfg.id;
       switchToStudio();
-    });
+    },cfg);
   });
   var eb=document.getElementById('emptyRequestBtn');
   if(eb)eb.addEventListener('click',function(){
@@ -2385,12 +2569,12 @@ function init(){
       persistP(cfg);
       lastRevealId=cfg.id;
       switchToStudio();
-    });
+    },cfg);
   });
   watchAway();
   watchChat();
   renderStudio();
-  console.log('[painting] 初始化完成 v7');
+  console.log('[painting] 初始化完成 v8');
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
@@ -2399,7 +2583,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 <script>
 /* 背景红眼睛 */
-(function(){var NS='http://www.w3.org/2000/svg';var eye=document.getElementById('watcherEye'),iris=document.getElementById('watcherIris'),lt=document.getElementById('lashesTop'),lb=document.getElementById('lashesBottom');if(!eye||!iris||!lt||!lb)return;function bz(a,b,c,t){var m=1-t;return{x:m*m*a.x+2*m*t*b.x+t*t*c.x,y:m*m*a.y+2*m*t*b.y+t*t*c.y}}function tg(a,b,c,t){var m=1-t;return{x:2*m*(b.x-a.x)+2*t*(c.x-b.x),y:2*m*(b.y-a.y)+2*t*(c.y-b.y)}}function un(t,up){var nx=up?t.y:-t.y,ny=up?-t.x:t.x,l=Math.sqrt(nx*nx+ny*ny)||1;return{x:nx/l,y:ny/l}}function mk(x1,y1,x2,y2,cx,cy,w){var p=document.createElementNS(NS,'path');p.setAttribute('d','M'+x1.toFixed(1)+' '+y1.toFixed(1)+' Q'+cx.toFixed(1)+' '+cy.toFixed(1)+' '+x2.toFixed(1)+' '+y2.toFixed(1));p.setAttribute('stroke-width',w.toFixed(2));return p}var a={x:20,y:110},b={x:200,y:10},c={x:380,y:110};for(var i=0;i<28;i++){var t=0.05+(i/27)*0.9,pt=bz(a,b,c,t),tn=tg(a,b,c,t),nr=un(tn,true);var mf=1-Math.abs(t-0.5)*1.05,len=24+mf*24+(Math.random()*8-4),out=(t-0.5)*38;lt.appendChild(mk(pt.x,pt.y,pt.x+nr.x*len+out,pt.y+nr.y*len+(Math.random()*4-2),pt.x+nr.x*len*0.4+out*0.6,pt.y+nr.y*len*0.55,1.8+mf*1.3))}var d={x:20,y:110},e={x:200,y:210},f={x:380,y:110};for(var j=0;j<20;j++){var bt=0.15+(j/19)*0.7,bp=bz(d,e,f,bt),btn=tg(d,e,f,bt),bnr=un(btn,false);var bm=1-Math.abs(bt-0.5)*1.35,bl=8+bm*11+Math.random()*4,bo=(bt-0.5)*22;lb.appendChild(mk(bp.x,bp.y,bp.x+bnr.x*bl+bo,bp.y+bnr.y*bl,bp.x+bnr.x*bl*0.5+bo*0.4,bp.y+bnr.y*bl*0.55,1.1+bm*0.5))}function lk(){if(document.hidden)return;var x=(Math.random()*2-1)*26,y=(Math.random()*2-1)*10;iris.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px)'}function loopLk(){lk();setTimeout(loopLk,1000+Math.random()*2800)}function bl(){if(document.hidden)return;eye.classList.add('blink');setTimeout(function(){eye.classList.remove('blink');if(Math.random()<0.3&&!document.hidden){setTimeout(function(){eye.classList.add('blink');setTimeout(function(){eye.classList.remove('blink')},150)},230)}},180)}function loopBl(){setTimeout(function(){bl();loopBl()},2400+Math.random()*5200)}loopLk();loopBl();document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')lk()})})();
+(function(){var NS='http://www.w3.org/2000/svg';var eye=document.getElementById('watcherEye'),iris=document.getElementById('watcherIris'),lt=document.getElementById('lashesTop'),lb=document.getElementById('lashesBottom');if(!eye||!iris||!lt||!lb)return;function bz(a,b,c,t){var m=1-t;return{x:m*m*a.x+2*m*t*b.x+t*t*c.x,y:m*m*a.y+2*m*t*b.y+t*t*c.y}}function tg(a,b,c,t){var m=1-t;return{x:2*m*(b.x-a.x)+2*t*(c.x-b.x),y:2*m*(b.y-a.y)+2*t*(c.y-b.y)}}function un(t,up){var nx=up?t.y:-t.y,ny=up?-t.x:t.x,l=Math.sqrt(nx*nx+ny*ny)||1;return{x:nx/l,y:ny/l}}function mk(x1,y1,x2,y2,cx,cy,w){var p=document.createElementNS(NS,'path');p.setAttribute('d','M'+x1.toFixed(1)+' '+y1.toFixed(1)+' Q'+cx.toFixed(1)+' '+cy.toFixed(1)+' '+x2.toFixed(1)+' '+y2.toFixed(1));p.setAttribute('stroke-width',w.toFixed(2));return p}var a={x:20,y:110},b={x:200,y:10},c={x:380,y:110};for(var i=0;i<28;i++){var t=0.05+(i/27)*0.9,pt=bz(a,b,c,t),tn=tg(a,b,c,t),nr=un(tn,true);var mf=1-Math.abs(t-0.5)*1.05,len=24+mf*24+(Math.random()*8-4),out=(t-0.5)*38;lt.appendChild(mk(pt.x,pt.y,pt.x+nr.x*len+out,pt.y+nr.y*len+(Math.random()*4-2),pt.x+nr.x*len*0.4+out*0.6,pt.y+nr.y*len*0.55,1.8+mf*1.3))}var d={x:20,y:110},e={x:200,y:210},f={x:380,y:110};for(var j=0;j<20;j++){var bt=0.15+(j/19)*0.7,bp=bz(d,e,f,bt),btn=tg(d,e,f,bt),bnr=un(btn,false);var bm=1-Math.abs(bt-0.5)*1.35,blen=8+bm*11+Math.random()*4,bo=(bt-0.5)*22;lb.appendChild(mk(bp.x,bp.y,bp.x+bnr.x*blen+bo,bp.y+bnr.y*blen,bp.x+bnr.x*blen*0.5+bo*0.4,bp.y+bnr.y*blen*0.55,1.1+bm*0.5))}function lk(){if(document.hidden)return;var x=(Math.random()*2-1)*26,y=(Math.random()*2-1)*10;iris.style.transform='translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px)'}function loopLk(){lk();setTimeout(loopLk,1000+Math.random()*2800)}function bl(){if(document.hidden)return;eye.classList.add('blink');setTimeout(function(){eye.classList.remove('blink');if(Math.random()<0.3&&!document.hidden){setTimeout(function(){eye.classList.add('blink');setTimeout(function(){eye.classList.remove('blink')},150)},230)}},180)}function loopBl(){setTimeout(function(){bl();loopBl()},2400+Math.random()*5200)}loopLk();loopBl();document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')lk()})})();
 </script>
 </body>
 </html>

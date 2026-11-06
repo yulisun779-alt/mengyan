@@ -159,13 +159,14 @@
 .pet-widget.pet-hungry .pet-breathe { animation-duration: 5.4s; }
 .pet-widget.pet-hungry .pet-tail    { animation-duration: 7.4s; }
 
-/* —— 趴下 —— */
-.pet-widget.pet-lie .pet-torso { transform: scaleY(0.84) translateY(8px); }
-.pet-widget.pet-lie .pet-head  { transform: translateY(4px) rotate(2deg); }
+/* —— 趴下 ——
+   数值已按脖子接点对齐：头部下移量 = 躯干顶缘下降量 + 原本 6px 的重叠 */
+.pet-widget.pet-lie .pet-torso { transform: scaleY(0.9) translateY(2px); }
+.pet-widget.pet-lie .pet-head  { transform: translateY(9px) rotate(3deg); }
 
 /* —— 睡觉 —— */
-.pet-widget.pet-sleep .pet-torso { transform: scaleY(0.76) translateY(11px); }
-.pet-widget.pet-sleep .pet-head  { transform: translateY(6px) rotate(4deg); }
+.pet-widget.pet-sleep .pet-torso { transform: scaleY(0.86) translateY(3px); }
+.pet-widget.pet-sleep .pet-head  { transform: translateY(13px) rotate(5deg); }
 .pet-widget.pet-sleep .pet-tail  { animation: none; transform: rotate(-8deg); }
 .pet-widget.pet-sleep .pet-breathe { animation: petBreatheDeep 5.2s ease-in-out infinite; }
 @keyframes petBreatheDeep {
@@ -183,7 +184,7 @@
 }
 @keyframes petStretchHead {
   0%, 100% { transform: translateY(0); }
-  42%      { transform: translateY(7px); }
+  42%      { transform: translateY(10px); }
 }
 @keyframes petStretchTail {
   0%, 100% { transform: rotate(0); }
@@ -218,7 +219,8 @@
   40%      { transform: rotate(-9deg); }
 }
 
-/* —— 扭屁股 —— */
+/* —— 扭屁股 ——
+   躯干绕底端旋转会让脖子接点横移，头部用同向位移跟随，避免接缝错开 */
 .pet-widget.pet-butt .pet-torso { animation: petButt 1.3s ease both; }
 .pet-widget.pet-butt .pet-head  { animation: petButtHead 1.3s ease both; }
 @keyframes petButt {
@@ -228,8 +230,10 @@
   80%      { transform: rotate(1.8deg); }
 }
 @keyframes petButtHead {
-  25% { transform: rotate(-2deg); }
-  55% { transform: rotate(2deg); }
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25%      { transform: translateX(3.8px) rotate(1.6deg); }
+  55%      { transform: translateX(-3.8px) rotate(-1.6deg); }
+  80%      { transform: translateX(2px) rotate(0.9deg); }
 }
 
 /* —— 吃东西时小幅抖动 —— */
@@ -440,6 +444,17 @@
   font-size: 10px;
   color: var(--muted-2);
   margin-top: 2px;
+}
+#petSettingsDialog .pet-task-dir {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 999px;
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: rgba(var(--accent-rgb), 0.85);
+  vertical-align: baseline;
 }
 #petSettingsDialog .pet-task-row .pet-task-del {
   flex: none;

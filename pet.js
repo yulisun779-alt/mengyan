@@ -28,7 +28,23 @@
     hungry: ['有点饿。','……我等你很久了。','（无精打采地趴着）','我可以吃一点点吗。'],
     night: ['夜里凉，早点睡。','镜面在夜里更冷。','（蜷成一团）','月亮藏进云里了。','你还在，那就好。'],
     task: ['{名字}让我把这个交给你——','{名字}吩咐我把这个捎给你。','{名字}说，这个要你亲自看。','（从阴影里叼出一张字条）'],
-    done: ['收好了。','他说你会懂。','（把东西放下，退回阴影里）','那我回去复命了。']
+    done: ['收好了。','他说你会懂。','（把东西放下，退回阴影里）','那我回去复命了。'],
+    sendoff: [
+      '（叼起字条，尾巴一甩）这就去。',
+      '收下了。他家那条路，我认。',
+      '……这句我会原样带到，放心。',
+      '（把字条藏进耳朵后面）出发，别催。'
+    ],
+    away: [
+      '（它还在去他家的路上，爪印都热着）',
+      '传话中。别催，爪速有限。',
+      '（背影已经看不见了，再等等它）'
+    ],
+    himBack: [
+      '（拍拍爪上的灰）回来了。它让我原话带到——',
+      '（把回条放在你手边）他看了很久，然后回了一句——',
+      '（有点喘）他家真远。他说——'
+    ]
   };
 
   const FOOD = [
@@ -43,6 +59,7 @@
   const uid = () => 'pt_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
   const clamp = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const rnd = (min, max) => min + Math.random() * (max - min);
 
   function readJSON(k, f) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch (e) { return f; } }
   function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -88,13 +105,15 @@
     if (!Array.isArray(raw)) return [];
     return raw.filter((t) => t && typeof t.text === 'string' && t.text.trim()).map((t) => ({
       id: typeof t.id === 'string' && t.id ? t.id : uid(),
+      type: t.type === 'toHim' ? 'toHim' : 'toMe', /* toMe=梦角捎给你 / toHim=你托它带给梦角 */
       text: t.text.slice(0, 400),
       from: clamp(t.from, 20) || '梦角',
       createdAt: Number(t.createdAt) || Date.now(),
       notifyAt: Number(t.notifyAt) || Date.now(),
       notified: !!t.notified,
       done: !!t.done,
-      doneAt: Number(t.doneAt) || 0
+      doneAt: Number(t.doneAt) || 0,
+      reply: typeof t.reply === 'string' ? t.reply : ''
     }));
   }
 
@@ -254,7 +273,8 @@
       <div class="pet-menu" id="petMenu" hidden>
         <button type="button" data-act="feed">喂食</button>
         <button type="button" data-act="talk">说一句话</button>
-        <button type="button" data-act="assign">派个活</button>
+        <button type="button" data-act="carry">给他带话</button>
+        <button type="button" data-act="errand">替他捎信</button>
         <button type="button" data-act="settings">设置</button>
         <div class="pet-menu-sep"></div>
         <button type="button" data-act="hide" class="danger">让它歇一会儿</button>
@@ -280,6 +300,7 @@
 
     bindPetEvents();
     scheduleIdleState();
+    scheduleErrand();
     setTimeout(greetOnAppear, 4800);
     setInterval(refreshHungry, 60000);
     setInterval(pollTasks, 12000);
@@ -434,11 +455,38 @@
     if (currentTaskNotifiedId === task.id) return;
     currentTaskNotifiedId = task.id;
     task.notified = true;
-    saveTasks();
 
     wrap.classList.remove('pet-sleep', 'pet-lie');
     bodyEl.classList.remove('asleep');
     wiggle();
+
+    if (task.type === 'toHim') {
+      /* 你托它带的那一趟回来了：亮相，带回梦角的回信 */
+      if (replyPool().length) {
+        try {
+          task.reply = clamp(personalize(pick(replyPool()).text), 600);
+        } catch (e) { task.reply = ''; }
+      }
+      task.done = true;
+      task.doneAt = Date.now();
+      saveTasks();
+
+      if (state.hidden) {
+        /* 它在被藏起期间送完了这条差事，不强行现身 */
+        toast('它悄悄送完了一趟差，回来见');
+        return;
+      }
+      endTripVisual();
+      const head = personalize(pick(lines.himBack));
+      const full = task.reply
+        ? head + '\n\n' + task.reply
+        : head + '\n\n……他说，收到了。那边的镜子很亮。';
+      say(full, [{ label: '好', primary: true, onClick: hideBubble }]);
+      toast('影喵传话回来了');
+      return;
+    }
+
+    saveTasks();
 
     const head = personalize(pick(lines.task)).replace('{名字}', task.from);
     const full = head + '\n\n' + task.text;
@@ -447,6 +495,35 @@
       { label: '我收到了', primary: true, onClick: () => completeTask(task.id) },
       { label: '等一会儿', onClick: hideBubble }
     ]);
+  }
+
+  /* —— 去程 / 回程 的身体演出（不动 state.hidden，用好就回来） —— */
+  function startTripVisual() {
+    if (!wrap) return;
+    hideBubble();
+    wrap.classList.remove('pet-lie', 'pet-sleep', 'pet-stretch', 'pet-wash',
+                          'pet-flick', 'pet-twitch', 'pet-butt');
+    bodyEl.classList.remove('asleep', 'happy');
+    say(pick(lines.sendoff));
+    /* 说完标出口令再离场 */
+    window.setTimeout(() => {
+      if (!tripActive()) return;
+      wrap.classList.add('pet-faded');
+      window.setTimeout(() => {
+        if (tripActive() && wrap) wrap.hidden = true;
+      }, 420);
+    }, 2200);
+  }
+
+  function endTripVisual() {
+    if (!wrap) return;
+    if (wrap.hidden) wrap.hidden = false;
+    wrap.classList.add('pet-faded');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        wrap.classList.remove('pet-faded');
+      });
+    });
   }
 
   function completeTask(id) {
@@ -465,11 +542,13 @@
     opts = opts || {};
     const t = {
       id: uid(),
+      type: opts.type === 'toHim' ? 'toHim' : 'toMe',
       text: clamp(text, 400),
       from: clamp(opts.from, 20) || getCharName(),
       createdAt: Date.now(),
       notifyAt: Date.now() + (Number(opts.delay) || (25 + Math.random() * 55) * 1000),
-      notified: false, done: false, doneAt: 0
+      notified: false, done: false, doneAt: 0,
+      reply: ''
     };
     if (!t.text) return null;
     tasks.unshift(t);
@@ -477,14 +556,52 @@
     return t;
   }
 
+  /* 现在是否有一趟“去梦角那里的差”在路上 */
+  function tripActive() {
+    return tasks.some((t) => !t.done && t.type === 'toHim');
+  }
+
+  /* 回信池：从日常字卡库里取，让梦角的回话像“他写的” */
+  function replyPool() {
+    const lib = readJSON('jingyan.cards.v1', []) || [];
+    return lib.filter((c) => c && c.text && (c.kind == null || c.kind !== 'sensation'));
+  }
+
   function onExternalTask(ev) {
     const d = ev && ev.detail ? ev.detail : {};
     const text = clamp(d.text, 400);
     if (!text) return;
-    const t = addTask(text, { from: d.from, delay: d.delay });
-    if (t) toast('影喵接了一件活');
+    const t = addTask(text, { type: d.type === 'toHim' ? 'toHim' : 'toMe', from: d.from, delay: d.delay });
+    if (t) toast(d.type === 'toHim' ? '字条已叼上，去传话了' : '它接了这趟差');
   }
   document.addEventListener('jingyan:petTask', onExternalTask);
+
+  /* ---------------- 梦角主动派遣：他会差它送话/派活 ---------------- */
+  let errandGuard = null;
+
+  function scheduleErrand() {
+    if (errandGuard) window.clearTimeout(errandGuard);
+    errandGuard = window.setTimeout(dispatchErrand, rnd(70000, 160000));
+  }
+
+  function dispatchErrand() {
+    if (
+      wrap && !state.hidden && !document.hidden &&
+      document.body.dataset.callActive !== '1' &&
+      !document.querySelector('dialog[open]') &&
+      bubbleEl && bubbleEl.hidden &&
+      !tripActive() &&
+      !tasks.some((t) => !t.done && !t.notified) &&
+      Math.random() < 0.5
+    ) {
+      const pool = replyPool();
+      if (pool.length) {
+        const card = pick(pool);
+        addTask(card.text, { type: 'toMe', from: getCharName(), delay: rnd(2000, 14000) });
+      }
+    }
+    scheduleErrand();
+  }
 
   /* ============================================================
      交互：单击=说话 / 长按=菜单 / 双击=喂食 / 拖动=移动
@@ -516,7 +633,8 @@
       closeMenu();
       if (act === 'feed')     openFoodPanel();
       if (act === 'talk')     onPetTap();
-      if (act === 'assign')   openAssignDialog();
+      if (act === 'carry')    openCarryDialog();
+      if (act === 'errand')   openAssignDialog();
       if (act === 'settings') openSettingsDialog();
       if (act === 'hide')     setHidden(true);
     });
@@ -613,7 +731,13 @@
     if (menuEl && !menuEl.hidden) { closeMenu(); return; }
     if (!bubbleEl.hidden) { hideBubble(); return; }
 
-    const pending = tasks.find((t) => !t.done && t.notified);
+    /* 它正在往梦角那儿跑 */
+    if (tripActive()) {
+      say(pick(lines.away), [{ label: '嗯，去吧', onClick: hideBubble }]);
+      return;
+    }
+
+    const pending = tasks.find((t) => !t.done && t.notified && t.type !== 'toHim');
     if (pending) {
       currentTaskNotifiedId = pending.id;
       const head = personalize(pick(lines.task));
@@ -663,8 +787,35 @@
   function setHidden(h) {
     state.hidden = !!h;
     saveState();
-    if (wrap) wrap.hidden = !!h;
-    toast(h ? '影喵躲回镜子里了' : '影喵回来了');
+    if (!wrap) return;
+
+    if (h) {
+      /* 离场：先收起气泡/菜单和姿态，再淡出，最后才隐藏 */
+      hideBubble();
+      closeMenu();
+      wrap.classList.remove('pet-lie', 'pet-sleep', 'pet-stretch', 'pet-wash',
+                            'pet-flick', 'pet-twitch', 'pet-butt');
+      if (bodyEl) bodyEl.classList.remove('asleep', 'happy');
+      wrap.classList.remove('pet-faded');
+      void wrap.offsetWidth; /* 强制回流，确保淡出过渡生效 */
+      wrap.classList.add('pet-faded');
+      window.setTimeout(() => {
+        if (state.hidden && wrap) wrap.hidden = true;
+      }, 400);
+      toast('影喵躲回镜子里了');
+    } else {
+      /* 回场：先取消隐藏，下一帧再淡入 */
+      wrap.hidden = false;
+      wrap.classList.add('pet-faded');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          wrap.classList.remove('pet-faded');
+        });
+      });
+      scheduleIdleState();
+      window.setTimeout(greetOnAppear, 420);
+      toast('影喵回来了');
+    }
   }
 
   function openMenu() {
@@ -703,7 +854,67 @@
   }
 
   /* ============================================================
-     派活弹窗
+     给他带话（你 → 梦角）
+     ============================================================ */
+  function openCarryDialog() {
+    let dlg = document.getElementById('petCarryDialog');
+    if (!dlg) {
+      dlg = document.createElement('dialog');
+      dlg.className = 'modal modal-sm';
+      dlg.id = 'petCarryDialog';
+      dlg.innerHTML = `
+        <form class="modal-card" method="dialog" novalidate>
+          <header class="modal-head">
+            <div><p class="eyebrow">CARRY A NOTE</p><h3>给他带话</h3></div>
+            <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
+          </header>
+          <div class="modal-body">
+            <p class="field-help">把想说的写下来，它会叼着字条去找<b data-role-him></b>。<br/>可以在里面传话，也可以给他派差事（叮嘱、邀约、点歌……都行）。<br/>到家时它会带着他的回信出现。</p>
+            <div class="field">
+              <label for="petCarryText">要带给他的话 / 事</label>
+              <textarea class="input textarea" id="petCarryText" maxlength="400" rows="3" placeholder="比如：今晚别太晚睡，我在。"></textarea>
+            </div>
+            <div class="field">
+              <label for="petCarryDelay">多久回来</label>
+              <select class="input" id="petCarryDelay">
+                <option value="0">看它心情（半分钟左右）</option>
+                <option value="10">10 秒后回来</option>
+                <option value="60">1 分钟后回来</option>
+                <option value="300">5 分钟后回来</option>
+                <option value="1800">30 分钟后回来</option>
+              </select>
+            </div>
+          </div>
+          <footer class="modal-foot">
+            <button type="button" class="btn" data-close>取消</button>
+            <button type="submit" class="btn primary">交给它</button>
+          </footer>
+        </form>
+      `;
+      document.body.appendChild(dlg);
+      dlg.querySelectorAll('b[data-role-him]').forEach((b) => { b.textContent = getCharName(); });
+      dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+      dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+      dlg.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = clamp(dlg.querySelector('#petCarryText').value, 400);
+        if (!text) { dlg.querySelector('#petCarryText').focus(); return; }
+        const rawDelay = Number(dlg.querySelector('#petCarryDelay').value) || 0;
+        const delaySec = rawDelay > 0 ? rawDelay : (20 + Math.random() * 20);
+        addTask(text, { type: 'toHim', from: getCharName(), delay: delaySec * 1000 });
+        dlg.close();
+        startTripVisual();
+        toast('字条已叼上，去传话了');
+      });
+    }
+    dlg.querySelector('#petCarryText').value = '';
+    dlg.querySelector('b[data-role-him]') && (dlg.querySelector('b[data-role-him]').textContent = getCharName());
+    if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); }
+    else dlg.setAttribute('open', '');
+  }
+
+  /* ============================================================
+     替他捎信（拟一张梦角的字条，由它到点送来）
      ============================================================ */
   function openAssignDialog() {
     let dlg = document.getElementById('petAssignDialog');
@@ -714,14 +925,14 @@
       dlg.innerHTML = `
         <form class="modal-card" method="dialog" novalidate>
           <header class="modal-head">
-            <div><p class="eyebrow">ASSIGN</p><h3>派一个活</h3></div>
+            <div><p class="eyebrow">ERRAND</p><h3>替他捎一张字条</h3></div>
             <button type="button" class="modal-x" data-close aria-label="关闭">✕</button>
           </header>
           <div class="modal-body">
-            <p class="field-help">影喵会在一会儿之后，把这件事叼给你。<br/>通常这是梦角的吩咐，不过你也可以自己写。</p>
+            <p class="field-help">替 <b data-role-him2></b> 拟一张要捎给你的字条，<br/>或给他记一道差事。到点它会自己叼过来，像平时跑腿那样。</p>
             <div class="field">
-              <label for="petAssignText">要它送来的话 / 东西</label>
-              <textarea class="input textarea" id="petAssignText" maxlength="400" rows="3" placeholder="比如：他让你今晚别熬太晚。"></textarea>
+              <label for="petAssignText">字条 / 差事</label>
+              <textarea class="input textarea" id="petAssignText" maxlength="400" rows="3" placeholder="比如：他委托它提醒你，桌子上的热茶快凉了。"></textarea>
             </div>
             <div class="field-row">
               <div class="field">
@@ -746,6 +957,7 @@
         </form>
       `;
       document.body.appendChild(dlg);
+      dlg.querySelectorAll('b[data-role-him2]').forEach((b) => { b.textContent = getCharName(); });
       dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
       dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
       dlg.querySelector('form').addEventListener('submit', (e) => {
@@ -756,12 +968,13 @@
         if (!text) { dlg.querySelector('#petAssignText').focus(); return; }
         addTask(text, { from, delay: delaySec * 1000 });
         dlg.close();
-        toast('影喵接了一件活');
+        toast('它会记得这件事');
         say('交给我吧。', [{ label: '好', onClick: hideBubble }]);
       });
     }
     dlg.querySelector('#petAssignText').value = '';
     dlg.querySelector('#petAssignFrom').value = getCharName();
+    dlg.querySelectorAll('b[data-role-him2]').forEach((b) => { b.textContent = getCharName(); });
     if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); }
     else dlg.setAttribute('open', '');
   }
@@ -806,15 +1019,18 @@
                 <button type="button" data-tab="night">夜间</button>
                 <button type="button" data-tab="task">交差前</button>
                 <button type="button" data-tab="done">交差后</button>
+                <button type="button" data-tab="sendoff">出发</button>
+                <button type="button" data-tab="away">跑腿中</button>
+                <button type="button" data-tab="himBack">带回话</button>
               </div>
               <textarea class="input textarea pet-lines-editor" id="petLinesEditor" rows="7"></textarea>
             </div>
             <div class="field">
-              <label>待办的活</label>
-              <p class="field-help">梦角吩咐它的，或你自己给它派的。<br/>到时间它会主动叼给你。</p>
+              <label>来往的字条</label>
+              <p class="field-help">你们俩之间收发的字条都排在这里。<br/>梦角差它捎来的，到点送给你；<br/>你托它带去的，回来时它替他把回信捎上。</p>
               <div class="pet-task-list" id="petTaskList"></div>
               <div class="pet-add-task-row">
-                <input class="input" id="petQuickTaskInput" maxlength="120" placeholder="写一句话，让它给你送来…" />
+                <input class="input" id="petQuickTaskInput" maxlength="120" placeholder="写一句话，让它送到…" />
                 <button type="button" class="btn small" id="petQuickTaskBtn">派给它</button>
               </div>
             </div>
@@ -857,7 +1073,7 @@
       const tryQuick = () => {
         const v = clamp(quickInput.value, 120);
         if (!v) { quickInput.focus(); return; }
-        addTask(v, { from: getCharName(), delay: (25 + Math.random() * 55) * 1000 });
+        addTask(v, { type: 'toMe', from: getCharName(), delay: (25 + Math.random() * 55) * 1000 });
         quickInput.value = '';
         renderTaskList();
         toast('已派给它');
@@ -949,7 +1165,16 @@
       const meta = document.createElement('div');
       meta.className = 'pet-task-meta';
       const dueIn = Math.max(0, Math.round((t.notifyAt - Date.now()) / 1000));
-      meta.textContent = '来自 ' + t.from + (dueIn > 0 ? ' · 约 ' + dueIn + ' 秒后' : ' · 即将送来');
+      const tag = document.createElement('span');
+      tag.className = 'pet-task-dir';
+      if (t.type === 'toHim') {
+        tag.textContent = '你托带的';
+        meta.textContent = '正在传话的路上' + (dueIn > 0 ? ' · 回信约 ' + dueIn + ' 秒后' : ' · 即刻回来');
+      } else {
+        tag.textContent = '他捎来的';
+        meta.textContent = '来自 ' + t.from + (dueIn > 0 ? ' · 约 ' + dueIn + ' 秒后' : ' · 即将送来');
+      }
+      meta.prepend(tag);
       body.appendChild(txt);
       body.appendChild(meta);
 
