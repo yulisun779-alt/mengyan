@@ -1,6 +1,7 @@
 /* ============================================================
-   镜中梦魇 · 雷诺曼占卜 v2.6
+   镜中梦魇 · 雷诺曼占卜 v2.7
    —— Rana 40 张 / 5 种牌阵 / 魔杖换牌 / 藏牌讨牌 / 私语 / 替抽
+   —— 换牌方向随机：向好 / 向坏 / 中性
    —— 所有台词可编辑（弹窗右上角 ✎）
    ============================================================ */
 (() => {
@@ -14,9 +15,6 @@
   const ORACLE_KEY   = 'jingyan.mirror.oracle.v1';
   const LINES_KEY    = 'jingyan.oracle.lines.v1';
 
-  /* ============================================================
-     40 张牌
-     ============================================================ */
   const DECK = [
     { id:1,  name:'骑士',   keywords:'消息、来访、速度、新动向',   meaning:'有事正在快速向你靠近，可能是信息、客人或一个新变化。' },
     { id:2,  name:'三叶草', keywords:'小运气、短暂机会、小确幸',   meaning:'像找到车位一样的小幸运，通常不持久，需要及时把握。' },
@@ -73,9 +71,6 @@
 
   const NEGATIVE_IDS = [6, 7, 8, 10, 11, 21, 23, 36];
 
-  /* ============================================================
-     40 个线稿图标
-     ============================================================ */
   const ICONS = {
     1:'<path d="M6 20V11a6 6 0 0 1 12 0v9"/><path d="M3 20h5M16 20h5"/>',
     2:'<circle cx="12" cy="7.6" r="3.1"/><circle cx="7.6" cy="13.8" r="3.1"/><circle cx="16.4" cy="13.8" r="3.1"/><path d="M12 10.7V20"/>',
@@ -124,24 +119,13 @@
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>';
   }
 
-  /* ============================================================
-     5 种牌阵
-     ============================================================ */
   const SPREADS = {
     line3: { name:'三张线阵', count:3, desc:'过去 · 现在 · 未来', grid:{cols:3,rows:1},
-      positions: [
-        {r:0,c:0,label:'过去 / 背景'}, {r:0,c:1,label:'现在 / 核心'}, {r:0,c:2,label:'未来 / 走向'}
-      ]},
+      positions: [{r:0,c:0,label:'过去 / 背景'}, {r:0,c:1,label:'现在 / 核心'}, {r:0,c:2,label:'未来 / 走向'}]},
     line5: { name:'五张线阵', count:5, desc:'完整的时间线', grid:{cols:5,rows:1},
-      positions: [
-        {r:0,c:0,label:'远期背景'}, {r:0,c:1,label:'近期背景'}, {r:0,c:2,label:'核心 / 现状'},
-        {r:0,c:3,label:'近期走向'}, {r:0,c:4,label:'结果 / 未来'}
-      ]},
+      positions: [{r:0,c:0,label:'远期背景'}, {r:0,c:1,label:'近期背景'}, {r:0,c:2,label:'核心 / 现状'}, {r:0,c:3,label:'近期走向'}, {r:0,c:4,label:'结果 / 未来'}]},
     cross5: { name:'十字五张阵', count:5, desc:'核心·助力·阻力·隐性·行动', grid:{cols:3,rows:3},
-      positions: [
-        {r:1,c:1,label:'核心 / 问题'}, {r:0,c:1,label:'助力 / 推力'}, {r:2,c:1,label:'阻力 / 拉力'},
-        {r:1,c:0,label:'隐性因素'}, {r:1,c:2,label:'行动方向'}
-      ]},
+      positions: [{r:1,c:1,label:'核心 / 问题'}, {r:0,c:1,label:'助力 / 推力'}, {r:2,c:1,label:'阻力 / 拉力'}, {r:1,c:0,label:'隐性因素'}, {r:1,c:2,label:'行动方向'}]},
     grid9: { name:'九宫格', count:9, desc:'整体局势', grid:{cols:3,rows:3},
       positions: [
         {r:0,c:0,label:'外部过去'}, {r:0,c:1,label:'外部现在'}, {r:0,c:2,label:'外部未来'},
@@ -157,27 +141,21 @@
   };
   const SPREAD_ORDER = ['line3', 'line5', 'cross5', 'grid9', 'h7'];
 
-  /* ============================================================
-     小工具
-     ============================================================ */
   const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const pad2 = n => String(n).padStart(2, '0');
   const uid = () => 'o_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
   const pickFrom = arr => arr[Math.floor(Math.random() * arr.length)];
 
   function readJSON(k, f) {
-    try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; }
-    catch (e) { return f; }
+    try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch (e) { return f; }
   }
   function writeJSON(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); }
-    catch (e) { toast('保存失败：浏览器存储空间可能已满'); }
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('保存失败'); }
   }
   function escapeHtml(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, ch => (
-      { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]
-    ));
+    return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
   }
   function formatTime(ts) {
     const d = new Date(ts);
@@ -205,7 +183,7 @@
   }
 
   /* ============================================================
-     台词默认池
+     台词默认池（含新增：换牌·坏牌 × 2）
      ============================================================ */
   const DEFAULT_LINES = {
     swapOvert: [
@@ -246,6 +224,40 @@
       '你什么都没丢。', '我替你担了。', '这张，我送你的。',
       '我偷偷动了心，也动了牌。', '那张牌……我舍不得你看见。'
     ],
+    /* ↓↓↓ 新增：换牌·坏牌 ↓↓↓ */
+    swapOvertBad: [
+      '你不是要问吗？那就看清楚。', '这才是真的。别骗自己。', '我想看看你能不能接住。',
+      '我也不是一直想当好人。', '有些事我也拦不住。', '这张，我不能替你藏。',
+      '我不能一直替你挡。', '你问的这个问题，它有自己的答案。', '我说真话。',
+      '别只挑好听的听。', '我不会骗你。哪怕这张很难看。', '这张你该看。',
+      '我不哄你了。', '真话不好听。', '但我不能替你改。',
+      '有些牌，我换不掉。', '你问的，不是只有甜的那一面。', '这张，你自己看。',
+      '我也有我的答案。', '这次我不拦。', '我也不是你的护身符。',
+      '你该知道。', '别怪我。', '我这次不护着你。',
+      '我怕你只看见光。', '有些东西，得让你看到。', '我换这张的时候，心里也不好受。',
+      '但它确实是真的。', '这次我说实话。', '我也有情绪。',
+      '我不是每次都想哄你开心。', '今天我不当好人。', '有些牌是苦的。你得尝。',
+      '我可以换掉一张好的。这张不行。', '不是所有事都能被保护。', '这次我站在真相这边。',
+      '我陪你一起看。', '我不遮掩了。', '这张，我让它留下。',
+      '你自己看。我不说话了。'
+    ],
+    swapSneakyBad: [
+      '刚才那张太甜了。我换了一张。', '好的那张，我拿走了。', '你抽到的不是真的。',
+      '我换了一张。别问。', '这张才是。', '你什么都没看见。',
+      '我动了一点手脚。', '我改主意了。', '我把它换走了。你不该只看那张。',
+      '这次我不护着你。', '这张不是哄你的。', '我知道你不喜欢。但它真实。',
+      '我偷偷动了手。', '我把它藏起来，换了一张来。', '别怪我没提醒你。',
+      '我换了。别问为什么。', '我把好的那张拿走了。', '那张太亮了。我替你换了。',
+      '这次我没手下留情。', '有些真相，得偷偷塞给你。', '我不想让你只看好的一面。',
+      '我换了。很难听。可它在。', '这张你抽到，我也没办法。', '我把它换了。不高兴也得看。',
+      '我藏了那张好的。', '我偷偷换了一张。', '这次我不是在护你。',
+      '这张更真。', '我换了。理由不告诉你。', '那张太温柔了，我替你换掉。',
+      '你该看看这张。', '我把甜的拿走了。', '这张是我偷偷塞给你的。',
+      '别骂我。', '我这次没有站在你那边。', '我把它换了。想让你看到。',
+      '我换完了。你看着。', '我不哄你了。', '这张……我留给你看。',
+      '别只看好的那面。'
+    ],
+    /* ↑↑↑ 新增结束 ↑↑↑ */
     hideOvert: [
       '这张我收下了。', '这张不给你。', '我看见了。它也看见我了。', '不许看。这张太脏。',
       '我替你做主了。', '我把它扣下了。', '这张牌不配出现。', '我先替你担着。',
@@ -291,7 +303,8 @@
       '我动了几张牌——别怪我，那些话说得太难听。', '有几张牌我看不下去，替你换了。',
       '换过的，你就当我没说。', '我动了一点手脚。剩下的都是真的。',
       '那些牌说的话，我不认。', '换过的那些，你不要多想。',
-      '我换了。你有意见？……有也留着。', '我只挑了最不像话的几张。'
+      '我换了。你有意见？……有也留着。', '我只挑了最不像话的几张。',
+      '换过的那几张，有好有坏。你都看到了。', '我动了。别问我为什么。'
     ],
     finalMood: [
       '这次牌面很好。我没什么要改的。', '牌面很亮。你说的，都成真了。',
@@ -313,6 +326,8 @@
   const LINE_CATEGORIES = [
     { key:'swapOvert',       label:'换牌·光明' },
     { key:'swapSneaky',      label:'换牌·偷偷' },
+    { key:'swapOvertBad',    label:'换牌·光明·坏' },
+    { key:'swapSneakyBad',   label:'换牌·偷偷·坏' },
     { key:'hideOvert',       label:'藏牌·光明' },
     { key:'hideSneaky',      label:'藏牌·偷偷' },
     { key:'hideRefuse',      label:'讨牌·拒绝' },
@@ -329,23 +344,19 @@
     const raw = readJSON(LINES_KEY, null);
     const out = {};
     Object.keys(DEFAULT_LINES).forEach(key => {
-      const arr = (raw && Array.isArray(raw[key]))
-        ? raw[key].filter(x => typeof x === 'string' && x.trim())
-        : [];
+      const arr = (raw && Array.isArray(raw[key])) ? raw[key].filter(x => typeof x === 'string' && x.trim()) : [];
       out[key] = arr.length ? arr : DEFAULT_LINES[key].slice();
     });
     return out;
   }
-  function saveLines(obj) {
-    writeJSON(LINES_KEY, obj);
-  }
+  function saveLines(obj) { writeJSON(LINES_KEY, obj); }
   function resetLines() {
     try { localStorage.removeItem(LINES_KEY); } catch (e) {}
     return loadLines();
   }
 
   /* ============================================================
-     SVG 常量
+     SVG
      ============================================================ */
   const BACK_SVG = `
 <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -392,10 +403,6 @@
   <path d="M22 100 L50 78 L58 100 L50 122 Z" fill="url(#owGem)" stroke="rgba(255,240,220,0.7)" stroke-width="1.2"/>
   <path d="M22 100 L58 100" stroke="rgba(255,240,220,0.55)" stroke-width="0.9"/>
   <circle cx="22" cy="100" r="3.5" fill="#fff8e8" opacity=".95"/>
-  <g stroke="rgba(255,220,180,0.65)" stroke-width="1.1" stroke-linecap="round">
-    <path d="M4 100 L14 100"/><path d="M22 82 L22 72"/><path d="M22 118 L22 128"/>
-    <path d="M10 88 L14 92"/><path d="M10 112 L14 108"/>
-  </g>
 </svg>`;
 
   const SNEAKY_WAND_SVG = `
@@ -419,17 +426,12 @@
   <g stroke="url(#swGold)" stroke-width="0.9" fill="none" opacity=".85">
     <path d="M25 90 Q30 95 35 90 Q30 100 25 95 Q30 105 35 100"/>
     <path d="M25 120 Q30 125 35 120 Q30 130 25 125"/>
-    <path d="M25 150 Q30 155 35 150 Q30 160 25 155"/>
   </g>
   <path d="M23 70 L27 58 L33 58 L37 70 Z" fill="url(#swGold)" stroke="rgba(60,20,10,0.7)" stroke-width="0.7"/>
   <path d="M30 12 L44 40 L30 62 L16 40 Z" fill="url(#swGem)" stroke="rgba(255,240,220,0.7)" stroke-width="1"/>
-  <path d="M30 12 L30 62" stroke="rgba(255,240,220,0.45)" stroke-width="0.7"/>
   <circle cx="30" cy="40" r="3" fill="#fff8e8" opacity=".95"/>
 </svg>`;
 
-  /* ============================================================
-     状态
-     ============================================================ */
   let currentSpreadId = 'line3';
   let busy = false;
   let currentDraw = null;
@@ -440,13 +442,9 @@
   function loadRecords() {
     const raw = readJSON(ORACLE_KEY, {});
     const list = raw && Array.isArray(raw.records) ? raw.records : [];
-    return list
-      .filter(r => r && typeof r === 'object' && Array.isArray(r.cardIds) && r.cardIds.length)
-      .slice(0, 200);
+    return list.filter(r => r && typeof r === 'object' && Array.isArray(r.cardIds) && r.cardIds.length).slice(0, 200);
   }
-  function saveRecords(list) {
-    writeJSON(ORACLE_KEY, { records: list.slice(0, 200) });
-  }
+  function saveRecords(list) { writeJSON(ORACLE_KEY, { records: list.slice(0, 200) }); }
   function getReplyPool() {
     const m = readJSON(MIRROR_KEY, {}) || {};
     const raw = Array.isArray(m.replies) ? m.replies : [];
@@ -468,11 +466,7 @@
   /* ============================================================
      概率与判断
      ============================================================ */
-  function eventCap(count) {
-    if (count <= 3) return 2;
-    if (count <= 5) return 3;
-    return 4;
-  }
+  function eventCap(count) { return count <= 3 ? 2 : count <= 5 ? 3 : 4; }
 
   function shouldSwap(card, positionLabel) {
     const mood = CARD_MOOD[card.id] || 0;
@@ -490,30 +484,76 @@
     if (!NEGATIVE_IDS.includes(card.id)) return false;
     return Math.random() < 0.30;
   }
-
   function shouldAutodraw(card) {
     if ((CARD_MOOD[card.id] || 0) > 0) return false;
     return Math.random() < 0.22;
   }
 
-  function pickSwapCard(original) {
+  /**
+   * 核心修改：换牌方向随机化
+   * 返回 { card, direction }
+   * direction: 'better' | 'worse' | 'neutral'
+   */
+  function pickSwapCard(original, isCore) {
     const origMood = CARD_MOOD[original.id] || 0;
     const pool = DECK.filter(c => c.id !== original.id);
+
+    /* Rana 通道 */
     const RANA_IDS = [37, 38, 39, 40];
     const isOriginalRana = RANA_IDS.includes(original.id);
     const ranaPool = pool.filter(c => RANA_IDS.includes(c.id));
-    if (!isOriginalRana && ranaPool.length && Math.random() < 0.30) {
-      return ranaPool[Math.floor(Math.random() * ranaPool.length)];
+    if (!isOriginalRana && ranaPool.length && Math.random() < 0.20) {
+      const ranaCard = ranaPool[Math.floor(Math.random() * ranaPool.length)];
+      const rMood = CARD_MOOD[ranaCard.id] || 0;
+      const dir = rMood > origMood ? 'better' : rMood < origMood ? 'worse' : 'neutral';
+      return { card: ranaCard, direction: dir };
     }
-    let candidates;
-    if (origMood <= 0) {
-      candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) >= 1);
+
+    /* 方向选择 */
+    let direction;
+    const roll = Math.random();
+    if (isCore) {
+      if (roll < 0.45) direction = 'better';
+      else if (roll < 0.85) direction = 'worse';
+      else direction = 'neutral';
     } else {
-      candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) >= 2);
-      if (!candidates.length) candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) >= 1);
+      if (roll < 0.45) direction = 'better';
+      else if (roll < 0.75) direction = 'worse';
+      else direction = 'neutral';
     }
-    if (!candidates.length) candidates = pool;
-    return candidates[Math.floor(Math.random() * candidates.length)];
+
+    /* 原牌是正面时，减半"换坏"概率，避免"太阳换小太阳"的尴尬 */
+    if (origMood >= 1 && direction === 'worse' && Math.random() < 0.5) {
+      direction = 'better';
+    }
+
+    let candidates;
+    if (direction === 'better') {
+      if (origMood < 2) {
+        candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) > origMood);
+      }
+      if (!candidates || !candidates.length) {
+        candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) >= 1);
+      }
+      if (!candidates.length) candidates = pool;
+    } else if (direction === 'worse') {
+      candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) < origMood);
+      if (!candidates.length) {
+        candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) <= origMood);
+      }
+      if (!candidates.length) candidates = pool;
+    } else {
+      candidates = pool.filter(c => (CARD_MOOD[c.id] || 0) === origMood);
+      if (!candidates.length) candidates = pool;
+    }
+
+    const card = candidates[Math.floor(Math.random() * candidates.length)];
+    const newMood = CARD_MOOD[card.id] || 0;
+    let finalDir;
+    if (newMood > origMood) finalDir = 'better';
+    else if (newMood < origMood) finalDir = 'worse';
+    else finalDir = 'neutral';
+    return { card, direction: finalDir };
   }
 
   function pickAutoCard(original) {
@@ -522,9 +562,6 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
-  /* ============================================================
-     台词气泡
-     ============================================================ */
   function showSwapBubble(reason, infoText) {
     const box = $('#ov2SwapBubble');
     if (!box) return;
@@ -544,9 +581,6 @@
     box._bubbleTimer = setTimeout(() => box.classList.remove('show'), 5500);
   }
 
-  /* ============================================================
-     动画辅助
-     ============================================================ */
   function spawnFlash(slot) {
     const flash = document.createElement('div');
     flash.className = 'ov2-flash';
@@ -563,14 +597,8 @@
       '<span class="oc-name">' + escapeHtml(newCard.name) + '</span>' +
       '<span class="oc-kw">' + escapeHtml(shortKw(newCard)) + '</span>';
   }
+  function shortKw(card) { return card.keywords.split('、').slice(0, 2).join(' · '); }
 
-  function shortKw(card) {
-    return card.keywords.split('、').slice(0, 2).join(' · ');
-  }
-
-  /* ============================================================
-     换牌动画（魔杖）
-     ============================================================ */
   async function playOvertWand(cardEl, newCard) {
     const slot = cardEl.parentElement;
     if (!slot) return;
@@ -621,17 +649,12 @@
     await sleep(700);
   }
 
-  /* ============================================================
-     藏牌动画
-     ============================================================ */
   async function playHideWand(cardEl, mode, originalCard) {
     const slot = cardEl.parentElement;
     if (!slot) return;
-
     if (mode === 'sneaky') {
       cardEl.classList.add('flipped');
       await sleep(1500);
-
       const wand = document.createElement('div');
       wand.className = 'ov2-wand ov2-wand-sneaky';
       wand.innerHTML = SNEAKY_WAND_SVG;
@@ -669,8 +692,6 @@
       await sleep(300);
       cardEl.remove();
     }
-
-    /* 空槽 */
     const hideSlot = buildHideSlot(originalCard, mode);
     slot.appendChild(hideSlot);
     requestAnimationFrame(() => hideSlot.classList.add('show'));
@@ -679,12 +700,7 @@
   function buildHideSlot(originalCard, mode) {
     const slot = document.createElement('div');
     slot.className = 'hide-slot';
-    slot.innerHTML =
-      '<div class="hide-slot-inner">' +
-        '<div class="hide-slot-eye">◉</div>' +
-        '<div class="hide-slot-text">他收走了一张</div>' +
-        '<div class="hide-slot-hint">轻触讨回</div>' +
-      '</div>';
+    slot.innerHTML = '<div class="hide-slot-inner"><div class="hide-slot-eye">◉</div><div class="hide-slot-text">他收走了一张</div><div class="hide-slot-hint">轻触讨回</div></div>';
     slot._hideCard = originalCard;
     slot._hideMode = mode;
     slot._hideState = { attempts: 0 };
@@ -696,13 +712,10 @@
     const slot = e.currentTarget;
     if (slot.classList.contains('asking')) return;
     if (slot.dataset.resolved === '1') return;
-
     const state = slot._hideState || { attempts: 0 };
     slot._hideState = state;
     state.attempts += 1;
-
     slot.classList.add('asking');
-
     let reaction;
     if (state.attempts === 1) {
       const r = Math.random();
@@ -714,7 +727,6 @@
     } else {
       reaction = 'giveback';
     }
-
     if (reaction === 'refuse') {
       showSwapBubble(pickFrom(lines.hideRefuse));
       slot.classList.add('shake');
@@ -722,7 +734,6 @@
       slot.classList.remove('shake', 'asking');
       return;
     }
-
     if (reaction === 'complain') {
       showSwapBubble(pickFrom(lines.hideComplain));
       await sleep(1700);
@@ -730,7 +741,6 @@
       showSwapBubble(pickFrom(lines.hideGiveBack));
       await sleep(700);
     }
-
     slot.classList.remove('asking');
     await restoreHiddenCard(slot);
   }
@@ -738,16 +748,12 @@
   async function restoreHiddenCard(slot) {
     const card = slot._hideCard;
     if (!card) return;
-
     const idx = Number(slot.dataset.idx);
     const data = currentDraw && currentDraw.cards[idx];
     if (!data) return;
-
     slot.dataset.resolved = '1';
     slot.classList.add('restoring');
     await sleep(500);
-
-    /* 重建牌 */
     const newCardEl = buildCardEl(card);
     slot.innerHTML = '';
     slot.className = 'spread-slot';
@@ -755,73 +761,49 @@
     newCardEl.classList.add('dealt');
     await sleep(60);
     newCardEl.classList.add('flipped', 'restored');
-
-    /* 更新 currentDraw */
     data.hidden = false;
     if (currentDraw.swappedInfo) {
       const info = currentDraw.swappedInfo.find(s => s.type === 'hide' && s.index === idx);
       if (info) info.restored = true;
     }
-
-    /* 重新渲染解读 */
     const spread = SPREADS[currentDraw.spreadId];
     if (spread) renderReading(spread, currentDraw.cards);
   }
 
-  /* ============================================================
-     替抽动画（复用光明正大魔杖）
-     ============================================================ */
-  async function playAutodrawWand(cardEl, newCard) {
-    await playOvertWand(cardEl, newCard);
-  }
+  async function playAutodrawWand(cardEl, newCard) { await playOvertWand(cardEl, newCard); }
 
-  /* ============================================================
-     私语牌
-     ============================================================ */
   async function playWhisperCard() {
     const box = $('#ov2Whisper');
     if (!box) return;
-
     const card = DECK[Math.floor(Math.random() * DECK.length)];
     const reason = pickFrom(lines.whisper);
-
     box.innerHTML = '';
     box.hidden = false;
-
     const wrap = document.createElement('div');
     wrap.className = 'whisper-wrap';
     box.appendChild(wrap);
-
     const label = document.createElement('p');
     label.className = 'whisper-label';
     label.textContent = '—— 他多留了一张 ——';
     wrap.appendChild(label);
-
     const cardBox = document.createElement('div');
     cardBox.className = 'whisper-card-box';
     wrap.appendChild(cardBox);
-
     const el = buildCardEl(card);
     el.classList.add('whisper-card');
     cardBox.appendChild(el);
-
     await sleep(30);
     el.classList.add('dealt');
     await sleep(260);
     el.classList.add('flipped');
     await sleep(700);
-
     const reasonEl = document.createElement('p');
     reasonEl.className = 'whisper-reason';
     reasonEl.textContent = personalize(reason);
     wrap.appendChild(reasonEl);
-
     return { id: card.id, reason };
   }
 
-  /* ============================================================
-     渲染
-     ============================================================ */
   function buildCardEl(card) {
     const el = document.createElement('div');
     el.className = 'spread-card';
@@ -877,21 +859,16 @@
       if (!card) {
         item.innerHTML =
           '<span class="reading-pos">' + escapeHtml(pos.label) + '</span>' +
-          '<div class="reading-body">' +
-            '<div class="reading-head"><span class="reading-name reading-name-hidden">（被他收走了）</span></div>' +
-            '<p class="reading-meaning reading-meaning-hidden">这一张，他不给你看。</p>' +
-          '</div>';
+          '<div class="reading-body"><div class="reading-head"><span class="reading-name reading-name-hidden">（被他收走了）</span></div>' +
+          '<p class="reading-meaning reading-meaning-hidden">这一张，他不给你看。</p></div>';
       } else {
         item.innerHTML =
           '<span class="reading-pos">' + escapeHtml(pos.label) + '</span>' +
-          '<div class="reading-body">' +
-            '<div class="reading-head">' +
-              '<span class="reading-icon">' + iconSvg(card.id) + '</span>' +
-              '<span class="reading-name">' + escapeHtml(card.name) + '</span>' +
-              '<span class="reading-kw">' + escapeHtml(card.keywords) + '</span>' +
-            '</div>' +
-            '<p class="reading-meaning">' + escapeHtml(card.meaning) + '</p>' +
-          '</div>';
+          '<div class="reading-body"><div class="reading-head">' +
+            '<span class="reading-icon">' + iconSvg(card.id) + '</span>' +
+            '<span class="reading-name">' + escapeHtml(card.name) + '</span>' +
+            '<span class="reading-kw">' + escapeHtml(card.keywords) + '</span></div>' +
+          '<p class="reading-meaning">' + escapeHtml(card.meaning) + '</p></div>';
       }
       box.appendChild(item);
     });
@@ -936,7 +913,7 @@
     const setup = $('#ov2Setup');
     const shuffle = $('#ov2Shuffle');
     const result = $('#ov2Result');
-    const whisper = $('#ov2WhisperEl');
+    const whisperEl = $('#ov2WhisperEl');
     const whisperBox = $('#ov2Whisper');
     const after = $('#ov2After');
     const nameEl = $('#ov2SpreadName');
@@ -949,7 +926,7 @@
     if (setup) setup.hidden = true;
     if (result) result.hidden = true;
     if (after) after.hidden = true;
-    if (whisper) whisper.hidden = true;
+    if (whisperEl) whisperEl.hidden = true;
     if (whisperBox) whisperBox.hidden = true;
     if (feelOpts) feelOpts.hidden = true;
     if (noteEl) noteEl.value = '';
@@ -960,13 +937,11 @@
     await sleep(1500);
 
     const cards = drawCards(spread.count);
-
     if (shuffle) shuffle.hidden = true;
     if (result) result.hidden = false;
     if (nameEl) nameEl.textContent = spread.name + ' · ' + spread.count + ' 张';
 
     const entries = renderGrid(spread, cards);
-
     for (let i = 0; i < entries.length; i += 1) {
       await sleep(i === 0 ? 100 : 130);
       entries[i].el.classList.add('dealt');
@@ -1010,8 +985,8 @@
         const slot = entry.slot;
         if (slot) {
           slot.dataset.idx = String(i);
-          const hideSlot = slot.querySelector('.hide-slot');
-          if (hideSlot) hideSlot.dataset.idx = String(i);
+          const hs = slot.querySelector('.hide-slot');
+          if (hs) hs.dataset.idx = String(i);
         }
         cards[i] = { id: original.id, pos: posLabel, hidden: true };
         const infoText = '（' + (mode === 'sneaky' ? '悄悄' : '光明正大') + '藏起了「' + original.name + '」）';
@@ -1023,11 +998,23 @@
         continue;
       }
 
-      /* 3. 换牌 */
+      /* 3. 换牌 —— 核心修改：方向随机 */
       if (swapCount < 2 && eventCount < cap && shouldSwap(original, posLabel)) {
-        const newCard = pickSwapCard(original);
+        const isCore = /核心|现状|关系核心|主题/.test(posLabel);
+        const result = pickSwapCard(original, isCore);
+        const newCard = result.card;
+        const direction = result.direction;
         const mode = Math.random() < 0.55 ? 'overt' : 'sneaky';
-        const reason = pickFrom(mode === 'overt' ? lines.swapOvert : lines.swapSneaky);
+
+        /* 根据方向选台词池 */
+        let reasonPool;
+        if (direction === 'worse') {
+          reasonPool = mode === 'overt' ? lines.swapOvertBad : lines.swapSneakyBad;
+        } else {
+          reasonPool = mode === 'overt' ? lines.swapOvert : lines.swapSneaky;
+        }
+        const reason = pickFrom(reasonPool);
+
         if (mode === 'overt') {
           await playOvertWand(entry.el, newCard);
           entry.el.classList.add('flipped');
@@ -1037,7 +1024,11 @@
           await playSneakyWand(entry.el, newCard);
         }
         cards[i] = newCard;
-        swappedInfo.push({ type:'swap', index:i, fromId:original.id, toId:newCard.id, mode, reason });
+        swappedInfo.push({
+          type:'swap', index:i,
+          fromId:original.id, toId:newCard.id,
+          mode, reason, direction
+        });
         const infoText = '（' + (mode === 'overt' ? '光明正大' : '悄悄') + '换掉了「' + original.name + '」→「' + newCard.name + '」）';
         showSwapBubble(reason, infoText);
         swapCount += 1;
@@ -1052,7 +1043,6 @@
 
     await sleep(600);
 
-    /* 保存 currentDraw（含藏牌状态） */
     currentDraw = {
       spreadId: currentSpreadId,
       spreadName: spread.name,
@@ -1068,23 +1058,20 @@
 
     renderReading(spread, currentDraw.cards);
 
-    /* 私语牌 60% */
     if (Math.random() < 0.60) {
       const wInfo = await playWhisperCard();
       if (wInfo && currentDraw) currentDraw.whisperCard = wInfo;
     }
 
-    /* 镜面低语 */
     await sleep(700);
     const text = personalize(pickReply());
     if (text && currentDraw) {
       currentDraw.whisper = text;
-      const whisperText = $('#ov2WhisperText');
-      if (whisperText) whisperText.textContent = text;
-      if (whisper) whisper.hidden = false;
+      const wt = $('#ov2WhisperText');
+      if (wt) wt.textContent = text;
+      if (whisperEl) whisperEl.hidden = false;
     }
 
-    /* 最终反应 */
     await sleep(600);
     const hiddenPending = currentDraw.cards.some(c => c.hidden);
     if (hiddenPending) {
@@ -1098,16 +1085,11 @@
     await sleep(600);
     if (after) after.hidden = false;
     if (drawBtn) drawBtn.disabled = false;
-
     busy = false;
-
     const sc = document.querySelector('#oracleDialogV2 .modal-body');
     if (sc) sc.scrollTop = 0;
   }
 
-  /* ============================================================
-     历史记录
-     ============================================================ */
   function renderHistory() {
     const list = $('#ov2HistoryList');
     if (!list) return;
@@ -1123,7 +1105,6 @@
     records.forEach(rec => {
       const el = document.createElement('div');
       el.className = 'oracle-record';
-
       const head = document.createElement('div');
       head.className = 'oracle-record-head';
       const time = document.createElement('span');
@@ -1152,7 +1133,8 @@
           if (s.type === 'swap') {
             const f = DECK_MAP[s.fromId], t = DECK_MAP[s.toId];
             if (!f || !t) return;
-            row.textContent = '· ' + (s.mode === 'overt' ? '光明正大' : '悄悄') +
+            const dirTag = s.direction === 'worse' ? '[↓]' : s.direction === 'better' ? '[↑]' : '[=]';
+            row.textContent = '· ' + dirTag + ' ' + (s.mode === 'overt' ? '光明正大' : '悄悄') +
               '换掉了「' + f.name + '」→「' + t.name + '」　理由：' + s.reason;
           } else if (s.type === 'hide') {
             const c = DECK_MAP[s.cardId];
@@ -1191,7 +1173,6 @@
         n.textContent = rec.note;
         el.appendChild(n);
       }
-
       list.appendChild(el);
     });
   }
@@ -1200,10 +1181,8 @@
     if (!currentDraw) return;
     const noteEl = $('#ov2Note');
     const note = noteEl ? noteEl.value.trim().slice(0, 800) : '';
-
     const hiddenIdx = [];
     currentDraw.cards.forEach((c, i) => { if (c.hidden) hiddenIdx.push(i); });
-
     const rec = {
       id: uid(),
       ts: Date.now(),
@@ -1217,15 +1196,12 @@
       whisper: currentDraw.whisper || '',
       result: result === 'success' ? 'success' : 'fail'
     };
-
     const records = loadRecords();
     records.unshift(rec);
     saveRecords(records);
-
     currentDraw = null;
-
-    ['#ov2Result', '#ov2After', '#ov2Whisper', '#ov2FeelOptions', '#ov2Whisper'].forEach(sel => {
-      const el = $(sel); if (el) el.hidden = true;
+    ['#ov2Result','#ov2After','#ov2Whisper','#ov2WhisperEl','#ov2FeelOptions'].forEach(s => {
+      const el = $(s); if (el) el.hidden = true;
     });
     const setup = $('#ov2Setup'); if (setup) setup.hidden = false;
     const shuffle = $('#ov2Shuffle'); if (shuffle) shuffle.hidden = true;
@@ -1233,7 +1209,6 @@
     const grid = $('#ov2Grid'); if (grid) grid.innerHTML = '';
     const reading = $('#ov2Reading'); if (reading) reading.innerHTML = '';
     const bubble = $('#ov2SwapBubble'); if (bubble) { bubble.classList.remove('show'); bubble.innerHTML = ''; }
-
     renderHistory();
     toast(result === 'success' ? '连接成功，记录已保存' : '记录已保存');
   }
@@ -1247,7 +1222,7 @@
   }
 
   /* ============================================================
-     台词库
+     台词库编辑
      ============================================================ */
   function openLinesDialog() {
     lineEditState = JSON.parse(JSON.stringify(lines));
@@ -1275,9 +1250,7 @@
     const list = $('#ov2LinesList');
     if (!list) return;
     list.dataset.cat = catKey;
-    $$('#ov2LinesTabs .lines-tab').forEach(b => {
-      b.classList.toggle('active', b.dataset.cat === catKey);
-    });
+    $$('#ov2LinesTabs .lines-tab').forEach(b => b.classList.toggle('active', b.dataset.cat === catKey));
     list.innerHTML = '';
     const arr = lineEditState[catKey] || [];
     arr.forEach((text, idx) => {
@@ -1323,7 +1296,6 @@
     $('#ov2LinesDialog').close();
     toast('台词库已保存');
   }
-
   function resetLinesAndRefresh() {
     if (!window.confirm('恢复所有台词到默认？你的修改会丢失。')) return;
     lines = resetLines();
@@ -1333,15 +1305,11 @@
     toast('已恢复默认台词');
   }
 
-  /* ============================================================
-     打开 / 关闭占卜弹窗
-     ============================================================ */
   function openOracleV2() {
     busy = false;
     currentDraw = null;
-
-    ['#ov2Setup'].forEach(s => { const el = $(s); if (el) el.hidden = false; });
-    ['#ov2Result','#ov2After','#ov2Whisper','#ov2FeelOptions','#ov2Shuffle','#ov2Whisper'].forEach(s => {
+    const setup = $('#ov2Setup'); if (setup) setup.hidden = false;
+    ['#ov2Result','#ov2After','#ov2Whisper','#ov2WhisperEl','#ov2FeelOptions','#ov2Shuffle'].forEach(s => {
       const el = $(s); if (el) el.hidden = true;
     });
     const note = $('#ov2Note'); if (note) note.value = '';
@@ -1351,7 +1319,6 @@
     const drawBtn = $('#ov2DrawBtn'); if (drawBtn) drawBtn.disabled = false;
     const stage = $('#ov2ShuffleStage'); if (stage) stage.innerHTML = '';
     const wBox = $('#ov2Whisper'); if (wBox) { wBox.hidden = true; wBox.innerHTML = ''; }
-
     renderSpreadPicker();
     renderHistory();
     openDialog($('#oracleDialogV2'));
@@ -1367,7 +1334,6 @@
       btn.type = 'button';
       btn.className = 'spread-opt' + (key === currentSpreadId ? ' active' : '');
       btn.dataset.spread = key;
-
       const shape = document.createElement('span');
       shape.className = 'spread-opt-shape';
       shape.style.gridTemplateColumns = 'repeat(' + sp.grid.cols + ', 6px)';
@@ -1380,7 +1346,6 @@
         }
       }
       btn.appendChild(shape);
-
       const name = document.createElement('span');
       name.className = 'spread-opt-name';
       name.textContent = sp.name;
@@ -1388,7 +1353,6 @@
       count.className = 'spread-opt-count';
       count.textContent = sp.count + ' 张 · ' + sp.desc;
       btn.append(name, count);
-
       btn.addEventListener('click', () => {
         if (busy) return;
         currentSpreadId = key;
@@ -1416,18 +1380,15 @@
       </div>
     </header>
     <div class="modal-body">
-
       <div id="ov2Setup">
         <p class="oracle-lead">静下心，想一个此刻最想问的问题。选好牌阵，让水晶球替你翻开牌面。</p>
         <div class="spread-picker" id="ov2SpreadPicker"></div>
         <button type="button" class="oracle-draw-btn" id="ov2DrawBtn">连接 · 抽牌</button>
       </div>
-
       <div id="ov2Shuffle" hidden>
         <div class="ov2-shuffle-stage" id="ov2ShuffleStage"></div>
         <p class="ov2-shuffle-label">正在洗牌……</p>
       </div>
-
       <div id="ov2Result" hidden>
         <p class="ov2-spread-name" id="ov2SpreadName"></p>
         <div class="ov2-char-line" id="ov2SwapBubble"></div>
@@ -1452,7 +1413,6 @@
           </div>
         </div>
       </div>
-
       <div class="oracle-history">
         <p class="oracle-history-head">
           <span>过往记录</span>
@@ -1460,11 +1420,9 @@
         </p>
         <div class="oracle-history-list" id="ov2HistoryList"></div>
       </div>
-
     </div>
   </div>
 </dialog>
-
 <dialog class="modal" id="ov2LinesDialog">
   <div class="modal-card">
     <header class="modal-head">
@@ -1498,29 +1456,18 @@
     style.id = 'oracleV2Style';
     style.textContent = `
 .ov2-head-actions { display: flex; align-items: center; gap: 8px; }
-
-/* 统一牌背 */
 .ov2-back {
   position: absolute; inset: 0; border-radius: 8px; overflow: hidden;
-  background:
-    repeating-linear-gradient(45deg, rgba(255,220,200,.035) 0 7px, transparent 7px 14px),
+  background: repeating-linear-gradient(45deg, rgba(255,220,200,.035) 0 7px, transparent 7px 14px),
     radial-gradient(circle at 50% 42%, #521a22 0%, #2a0c12 48%, #0c0406 100%);
   border: 1px solid rgba(190,130,120,.36);
   box-shadow: 0 6px 16px -10px rgba(0,0,0,.85), inset 0 0 22px rgba(0,0,0,.55);
   display: grid; place-items: center;
 }
-.ov2-back::after {
-  content: ""; position: absolute; inset: 4px;
-  border: 1px solid rgba(190,140,120,.16); border-radius: 5px;
-  pointer-events: none;
-}
-.ov2-back-frame {
-  width: 66%; display: flex; align-items: center; justify-content: center;
-  filter: drop-shadow(0 0 6px rgba(200,80,70,.35));
-}
+.ov2-back::after { content: ""; position: absolute; inset: 4px; border: 1px solid rgba(190,140,120,.16); border-radius: 5px; pointer-events: none; }
+.ov2-back-frame { width: 66%; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 6px rgba(200,80,70,.35)); }
 .ov2-back-frame svg { width: 100%; height: auto; display: block; }
 
-/* 牌阵选择 */
 .spread-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0 16px; }
 @media (min-width: 520px) { .spread-picker { grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); } }
 .spread-opt {
@@ -1528,9 +1475,8 @@
   padding: 11px 12px 12px;
   border: 1px solid rgba(198,128,118,.2); border-radius: 12px;
   background: rgba(255,255,255,.02); color: #b09993; text-align: left; cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent; min-height: 92px;
   transition: border-color .18s, background .18s, color .18s, transform .18s;
-  min-height: 92px;
 }
 .spread-opt:hover { border-color: rgba(181,111,107,.45); background: rgba(181,111,107,.07); }
 .spread-opt:active { transform: scale(.98); }
@@ -1546,48 +1492,25 @@
 .spread-opt-count { margin-top: 1px; font-size: 9.5px; color: #7d625e; letter-spacing: .06em; }
 .spread-opt.active .spread-opt-count { color: rgba(232,201,168,.68); }
 
-/* 洗牌 */
 #ov2Shuffle { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 32px 20px 30px; overflow: hidden; position: relative; }
 #ov2Shuffle[hidden] { display: none !important; }
 .ov2-shuffle-stage { position: relative; width: 78px; height: 110px; flex: none; }
 @media (min-width: 400px) { .ov2-shuffle-stage { width: 88px; height: 124px; } }
-.ov2-shuffle-card {
-  position: absolute; inset: 0; border-radius: 8px;
-  transform-style: preserve-3d; will-change: transform;
-  animation: ov2Shuffle 1.25s cubic-bezier(.35,.15,.25,1);
-}
+.ov2-shuffle-card { position: absolute; inset: 0; border-radius: 8px; transform-style: preserve-3d; will-change: transform; animation: ov2Shuffle 1.25s cubic-bezier(.35,.15,.25,1); }
 .ov2-shuffle-card .ov2-back { box-shadow: 0 10px 24px -8px rgba(0,0,0,.85), inset 0 0 22px rgba(0,0,0,.55); }
 .ov2-shuffle-card .ov2-back-frame { width: 64%; }
 @keyframes ov2Shuffle {
-  0%   { transform: translate(0,0) rotate(0deg); }
-  22%  { transform: translate(var(--x1, 30px), var(--y1, -20px)) rotate(var(--r1, 12deg)); }
-  48%  { transform: translate(0,0) rotate(0deg); }
-  74%  { transform: translate(calc(var(--x1, 30px) * -0.75), calc(var(--y1, -20px) * 0.4)) rotate(calc(var(--r1, 12deg) * -1)); }
-  100% { transform: translate(0,0) rotate(0deg); }
+  0% { transform: translate(0,0) rotate(0); }
+  22% { transform: translate(var(--x1,30px), var(--y1,-20px)) rotate(var(--r1,12deg)); }
+  48% { transform: translate(0,0) rotate(0); }
+  74% { transform: translate(calc(var(--x1,30px) * -0.75), calc(var(--y1,-20px) * 0.4)) rotate(calc(var(--r1,12deg) * -1)); }
+  100% { transform: translate(0,0) rotate(0); }
 }
-.ov2-shuffle-label {
-  margin: 0; color: #c98d86; font-family: var(--font-serif, serif);
-  font-size: 11.5px; letter-spacing: .28em; text-indent: .28em; white-space: nowrap;
-  animation: ov2ShufflePulse 1.4s ease-in-out infinite;
-}
+.ov2-shuffle-label { margin: 0; color: #c98d86; font-family: var(--font-serif, serif); font-size: 11.5px; letter-spacing: .28em; text-indent: .28em; white-space: nowrap; animation: ov2ShufflePulse 1.4s ease-in-out infinite; }
 @keyframes ov2ShufflePulse { 0%,100%{opacity:.55} 50%{opacity:1} }
 
-/* 牌阵网格 */
-.ov2-spread-name {
-  margin: 2px 0 4px; text-align: center;
-  font-family: var(--font-serif, serif);
-  font-size: 11.5px; letter-spacing: .24em; text-indent: .24em;
-  color: rgba(185,154,114,.72);
-}
-.ov2-char-line {
-  min-height: 20px; margin: 4px 0 10px; text-align: center;
-  font-family: var(--font-serif, serif); font-size: 12px; letter-spacing: .06em;
-  color: rgba(232,201,168,.9); text-shadow: 0 0 12px rgba(185,154,114,.3);
-  opacity: 0; transform: translateY(-4px);
-  transition: opacity .45s ease, transform .45s ease;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 0 8px;
-}
+.ov2-spread-name { margin: 2px 0 4px; text-align: center; font-family: var(--font-serif, serif); font-size: 11.5px; letter-spacing: .24em; text-indent: .24em; color: rgba(185,154,114,.72); }
+.ov2-char-line { min-height: 20px; margin: 4px 0 10px; text-align: center; font-family: var(--font-serif, serif); font-size: 12px; letter-spacing: .06em; color: rgba(232,201,168,.9); text-shadow: 0 0 12px rgba(185,154,114,.3); opacity: 0; transform: translateY(-4px); transition: opacity .45s ease, transform .45s ease; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 8px; }
 .ov2-char-line.show { opacity: 1; transform: none; }
 .ov2-swap-reason { font-size: 12.5px; font-style: italic; line-height: 1.5; letter-spacing: .04em; }
 .ov2-swap-info { font-size: 10px; color: rgba(185,154,114,.78); letter-spacing: .02em; line-height: 1.4; }
@@ -1598,51 +1521,17 @@
 .spread-slot { position: relative; }
 .spread-slot.is-empty { visibility: hidden; }
 
-/* 单张牌 */
-.spread-card {
-  position: relative; width: 100%; aspect-ratio: 5 / 7; perspective: 800px;
-  opacity: 0; transform: translateY(-22px) scale(.7) rotate(-6deg);
-  transition: opacity .4s ease, transform .52s cubic-bezier(.2,.85,.3,1.15);
-  will-change: transform, opacity;
-}
+.spread-card { position: relative; width: 100%; aspect-ratio: 5/7; perspective: 800px; opacity: 0; transform: translateY(-22px) scale(.7) rotate(-6deg); transition: opacity .4s ease, transform .52s cubic-bezier(.2,.85,.3,1.15); will-change: transform, opacity; }
 .spread-card.dealt { opacity: 1; transform: none; }
-.spread-card-inner {
-  position: relative; width: 100%; height: 100%;
-  transform-style: preserve-3d;
-  transition: transform .72s cubic-bezier(.2,.8,.3,1);
-}
+.spread-card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .72s cubic-bezier(.2,.8,.3,1); }
 .spread-card.flipped .spread-card-inner { transform: rotateY(180deg); }
-.spread-face {
-  position: absolute; inset: 0; border-radius: 8px; overflow: hidden;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.spread-back {
-  background: repeating-linear-gradient(45deg, rgba(255,220,200,.035) 0 7px, transparent 7px 14px),
-    radial-gradient(circle at 50% 42%, #521a22 0%, #2a0c12 48%, #0c0406 100%);
-  border: 1px solid rgba(190,130,120,.36);
-  box-shadow: 0 6px 16px -10px rgba(0,0,0,.85), inset 0 0 22px rgba(0,0,0,.55);
-}
-.spread-back::after {
-  content: ""; position: absolute; inset: 4px;
-  border: 1px solid rgba(190,140,120,.16); border-radius: 5px; pointer-events: none;
-}
+.spread-face { position: absolute; inset: 0; border-radius: 8px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.spread-back { background: repeating-linear-gradient(45deg, rgba(255,220,200,.035) 0 7px, transparent 7px 14px), radial-gradient(circle at 50% 42%, #521a22 0%, #2a0c12 48%, #0c0406 100%); border: 1px solid rgba(190,130,120,.36); box-shadow: 0 6px 16px -10px rgba(0,0,0,.85), inset 0 0 22px rgba(0,0,0,.55); }
+.spread-back::after { content: ""; position: absolute; inset: 4px; border: 1px solid rgba(190,140,120,.16); border-radius: 5px; pointer-events: none; }
 .spread-back .ov2-back-frame { width: 66%; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 6px rgba(200,80,70,.35)); }
 .spread-back .ov2-back-frame svg { width: 100%; height: auto; display: block; }
-
-.spread-front {
-  transform: rotateY(180deg);
-  padding: 9px 4px 8px;
-  background: radial-gradient(120% 90% at 50% 8%, rgba(120,44,46,.32), transparent 62%),
-    linear-gradient(168deg, #261013 0%, #100406 100%);
-  border: 1px solid rgba(185,154,114,.3);
-  box-shadow: 0 6px 16px -10px rgba(0,0,0,.85), inset 0 0 26px rgba(0,0,0,.5);
-  color: rgba(232,201,168,.92); text-align: center; gap: 2px;
-}
-.spread-front::after {
-  content: ""; position: absolute; inset: 3px;
-  border: 1px solid rgba(185,154,114,.14); border-radius: 5px; pointer-events: none;
-}
+.spread-front { transform: rotateY(180deg); padding: 9px 4px 8px; background: radial-gradient(120% 90% at 50% 8%, rgba(120,44,46,.32), transparent 62%), linear-gradient(168deg, #261013 0%, #100406 100%); border: 1px solid rgba(185,154,114,.3); box-shadow: 0 6px 16px -10px rgba(0,0,0,.85), inset 0 0 26px rgba(0,0,0,.5); color: rgba(232,201,168,.92); text-align: center; gap: 2px; }
+.spread-front::after { content: ""; position: absolute; inset: 3px; border: 1px solid rgba(185,154,114,.14); border-radius: 5px; pointer-events: none; }
 .oc-num { position: absolute; top: 5px; left: 7px; font-size: 7px; letter-spacing: .12em; color: rgba(185,154,114,.42); font-variant-numeric: tabular-nums; }
 .oc-icon { display: flex; align-items: center; justify-content: center; width: 46%; max-width: 42px; aspect-ratio: 1; margin-bottom: 3px; color: rgba(232,201,168,.94); filter: drop-shadow(0 0 5px rgba(210,130,95,.28)); }
 .oc-icon svg { width: 100%; height: 100%; display: block; }
@@ -1652,13 +1541,7 @@
 .spread-grid[data-cols="5"] .oc-name { font-size: clamp(9px, 2.2vw, 11px); letter-spacing: .04em; }
 .spread-grid[data-cols="5"] .oc-kw { display: none; }
 
-/* 魔杖 */
-.ov2-wand {
-  position: absolute; pointer-events: none; z-index: 15; opacity: 0;
-  transition: opacity .3s ease, right .7s cubic-bezier(.4,.1,.3,1),
-    bottom .6s cubic-bezier(.4,.1,.3,1), transform .4s ease;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,.7));
-}
+.ov2-wand { position: absolute; pointer-events: none; z-index: 15; opacity: 0; transition: opacity .3s ease, right .7s cubic-bezier(.4,.1,.3,1), bottom .6s cubic-bezier(.4,.1,.3,1), transform .4s ease; filter: drop-shadow(0 10px 20px rgba(0,0,0,.7)); }
 .ov2-wand svg { width: 100%; height: auto; display: block; }
 .ov2-wand-overt { width: 155%; right: -175%; top: -20%; }
 .ov2-wand-overt.in { opacity: 1; right: -50%; }
@@ -1670,161 +1553,45 @@
 .ov2-wand-sneaky.out { opacity: 0; bottom: -200%; }
 
 .spread-card.charmed { animation: ov2Charmed .5s ease-in-out; }
-@keyframes ov2Charmed {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.9) drop-shadow(0 0 28px rgba(255,220,180,.95)); }
-}
-.spread-card.taken {
-  transition: transform .55s ease, opacity .45s ease;
-  transform: translate(90%, -25%) scale(.55) rotate(18deg);
-  opacity: 0;
-}
+@keyframes ov2Charmed { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.9) drop-shadow(0 0 28px rgba(255,220,180,.95))} }
+.spread-card.taken { transition: transform .55s ease, opacity .45s ease; transform: translate(90%,-25%) scale(.55) rotate(18deg); opacity: 0; }
 
-/* 藏牌空槽 */
-.hide-slot {
-  position: absolute; inset: 0;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(60,10,8,.9) 0%, rgba(10,2,2,.95) 70%),
-    repeating-linear-gradient(45deg, rgba(255,180,120,.05) 0 6px, transparent 6px 12px);
-  border: 1px solid rgba(160,70,60,.55);
-  box-shadow:
-    0 0 0 1px rgba(60,20,10,.7),
-    0 0 20px rgba(180,60,30,.4),
-    inset 0 0 30px rgba(0,0,0,.85);
-  cursor: pointer;
-  opacity: 0;
-  transform: scale(.85);
-  transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1.1);
-  overflow: hidden;
-}
+.hide-slot { position: absolute; inset: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 50%, rgba(60,10,8,.9) 0%, rgba(10,2,2,.95) 70%), repeating-linear-gradient(45deg, rgba(255,180,120,.05) 0 6px, transparent 6px 12px); border: 1px solid rgba(160,70,60,.55); box-shadow: 0 0 0 1px rgba(60,20,10,.7), 0 0 20px rgba(180,60,30,.4), inset 0 0 30px rgba(0,0,0,.85); cursor: pointer; opacity: 0; transform: scale(.85); transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1.1); overflow: hidden; }
 .hide-slot.show { opacity: 1; transform: none; }
-.hide-slot::before {
-  content: "";
-  position: absolute; inset: 6px;
-  border: 1px dashed rgba(180,80,60,.35);
-  border-radius: 4px;
-  pointer-events: none;
-}
-.hide-slot-inner {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 6px 4px;
-  text-align: center;
-}
-.hide-slot-eye {
-  font-size: 14px; color: rgba(220,90,60,.7);
-  animation: hideEyePulse 2.4s ease-in-out infinite;
-}
+.hide-slot::before { content: ""; position: absolute; inset: 6px; border: 1px dashed rgba(180,80,60,.35); border-radius: 4px; pointer-events: none; }
+.hide-slot-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 4px; text-align: center; }
+.hide-slot-eye { font-size: 14px; color: rgba(220,90,60,.7); animation: hideEyePulse 2.4s ease-in-out infinite; }
 @keyframes hideEyePulse { 0%,100%{opacity:.5} 50%{opacity:1} }
-.hide-slot-text {
-  font-family: var(--font-serif, serif);
-  font-size: 9.5px; letter-spacing: .08em;
-  color: rgba(232,180,150,.78);
-  line-height: 1.4;
-}
-.hide-slot-hint {
-  font-size: 8px; letter-spacing: .12em;
-  color: rgba(180,110,90,.55);
-  margin-top: 2px;
-}
+.hide-slot-text { font-family: var(--font-serif, serif); font-size: 9.5px; letter-spacing: .08em; color: rgba(232,180,150,.78); line-height: 1.4; }
+.hide-slot-hint { font-size: 8px; letter-spacing: .12em; color: rgba(180,110,90,.55); margin-top: 2px; }
 .hide-slot:hover { border-color: rgba(220,110,80,.85); box-shadow: 0 0 0 1px rgba(60,20,10,.7), 0 0 32px rgba(220,80,40,.6), inset 0 0 30px rgba(0,0,0,.85); }
 .hide-slot.asking { cursor: wait; }
 .hide-slot.shake { animation: hideShake .55s ease-in-out; }
-@keyframes hideShake {
-  0%,100% { transform: none; }
-  15%,55% { transform: translateX(-3px) rotate(-1deg); }
-  35%,75% { transform: translateX(3px) rotate(1deg); }
-}
+@keyframes hideShake { 0%,100%{transform:none} 15%,55%{transform:translateX(-3px) rotate(-1deg)} 35%,75%{transform:translateX(3px) rotate(1deg)} }
 .hide-slot.restoring { animation: hideRestore .6s ease-out; }
-@keyframes hideRestore {
-  0% { filter: brightness(1); transform: scale(1); }
-  50% { filter: brightness(2); transform: scale(1.05); }
-  100% { filter: brightness(1); transform: scale(1); }
-}
+@keyframes hideRestore { 0%{filter:brightness(1);transform:scale(1)} 50%{filter:brightness(2);transform:scale(1.05)} 100%{filter:brightness(1);transform:scale(1)} }
 
-/* 讨回牌上撕裂痕 */
-.spread-card.restored .spread-front::before {
-  content: "";
-  position: absolute;
-  top: 42%; left: 15%; right: 15%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,140,110,.6), transparent);
-  transform: rotate(-13deg);
-  box-shadow: 0 0 8px rgba(255,120,90,.5);
-  pointer-events: none;
-}
+.spread-card.restored .spread-front::before { content: ""; position: absolute; top: 42%; left: 15%; right: 15%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,140,110,.6), transparent); transform: rotate(-13deg); box-shadow: 0 0 8px rgba(255,120,90,.5); pointer-events: none; }
 
-/* 闪光 */
-.ov2-flash {
-  position: absolute; inset: -30%;
-  background: radial-gradient(circle, rgba(255,240,200,.95), rgba(255,200,150,.45) 40%, transparent 72%);
-  pointer-events: none; z-index: 20; border-radius: 50%;
-  opacity: 0;
-  animation: ov2Flash 0.4s ease-out forwards;
-}
-@keyframes ov2Flash {
-  0% { opacity: 0; transform: scale(.3); }
-  25% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0; transform: scale(1.8); }
-}
+.ov2-flash { position: absolute; inset: -30%; background: radial-gradient(circle, rgba(255,240,200,.95), rgba(255,200,150,.45) 40%, transparent 72%); pointer-events: none; z-index: 20; border-radius: 50%; opacity: 0; animation: ov2Flash 0.4s ease-out forwards; }
+@keyframes ov2Flash { 0%{opacity:0;transform:scale(.3)} 25%{opacity:1;transform:scale(1.1)} 100%{opacity:0;transform:scale(1.8)} }
 
-/* 私语牌 */
 .ov2-whisper { margin: 12px auto 0; text-align: center; padding: 0 8px; }
 .ov2-whisper[hidden] { display: none; }
 .whisper-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.whisper-label {
-  margin: 0; font-family: var(--font-serif, serif);
-  font-size: 10px; letter-spacing: .3em; text-indent: .3em;
-  color: rgba(232,201,168,.6);
-}
+.whisper-label { margin: 0; font-family: var(--font-serif, serif); font-size: 10px; letter-spacing: .3em; text-indent: .3em; color: rgba(232,201,168,.6); }
 .whisper-card-box { width: 92px; }
 .whisper-card { aspect-ratio: 5/7; }
-.whisper-card .spread-front {
-  background: radial-gradient(120% 90% at 50% 8%, rgba(185,154,114,.3), transparent 62%),
-    linear-gradient(168deg, #241410 0%, #100404 100%);
-  border: 1px dashed rgba(232,201,168,.5);
-}
+.whisper-card .spread-front { background: radial-gradient(120% 90% at 50% 8%, rgba(185,154,114,.3), transparent 62%), linear-gradient(168deg, #241410 0%, #100404 100%); border: 1px dashed rgba(232,201,168,.5); }
 .whisper-card .spread-back { border-style: dashed; border-color: rgba(232,201,168,.5); }
-.whisper-reason {
-  margin: 4px 0 0; max-width: 280px;
-  font-family: var(--font-serif, serif);
-  font-size: 11.5px; line-height: 1.7;
-  letter-spacing: .04em;
-  color: rgba(232,201,168,.88);
-  font-style: italic;
-  text-shadow: 0 0 10px rgba(185,154,114,.25);
-}
+.whisper-reason { margin: 4px 0 0; max-width: 280px; font-family: var(--font-serif, serif); font-size: 11.5px; line-height: 1.7; letter-spacing: .04em; color: rgba(232,201,168,.88); font-style: italic; text-shadow: 0 0 10px rgba(185,154,114,.25); }
 
-/* 解读列表 */
 .spread-reading { display: flex; flex-direction: column; gap: 9px; margin: 12px 0 4px; }
-.reading-item {
-  display: flex; gap: 10px; padding: 11px 12px;
-  border: 1px solid rgba(198,128,118,.16); border-radius: 11px;
-  background: radial-gradient(120% 100% at 0% 0%, rgba(84,28,32,.24), transparent 62%), rgba(255,255,255,.015);
-  animation: readingIn .45s cubic-bezier(.2,.8,.3,1) both;
-}
+.reading-item { display: flex; gap: 10px; padding: 11px 12px; border: 1px solid rgba(198,128,118,.16); border-radius: 11px; background: radial-gradient(120% 100% at 0% 0%, rgba(84,28,32,.24), transparent 62%), rgba(255,255,255,.015); animation: readingIn .45s cubic-bezier(.2,.8,.3,1) both; }
 @keyframes readingIn { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:none} }
-.reading-item.reading-hidden {
-  background: radial-gradient(120% 100% at 0% 0%, rgba(60,20,20,.3), transparent 62%), rgba(255,255,255,.01);
-  border-style: dashed;
-  border-color: rgba(180,80,60,.3);
-}
-.reading-pos {
-  flex: none; align-self: flex-start; max-width: 84px;
-  padding: 2px 8px;
-  border: 1px solid rgba(185,154,114,.32); border-radius: 999px;
-  background: rgba(185,154,114,.07);
-  color: rgba(232,201,168,.88);
-  font-size: 9.5px; letter-spacing: .04em; line-height: 1.5;
-  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.reading-item.reading-hidden .reading-pos {
-  border-color: rgba(180,90,70,.35);
-  background: rgba(140,60,40,.1);
-  color: rgba(232,180,150,.7);
-}
+.reading-item.reading-hidden { background: radial-gradient(120% 100% at 0% 0%, rgba(60,20,20,.3), transparent 62%), rgba(255,255,255,.01); border-style: dashed; border-color: rgba(180,80,60,.3); }
+.reading-pos { flex: none; align-self: flex-start; max-width: 84px; padding: 2px 8px; border: 1px solid rgba(185,154,114,.32); border-radius: 999px; background: rgba(185,154,114,.07); color: rgba(232,201,168,.88); font-size: 9.5px; letter-spacing: .04em; line-height: 1.5; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reading-item.reading-hidden .reading-pos { border-color: rgba(180,90,70,.35); background: rgba(140,60,40,.1); color: rgba(232,180,150,.7); }
 .reading-body { flex: 1; min-width: 0; }
 .reading-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 4px; }
 .reading-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: none; color: rgba(232,201,168,.85); }
@@ -1835,93 +1602,33 @@
 .reading-meaning { margin: 0; color: #d6c2bb; font-size: 11.5px; line-height: 1.75; letter-spacing: .01em; }
 .reading-meaning-hidden { color: rgba(180,110,90,.65); font-style: italic; }
 
-.oracle-record-swap {
-  margin-top: 5px; padding: 5px 9px;
-  border-left: 2px solid rgba(232,201,168,.45);
-  background: rgba(232,201,168,.04);
-  border-radius: 0 6px 6px 0;
-  color: rgba(232,201,168,.78);
-  font-size: 10px; letter-spacing: .02em; font-style: italic; line-height: 1.7;
-}
+.oracle-record-swap { margin-top: 5px; padding: 5px 9px; border-left: 2px solid rgba(232,201,168,.45); background: rgba(232,201,168,.04); border-radius: 0 6px 6px 0; color: rgba(232,201,168,.78); font-size: 10px; letter-spacing: .02em; font-style: italic; line-height: 1.7; }
 .oracle-record-swap div { margin: 1px 0; }
 .ov2-history-empty { margin: 4px 0; text-align: center; color: #7d625e; font-size: 10px; }
 
-/* 台词库弹窗 */
 #ov2LinesDialog .modal-card { width: min(560px, calc(100vw - 32px)); }
-.lines-tabs {
-  display: flex; flex-wrap: wrap; gap: 4px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(198,128,118,.14);
-  margin-bottom: 10px;
-}
-.lines-tab {
-  padding: 5px 10px;
-  border: 1px solid rgba(198,128,118,.2);
-  border-radius: 999px;
-  background: rgba(255,255,255,.025);
-  color: #b09993;
-  font-size: 10.5px; letter-spacing: .04em;
-  cursor: pointer;
-  transition: all .18s;
-}
+.lines-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 10px; border-bottom: 1px solid rgba(198,128,118,.14); margin-bottom: 10px; }
+.lines-tab { padding: 5px 10px; border: 1px solid rgba(198,128,118,.2); border-radius: 999px; background: rgba(255,255,255,.025); color: #b09993; font-size: 10.5px; letter-spacing: .04em; cursor: pointer; transition: all .18s; }
 .lines-tab:hover { border-color: rgba(181,111,107,.45); color: #f2dfd8; }
-.lines-tab.active {
-  border-color: rgba(185,154,114,.55);
-  background: rgba(185,154,114,.1);
-  color: #f5e8c0;
-}
-.lines-list {
-  max-height: 42vh; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 5px;
-  padding: 2px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(198,128,118,.22) transparent;
-}
+.lines-tab.active { border-color: rgba(185,154,114,.55); background: rgba(185,154,114,.1); color: #f5e8c0; }
+.lines-list { max-height: 42vh; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding: 2px; scrollbar-width: thin; scrollbar-color: rgba(198,128,118,.22) transparent; }
 .lines-row { display: flex; gap: 6px; align-items: center; }
 .lines-row .input { flex: 1; padding: 7px 10px; font-size: 11.5px; }
-.lines-del {
-  flex: none; display: grid; place-items: center;
-  width: 26px; height: 26px; padding: 0;
-  border: 1px solid rgba(198,128,118,.2);
-  border-radius: 6px;
-  background: transparent;
-  color: #7d625e;
-  font-size: 11px; cursor: pointer;
-  transition: all .18s;
-}
+.lines-del { flex: none; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 1px solid rgba(198,128,118,.2); border-radius: 6px; background: transparent; color: #7d625e; font-size: 11px; cursor: pointer; transition: all .18s; }
 .lines-del:hover { border-color: rgba(209,124,119,.5); color: #d17c77; background: rgba(160,60,58,.1); }
-.lines-add {
-  display: flex; gap: 8px;
-  padding-top: 10px; margin-top: 10px;
-  border-top: 1px dashed rgba(198,128,118,.14);
-}
+.lines-add { display: flex; gap: 8px; padding-top: 10px; margin-top: 10px; border-top: 1px dashed rgba(198,128,118,.14); }
 .lines-add .input { flex: 1; }
 
-/* 亮色适配 */
 html[data-mode="light"] .spread-opt { background: rgba(255,253,248,.6); color: #8a5a4a; }
-html[data-mode="light"] .spread-opt.active {
-  color: #3a241d;
-  background: radial-gradient(120% 100% at 0% 0%, rgba(181,111,107,.2), transparent 70%), rgba(181,111,107,.1);
-}
-html[data-mode="light"] .spread-opt-count { color: #a1735f; }
-html[data-mode="light"] .reading-item {
-  background: radial-gradient(120% 100% at 0% 0%, rgba(210,160,130,.2), transparent 62%), rgba(255,253,248,.6);
-}
+html[data-mode="light"] .spread-opt.active { color: #3a241d; background: radial-gradient(120% 100% at 0% 0%, rgba(181,111,107,.2), transparent 70%), rgba(181,111,107,.1); }
+html[data-mode="light"] .reading-item { background: radial-gradient(120% 100% at 0% 0%, rgba(210,160,130,.2), transparent 62%), rgba(255,253,248,.6); }
 html[data-mode="light"] .reading-name { color: #38221c; }
 html[data-mode="light"] .reading-meaning { color: #4a342c; }
 html[data-mode="light"] .ov2-spread-name { color: #8a6a34; }
 html[data-mode="light"] .ov2-char-line { color: #8a5a3a; text-shadow: 0 0 10px rgba(200,150,100,.25); }
-html[data-mode="light"] .ov2-swap-info { color: #a1735f; }
-html[data-mode="light"] .ov2-history-empty { color: #a1735f; }
-html[data-mode="light"] .oracle-record-swap { background: rgba(138,106,52,.06); color: #8a5a3a; }
 html[data-mode="light"] .lines-tab { background: rgba(255,253,248,.6); color: #8a5a4a; }
 html[data-mode="light"] .lines-tab.active { color: #3a241d; background: rgba(181,111,107,.12); }
-html[data-mode="light"] .hide-slot { background: radial-gradient(circle at 50% 50%, rgba(200,140,120,.4) 0%, rgba(140,80,60,.5) 70%), repeating-linear-gradient(45deg, rgba(160,80,60,.05) 0 6px, transparent 6px 12px); }
-html[data-mode="light"] .hide-slot-text { color: #8a4a3a; }
-html[data-mode="light"] .whisper-reason { color: #8a5a3a; text-shadow: none; }
-html[data-mode="light"] .whisper-label { color: #a1735f; }
 
-/* 移动端 */
 @media (max-width: 460px) {
   .spread-opt { padding: 10px 11px; min-height: 86px; }
   .spread-opt-name { font-size: 12.5px; }
@@ -1935,7 +1642,6 @@ html[data-mode="light"] .whisper-label { color: #a1735f; }
   .ov2-swap-reason { font-size: 12px; }
   .ov2-swap-info { font-size: 9.5px; }
   .hide-slot-text { font-size: 8.5px; }
-  .hide-slot-hint { font-size: 7.5px; }
   .whisper-card-box { width: 76px; }
   .whisper-reason { font-size: 11px; }
   .lines-tab { font-size: 10px; padding: 4px 8px; }
@@ -1946,54 +1652,30 @@ html[data-mode="light"] .whisper-label { color: #a1735f; }
   .ov2-shuffle-card, .ov2-shuffle-label, .ov2-wand,
   .ov2-char-line, .ov2-flash, .spread-card.charmed,
   .hide-slot, .hide-slot-eye, .hide-slot.shake {
-    transition: none !important;
-    animation: none !important;
+    transition: none !important; animation: none !important;
   }
 }
     `;
     document.head.appendChild(style);
   }
 
-  /* ============================================================
-     事件
-     ============================================================ */
   function bindEvents() {
     const dialog = $('#oracleDialogV2');
     if (!dialog) return;
-
-    dialog.querySelectorAll('[data-close]').forEach(btn => {
-      btn.addEventListener('click', () => dialog.close());
-    });
+    dialog.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => dialog.close()));
     dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+    const drawBtn = $('#ov2DrawBtn'); if (drawBtn) drawBtn.addEventListener('click', startDraw);
+    const feltBtn = $('#ov2FeltBtn'); if (feltBtn) feltBtn.addEventListener('click', () => { const o = $('#ov2FeelOptions'); if (o) o.hidden = !o.hidden; });
+    dialog.querySelectorAll('#ov2FeelOptions .oracle-feel-opt').forEach(btn => btn.addEventListener('click', () => finishDraw(btn.dataset.result)));
+    const clearBtn = $('#ov2ClearHistory'); if (clearBtn) clearBtn.addEventListener('click', clearHistory);
+    const linesBtn = $('#ov2LinesBtn'); if (linesBtn) linesBtn.addEventListener('click', openLinesDialog);
 
-    const drawBtn = $('#ov2DrawBtn');
-    if (drawBtn) drawBtn.addEventListener('click', startDraw);
-
-    const feltBtn = $('#ov2FeltBtn');
-    if (feltBtn) feltBtn.addEventListener('click', () => {
-      const opts = $('#ov2FeelOptions');
-      if (opts) opts.hidden = !opts.hidden;
-    });
-
-    dialog.querySelectorAll('#ov2FeelOptions .oracle-feel-opt').forEach(btn => {
-      btn.addEventListener('click', () => finishDraw(btn.dataset.result));
-    });
-
-    const clearBtn = $('#ov2ClearHistory');
-    if (clearBtn) clearBtn.addEventListener('click', clearHistory);
-
-    const linesBtn = $('#ov2LinesBtn');
-    if (linesBtn) linesBtn.addEventListener('click', openLinesDialog);
-
-    /* 台词库 */
     const linesDialog = $('#ov2LinesDialog');
     if (linesDialog) {
       linesDialog.addEventListener('click', e => { if (e.target === linesDialog) linesDialog.close(); });
       $('#ov2LinesClose').addEventListener('click', () => linesDialog.close());
       $('#ov2LinesAddBtn').addEventListener('click', addLineToCurrent);
-      $('#ov2LinesInput').addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addLineToCurrent(); }
-      });
+      $('#ov2LinesInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addLineToCurrent(); } });
       $('#ov2LinesSaveBtn').addEventListener('click', saveLinesAndClose);
       $('#ov2LinesResetBtn').addEventListener('click', resetLinesAndRefresh);
     }
@@ -2002,11 +1684,7 @@ html[data-mode="light"] .whisper-label { color: #a1735f; }
   let bindRetry = 0;
   function bindEntry() {
     const btn = document.getElementById('mirrorOracleBtn');
-    if (!btn) {
-      bindRetry += 1;
-      if (bindRetry < 50) setTimeout(bindEntry, 200);
-      return;
-    }
+    if (!btn) { bindRetry += 1; if (bindRetry < 50) setTimeout(bindEntry, 200); return; }
     if (btn.dataset.ov2Bound === '1') return;
     const clone = btn.cloneNode(true);
     clone.dataset.ov2Bound = '1';
@@ -2023,9 +1701,6 @@ html[data-mode="light"] .whisper-label { color: #a1735f; }
     bindEntry();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();
