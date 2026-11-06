@@ -1,7 +1,7 @@
 /* 镜魇 · 离线缓存
    改了样式或脚本后：把下面的 VERSION 加一，并同步 index.html 里的 ?v= 数字。 */
 
-const VERSION = 'jingyan-v32';
+const VERSION = 'jingyan-v37';
 
 /* 与 index.html 里的实际引用保持一致（漏缓存会导致断网时“网络连接失败”） */
 const ASSETS = [
@@ -13,6 +13,7 @@ const ASSETS = [
   './pet.css?v=4',
   './app.js?v=19',
   './mirror.js',
+  './oracle.js?v=6',
   './mirror-scene.js?v=2',
   './tuning.js?v=1',
   './call.js?v=2',
